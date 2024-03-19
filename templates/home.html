@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Page</title>
+    <style>
+        .header-logo img {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        /* Links inside the dropdown */
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        /* Change color of dropdown links on hover */
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Styles for the navigation bar */
+        .navbar {
+            height: 100%;
+            width: 200px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-color: #f0f0f0;
+            padding: 20px;
+            margin-top: 100px;
+        }
+        .navbar a {
+            display: block;
+            padding: 10px 0;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #ccc;
+        }
+        .navbar a:hover {
+            background-color: #ddd;
+        }
+        /* Main content */
+        .content {
+            margin-left: 220px; /* Adjust based on the width of the navbar */
+            padding: 20px;
+        }
+
+        .dropdown-one {
+            cursor: pointer;
+            display: none;
+            position: absolute;
+            background-color: #f0f0f0;
+            min-width: 180px;
+        }
+
+        .dropdown-two {
+            cursor: pointer;
+            display: none;
+            position: absolute;
+            left: 180px;
+            top: 0px;
+            min-width: 180px;
+            background-color: #f9f9f9;
+        }
+        .dropdown:hover .dropdown-one, #link1:hover > .dropdown-two {
+            display: block;
+        }
+
+        .dropdown-one .dItem {
+            color: black;
+            padding: 12px 16px;
+            display: block;
+            text-align: left;
+        }
+
+        .dropdown-one .dItem:hover, .dropdown-two a:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<header>
+    <div class="header-logo">
+        <img src="/images/LogoMM.png" alt="Logo">
+    </div>
+</header>
+<body>
+    <!-- Navigation bar -->
+    <div class="navbar">
+        <a href="{{ url_for('home', username=username) }}">Home</a>
+        <a href="#">Potrošnja materiala</a>
+        <a id="link1" class="dropdown-one" href="#">Planiranje proizvodnje &rarr;
+            <!-- Inside Dropdown -->
+            <div class="dropdown-two">
+                <div class="dItem" id="file" href="#">Planiranje pripravnega dela</div>
+                <div class="dItem" id="file" href="#">Aktivni nalogi</div>
+            </div>
+        </a>
+        <a href="#">Normativi</a>
+        <a href="#">Verzug lista</a>
+        <a href="#">Evidenca ur</a>
+
+        <a href="{{ url_for('sign_out') }}">Sign Out</a>
+        {% if role == "admin" %}
+            <a href="{{ url_for('add_user') }}">Add User</a>
+        {% endif %}
+    </div>
+
+    <!-- Main content -->
+    <div class="content">
+        <h1>Welcome, {{ username }}!</h1>
+        <p>Your role is: {{ role }}</p>
+    </div>
+
+</body>
+</html>

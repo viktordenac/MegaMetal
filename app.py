@@ -4,14 +4,6 @@ from flask_sqlalchemy import SQLAlchemy
 app = Flask(__name__)
 app.secret_key = "haas#5ess!"  # Change this to a random secret key
 
-# Dummy user data (replace this with a real user authentication system)
-users = {
-    1: {"ID": 1, "username": "admin", "password": "admin", "role": "admin"},
-    2: {"username": "user1", "password": "user1", "role": "user"},
-    3: {"username": "poslovodja", "password": "123", "role": "poslovodja"},
-    4: {"username": "user2", "password": "user2", "role": "user"},
-}
-
 def is_authenticated():
     return "user_id" in session
 
@@ -27,6 +19,11 @@ class TBA_RAD(db.Model):
     Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
     Mjesto = db.Column(db.String(10))
 
+class DELOVNI_NALOG(db.Model):
+    __tablename__ = 'TRN_RN'
+    Id_rn = db.Column(db.CHAR(50), primary_key=True)
+    Aktivan = db.Column(db.CHAR(2))
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -34,8 +31,8 @@ def login():
         employee = TBA_RAD.query.filter_by(Kartica=user_id).first()
         if employee:
             # Authentication successful, store user ID in session
-            print(employee.Kartica)
             session["user_id"] = employee.Kartica
+            session["username"] = employee.Ime
             return redirect(url_for("about"))
         else:
             # Authentication failed, reload login page with an error message
@@ -53,7 +50,9 @@ def home():
 def about():
     if not is_authenticated():
         return redirect(url_for("login"))
-    return render_template("evidencaUr.html")
+    activities = DELOVNI_NALOG.query.all()
+    print(activities)
+    return render_template("evidencaUr.html", activities=activities)
 
 @app.route("/sign_out")
 def sign_out():

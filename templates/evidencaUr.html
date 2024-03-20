@@ -113,19 +113,14 @@
 
     <!-- Main content -->
     <div class="content">
-        <h1>Welcome, {{ username }}!</h1>
-        <p>Your role is: {{ role }}</p>
+        <h1>Welcome, {{ session["username"] }}!</h1>
         <label for="activity">Select Activity:</label>
         <div class="dropdown">
             <input type="text" id="activityInput" oninput="filterDropdown()" onclick="showDropdown()" placeholder="Search...">
             <div id="activityDropdown" class="dropdown-content">
-                <a href="#">Reading</a>
-                <a href="#">Writing</a>
-                <a href="#">Coding</a>
-                <a href="#">Designing</a>
-                <a href="#">Testing</a>
-                <a href="#">Meeting</a>
-                <a href="#">Break</a>
+                {% for activity in activities %}
+                    <a href="#">{{ activity.Id_rn }}</a>
+                {% endfor %}
             </div>
         </div>
         <hr>

@@ -58,5 +58,9 @@
         <input type="password" name="password" placeholder="Password" required>
         <input type="submit" value="Login">
     </form>
+    <!-- Button for ID login -->
+    <form method="GET" action="{{ url_for('login_with_id') }}">
+        <button type="submit">Login with ID</button>
+    </form>
 </body>
 </html>

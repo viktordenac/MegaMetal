@@ -33,7 +33,7 @@ def login():
             # Authentication successful, store user ID in session
             session["user_id"] = employee.Kartica
             session["username"] = employee.Ime
-            return redirect(url_for("about"))
+            return redirect(url_for("evidenca_ur"))
         else:
             # Authentication failed, reload login page with an error message
             return render_template("login.html", error="Invalid user ID.")
@@ -47,10 +47,10 @@ def home():
     return render_template("home.html")
 
 @app.route("/evidencaUr")
-def about():
+def evidenca_ur():
     if not is_authenticated():
         return redirect(url_for("login"))
-    activities = DELOVNI_NALOG.query.all()
+    activities = DELOVNI_NALOG.query.filter_by(Aktivan='1').all()
     print(activities)
     return render_template("evidencaUr.html", activities=activities)
 
@@ -59,13 +59,6 @@ def sign_out():
     # Clear the session data
     session.clear()
     return redirect(url_for("login"))
-
-from flask import render_template
-
-@app.route("/time_entry", methods=["GET"])
-def time_entry():
-    return render_template("evidencaUr.html")
-
 
 if __name__ == "__main__":
     app.run(debug=True)

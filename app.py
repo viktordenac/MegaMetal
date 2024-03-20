@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, session
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-app.secret_key = "your_secret_key"  # Change this to a random secret key
+app.secret_key = "haas#5ess!"  # Change this to a random secret key
 
 # Dummy user data (replace this with a real user authentication system)
 users = {
@@ -14,14 +15,28 @@ users = {
 def is_authenticated():
     return "user_id" in session
 
+# Replace the following with your actual PostgreSQL connection string
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:potgresql@192.168.100.216/megametal'
+
+# Initialize SQLAlchemy extension
+db = SQLAlchemy(app)
+
+class TBA_RAD(db.Model):
+    __tablename__ = 'TBA_RAD'
+    Ime = db.Column(db.String(100))
+    Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
+    Mjesto = db.Column(db.String(10))
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         user_id = int(request.form["user_id"])
-        if user_id in users:
+        employee = TBA_RAD.query.filter_by(Kartica=user_id).first()
+        if employee:
             # Authentication successful, store user ID in session
-            session["user_id"] = user_id
-            return redirect(url_for("home"))
+            print(employee.Kartica)
+            session["user_id"] = employee.Kartica
+            return redirect(url_for("about"))
         else:
             # Authentication failed, reload login page with an error message
             return render_template("login.html", error="Invalid user ID.")
@@ -29,35 +44,16 @@ def login():
 
 @app.route("/home")
 def home():
+    #TODO Dont forget to remove this comment
+    # if not is_authenticated():
+    #     return redirect(url_for("login"))
+    return render_template("home.html")
+
+@app.route("/evidencaUr")
+def about():
     if not is_authenticated():
         return redirect(url_for("login"))
-    user_id = session["user_id"]
-    username = users[user_id]["username"]
-    role = users[user_id]["role"]
-    return render_template("home.html", username=username, role=role)
-
-# @app.route("/about")
-# def about():
-#     if not is_authenticated():
-#         return redirect(url_for("login"))
-#     username = session["username"]
-#     role = users[username]["role"]
-#     return render_template("testing.html", username=username, role=role)
-
-# @app.route("/add_user", methods=["GET", "POST"])
-# def add_user():
-#     if not is_authenticated():
-#         return redirect(url_for("login"))
-#     if request.method == "POST":
-#         username = request.form["username"]
-#         password = request.form["password"]
-#         role = request.form["role"]
-#         if users.get(session["username"], {}).get("role") == "admin":
-#             users[username] = {"password": password, "role": role}
-#             return redirect(url_for("home"))
-#         else:
-#             return "Unauthorized: Only admin users can add new users."
-#     return render_template("add_user.html")
+    return render_template("evidencaUr.html")
 
 @app.route("/sign_out")
 def sign_out():
@@ -69,7 +65,7 @@ from flask import render_template
 
 @app.route("/time_entry", methods=["GET"])
 def time_entry():
-    return render_template("testing.html")
+    return render_template("evidencaUr.html")
 
 
 if __name__ == "__main__":

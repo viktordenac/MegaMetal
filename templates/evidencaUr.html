@@ -26,7 +26,7 @@
             z-index: 1;
         }
 
-        .dropdown-content a {
+        .dropdown-content div {
             color: black;
             padding: 12px 16px;
             text-decoration: none;
@@ -123,7 +123,7 @@
             <input type="text" id="activityInput" oninput="filterDropdown()" onclick="showDropdown()" placeholder="Search...">
             <div id="activityDropdown" class="dropdown-content">
                 {% for activity in activities %}
-                    <a href="#">{{ activity.Id_rn }}</a>
+                    <div class="dropdown-option" onclick="selectOption('{{ activity.Id_rn }}')">{{ activity.Id_rn }}</div>
                 {% endfor %}
             </div>
         </div>
@@ -148,10 +148,10 @@
           <option value="40">40</option>
           <option value="50">50</option>
         </select>
-        <hr>
         <div id="send-selected-time">
-            <input type="submit" value="POTRDI">
+            <input id="send-selected-timee" type="submit" value="POTRDI">
         </div>
+        <hr>
     </div>
 </body>
 
@@ -181,20 +181,9 @@
         }
     }
 
-    function toggleClock() {
-        var clock = document.querySelector('.clock');
-        var hoursInput = document.getElementById('hoursInput');
-        var hours = prompt('Enter hours spent:');
-        if (hours !== null && !isNaN(hours) && parseFloat(hours) >= 0) {
-            hoursInput.value = parseFloat(hours).toFixed(2);
-            clock.textContent = formatTime(parseFloat(hours));
-        }
-    }
-
-    function formatTime(hours) {
-        var hh = Math.floor(hours);
-        var mm = Math.round((hours - hh) * 60);
-        return (hh < 10 ? '0' : '') + hh + ':' + (mm < 10 ? '0' : '') + mm;
+    function selectOption(id) {
+        document.getElementById("activityInput").value = id;
+        hideDropdown(); // You may want to hide the dropdown after selecting an option
     }
 
     window.onclick = function(event) {
@@ -208,5 +197,18 @@
             }
         }
     }
+
+    document.getElementById('send-selected-timee').addEventListener('click', function() {
+            // Get the values from the DUre and DMinute elements
+            var DelovniNalogValue = document.getElementById('activityInput').value;
+            var DUreValue = document.getElementById('DUre').value;
+            var DMinuteValue = document.getElementById('DMinute').value;
+
+            // Do something with the values (for example, log them to the console)
+            alert("DelovniNalog: " + DelovniNalogValue + "\nDUre value: " + DUreValue + "\nDMinute value: " + DMinuteValue);
+
+
+            // You can also use these variables to send them via AJAX or perform any other action
+        });
 </script>
 </html>

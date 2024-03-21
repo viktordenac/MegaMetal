@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from flask import Flask, render_template, request, redirect, url_for, session
 from flask_sqlalchemy import SQLAlchemy
 
@@ -18,6 +20,14 @@ class TBA_RAD(db.Model):
     Ime = db.Column(db.String(100))
     Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
     Mjesto = db.Column(db.String(10))
+
+class TEV_EVID(db.Model):
+    __tablename__ = 'TEV_EVID'
+    Datum = db.Column(db.DATE())
+    Izmena = db.Column(db.INT())
+    Vrijeme = db.Column(db.FLOAT())
+    Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
+    Id_rn = db.Column(db.CHAR(50))
 
 class DELOVNI_NALOG(db.Model):
     __tablename__ = 'TRN_RN'
@@ -51,8 +61,43 @@ def evidenca_ur():
     if not is_authenticated():
         return redirect(url_for("login"))
     activities = DELOVNI_NALOG.query.filter_by(Aktivan='1').all()
-    print(activities)
+    # print(activities)
     return render_template("evidencaUr.html", activities=activities)
+
+@app.route("/submitEvidencaUr", methods=["GET", "POST"])
+def submit_evidenca_ur():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+
+    # Get data from the request
+    ure = request.form.get('DUre')
+    ure = int(ure)
+    minute = request.form.get('DMinute')
+    minute = int(minute)/60
+    kartica = session["user_id"]
+    id_rn = request.form.get('Id_rn')
+    vrijeme = ure + minute
+
+    datum = datetime.now().date()
+    trenutni_cas = datetime.now().time()
+
+    # Calculate izmena based on time
+    if trenutni_cas.hour >= 6 and trenutni_cas.hour < 14:
+        izmena = 1
+    elif trenutni_cas.hour >= 14 and trenutni_cas.hour < 22:
+        izmena = 2
+    else:
+        izmena = 3
+
+
+    # Create a new TBA_EVID object
+    new_entry = TEV_EVID(Datum=datum, Izmena=izmena, Vrijeme=vrijeme, Kartica=kartica, Id_rn=id_rn)
+
+    # Add the new entry to the database session and commit
+    db.session.add(new_entry)
+    db.session.commit()
+
+    return "Data inserted successfully!"
 
 @app.route("/sign_out")
 def sign_out():

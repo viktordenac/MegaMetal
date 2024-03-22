@@ -4,18 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TREZ_TIME Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        table {
-            border-collapse: collapse;
+        /* Adjust chart container size */
+        #myChart {
             width: 100%;
+            max-height: 800px;
+            margin: 0 auto; /* Center the container */
         }
-        th, td {
-            border: 1px solid #dddddd;
-            text-align: left;
-            padding: 8px;
-        }
-        th {
-            background-color: #f2f2f2;
+
+        /* Adjust canvas size */
+        canvas {
+            max-width: 100%; /* Ensure canvas doesn't overflow its container */
+            height: auto; /* Maintain canvas aspect ratio */
         }
     </style>
 </head>
@@ -28,7 +29,7 @@
         <input type="date" id="to_date" name="to_date" value="2024-12-31">
         <button type="button" onclick="fetchData()">Select Dates</button>
     </form>
-    <div id="data_container"></div>
+    <canvas id="myChart"></canvas>
 
     <script>
         function fetchData() {
@@ -39,7 +40,7 @@
             xhr.onload = function() {
                 if (xhr.status === 200) {
                     var response = JSON.parse(xhr.responseText);
-                    displayData(response);
+                    displayChart(response);
                 } else {
                     console.error('Request failed. Status: ' + xhr.status);
                 }
@@ -47,20 +48,55 @@
             xhr.send();
         }
 
-        function displayData(response) {
-            var container = document.getElementById('data_container');
-            if (response.error) {
-                container.innerHTML = '<p>' + response.error + '</p>';
-            } else {
-                var data = response.data;
-                var html = '<table><thead><tr><th>ID</th><th>Date Created</th><th>Postotak</th></tr></thead><tbody>';
-                data.forEach(function(row) {
-                    html += '<tr><td>' + row.JobCode + '</td><td>' + row.DateCreated + '</td><td>' + row.Postotak + '%</td></tr>';
-                });
-                html += '</tbody></table>';
-                container.innerHTML = html;
+        function displayChart(response) {
+            var data = response.data;
+            var labels = data.map(function(row) {
+                return row.JobCode;
+            });
+            var postotakData = data.map(function(row, index) {
+                return {
+                    value: row.Postotak,
+                    color: index % 2 === 0 ? 'rgba(255, 99, 132, 0.2)' : 'rgba(54, 162, 235, 0.2)', // Alternating colors
+                    borderColor: index % 2 === 0 ? 'rgba(255, 99, 132, 1)' : 'rgba(54, 162, 235, 1)',
+                };
+            });
+
+            var ctx = document.getElementById('myChart').getContext('2d');
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Postotak',
+                        data: postotakData.map(function(item) {
+                            return item.value;
+                        }),
+                        backgroundColor: postotakData.map(function(item) {
+                            return item.color;
+                        }),
+                        borderColor: postotakData.map(function(item) {
+                            return item.borderColor;
+                        }),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Update the existing chart instead of creating a new one
+            if (window.myChart !== undefined) {
+                window.myChart.destroy(); // Destroy the existing chart instance
             }
+            window.myChart = myChart; // Save the new chart instance
         }
+
+
     </script>
 </body>
 </html>

@@ -25,9 +25,16 @@ class TEV_EVID(db.Model):
     __tablename__ = 'TEV_EVID'
     Datum = db.Column(db.DATE())
     Izmena = db.Column(db.INT())
+    Faza = db.Column(db.CHAR(50))
+    Opombe = db.Column(db.CHAR(100))
     Vrijeme = db.Column(db.FLOAT())
     Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
     Id_rn = db.Column(db.CHAR(50))
+
+class TBA_FAZA(db.Model):
+    __tablename__ = 'TBA_FAZA'
+    Key = db.Column(db.CHAR(2), primary_key=True)
+    Test = db.Column(db.CHAR(20))
 
 class DELOVNI_NALOG(db.Model):
     __tablename__ = 'TRN_RN'
@@ -49,20 +56,15 @@ def login():
             return render_template("login.html", error="Invalid user ID.")
     return render_template("login.html", error=None)
 
-@app.route("/home")
-def home():
-    #TODO Dont forget to remove this comment
-    # if not is_authenticated():
-    #     return redirect(url_for("login"))
-    return render_template("home.html")
-
 @app.route("/evidencaUr")
 def evidenca_ur():
     if not is_authenticated():
         return redirect(url_for("login"))
     activities = DELOVNI_NALOG.query.filter_by(Aktivan='1').all()
-    # print(activities)
-    return render_template("evidencaUr.html", activities=activities)
+    faze = TBA_FAZA.query.filter_by(Key='V').all()
+    faze_values = [faza.Test for faza in TBA_FAZA.query.all()]
+    print(faze_values)  # This will print a list of values
+    return render_template("evidencaUr.html", radniNalogi=activities, faze=faze)
 
 @app.route("/submitEvidencaUr", methods=["GET", "POST"])
 def submit_evidenca_ur():
@@ -76,26 +78,29 @@ def submit_evidenca_ur():
     minute = int(minute)/60
     kartica = session["user_id"]
     id_rn = request.form.get('Id_rn')
+    faza = request.form.get('Faza')
+    opombe = request.form.get('Opomba')
+    print(faza,opombe)
     vrijeme = ure + minute
 
     datum = datetime.now().date()
     trenutni_cas = datetime.now().time()
 
     # Calculate izmena based on time
-    if trenutni_cas.hour >= 6 and trenutni_cas.hour < 14:
+    if trenutni_cas.hour >= 6 and trenutni_cas.hour < 15:
         izmena = 1
-    elif trenutni_cas.hour >= 14 and trenutni_cas.hour < 22:
+    elif trenutni_cas.hour >= 15 and trenutni_cas.hour < 23:
         izmena = 2
     else:
         izmena = 3
+    if id_rn:
+        # Create a new TBA_EVID object
+        new_entry = TEV_EVID(Datum=datum, Izmena=izmena, Faza=faza, Opombe=opombe, Vrijeme=vrijeme, Kartica=kartica, Id_rn=id_rn)
+        # Add the new entry to the database session and commit
+        db.session.add(new_entry)
+        db.session.commit()
 
 
-    # Create a new TBA_EVID object
-    new_entry = TEV_EVID(Datum=datum, Izmena=izmena, Vrijeme=vrijeme, Kartica=kartica, Id_rn=id_rn)
-
-    # Add the new entry to the database session and commit
-    db.session.add(new_entry)
-    db.session.commit()
 
     return "Data inserted successfully!"
 

@@ -1,138 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTP-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Time Tracker</title>
-    <style>
-        input {
-            width: 100%;
-            height: 100%;
-            font-size: 25px;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .dropdown {
-            position: relative;
-            display: inline-block;
-            width: 400px;
-            height: 80px;
-            padding: 10px;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 200px;
-            max-height: 150px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            z-index: 1;
-
-
-            width: 90%;
-            font-size: 25px;
-            font-weight: bold;
-            text-align: center;
-            vertical-align: center;
-        }
-
-        .dropdown-content div {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* WARNING DON'T DELETE */
-        .show {
-            display: block;
-        }
-
-        .header-logo img {
-            display: flex;
-            justify-content: left;
-            align-items: center;
-            max-width: 100%;
-        }
-        /* Links inside the dropdown */
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        /* Change color of dropdown links on hover */
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* Styles for the navigation bar */
-        .navbar {
-            height: 100%;
-            width: 12%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: #f0f0f0;
-            padding: 20px;
-            margin-top: 1px;
-        }
-        .navbar a {
-            display: block;
-            padding: 10px 0;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #ccc;
-        }
-        .navbar a:hover {
-            background-color: #ddd;
-        }
-        /* Main content */
-        .content {
-            margin-left: 14%; /* Adjust based on the width of the navbar */
-            padding: 20px;
-        }
-        #send-selected-time{
-            text-align: center;
-        }
-        /* Style for the confrim button */
-        a[type="submit"] {
-            width: 100px;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 0;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-        a[type="submit"]:hover {
-            background-color: #45a049;
-        }
-        .notification-popup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 55%;
-            transform: translate(-50%, -50%);
-            background-color: #333;
-            color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            z-index: 1000;
-        }
-
-        .notification-message {
-            font-size: 25px;
-        }
-    </style>
+    <link rel="stylesheet" href="../static/style.css">
+    <link rel="stylesheet" href="../static/confirmButton.css">
+    <link rel="stylesheet" href="../static/dropdownIdNr.css">
+    <link rel="stylesheet" href="../static/dropdownEvidencaUr.css">
+    <link rel="stylesheet" href="../static/dropdownFaza.css">
+    <link rel="stylesheet" href="../static/notification.css">
+    <link rel="stylesheet" href="../static/navigationBar.css">
 </head>
 <body>
     <!-- Navigation bar -->
@@ -146,61 +24,85 @@
 
     <!-- Main content -->
     <div class="content">
-        <h1>Welcome, {{ session["username"] }}!</h1>
+        <div>
+            <h1>Welcome, {{ session["username"] }}!</h1>
         <h2>Izberite delovni nalog in število ur, ki ste jih porabili za delo:</h2>
-        <div class="dropdown">
-            <input type="text" id="Id_rn" oninput="filterDropdown()" onclick="toggleDropdown()" placeholder="Search...">
-            <div id="activityDropdown" class="dropdown-content">
-                {% for activity in activities %}
-                    <a class="dropdown-option" onclick="selectOption('{{ activity.Id_rn }}')">{{ activity.Id_rn }}</a>
+        </div>
+        <div></div>
+        <div class="dropdownIdNr">
+            <input type="text" id="Id_rn" oninput="filterDropdown('Id_rn', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown')" placeholder="Išči Delovni Nalog...">
+            <div id="delovniNalogDropdown" class="dropdown-content">
+                {% for idRadnogNaloga in radniNalogi %}
+                    <a class="dropdown-option-id-rn" onclick="selectOption('{{ idRadnogNaloga.Id_rn }}', 'Id_rn')">{{ idRadnogNaloga.Id_rn }}</a>
                 {% endfor %}
             </div>
         </div>
-        <select id="DUre">
-          <option value="0">0</option>
-          <option value="1">1</option>
-          <option value="2">2</option>
-          <option value="3">3</option>
-          <option value="4">4</option>
-          <option value="5">5</option>
-          <option value="6">6</option>
-          <option value="7">7</option>
-          <option value="8">8</option>
-          <option value="9">9</option>
-          <option value="10">10</option>
-        </select>
-        <select id="DMinute">
-          <option value="0">0</option>
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="30">30</option>
-          <option value="40">40</option>
-          <option value="50">50</option>
-        </select>
-        <div id="send-selected-time">
-            <a id="send-selected-timee" type="submit" value="POTRDI">POTRDI</a>
+        <div class="dropdownEvidencaUr">
+            <h3>Število ur:</h3>
+            <h3>Število minut:</h3>
+            <div class="dropdownUre">
+                <select id="DUre">
+                  <option value="0">0</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+            </select>
+            </div>
+            <div class="dropdownUre">
+                <select id="DMinute">
+                  <option value="0">0</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="30">30</option>
+                  <option value="40">40</option>
+                  <option value="50">50</option>
+            </select>
+            </div>
         </div>
-        <hr>
-        <div id="notification-popup" class="notification-popup">
-            <span id="notification-message" class="notification-message"></span>
+        <div class="dropdownFaza">
+            <input type="text" id="Faza" oninput="filterDropdown('Faza', 'fazaDropdown', 'faza-dropdown-option')" onclick="toggleDropdown('fazaDropdown')" placeholder="Išči Fazo ali Vnesi Ročno">
+            <div id="fazaDropdown" class="dropdown-content-faza">
+                {% for faz in faze %}
+                    <a class="faza-dropdown-option" onclick="selectOption('{{ faz.Test }}', 'Faza')">{{ faz.Test }}</a>
+                {% endfor %}
+            </div>
         </div>
+        <div class="textboxOpomba">
+                <input type="text" id="Opomba" placeholder="Vnesi opombo po potrebi">
+        </div>
+    </div>
+    <div id="send-selected-time">
+        <a id="send-selected-timee" type="submit" value="POTRDI">POTRDI</a>
+    </div>
+    <div id="notification-popup" class="notification-popup">
+        <span id="notification-message" class="notification-message"></span>
     </div>
 </body>
 
 
 <script>
-    function toggleDropdown() {
-        var dropdown = document.getElementById("activityDropdown");
-        dropdown.classList.toggle("show");
+    function toggleDropdown(idOfElement) {
+        var dropdown = document.getElementById(idOfElement);
+        if(!dropdown.classList.contains("show")) {
+            dropdown.classList.toggle("show");
+            return;
+        }
         filterDropdown(); // Reset filter when showing dropdown
     }
 
-    function filterDropdown() {
+    function filterDropdown(filteredItem, idOfElement, classOfElement) {
         var input, filter, ul, divs, i, txtValue;
-        input = document.getElementById("Id_rn");
+        input = document.getElementById(filteredItem);
         filter = input.value.toUpperCase();
-        ul = document.getElementById("activityDropdown");
-        divs = ul.getElementsByClassName("dropdown-option");
+        ul = document.getElementById(idOfElement);
+        divs = ul.getElementsByClassName(classOfElement);
 
         for (i = 0; i < divs.length; i++) {
             txtValue = divs[i].textContent || divs[i].innerText;
@@ -214,14 +116,23 @@
 
 
 
-    function selectOption(id) {
-        document.getElementById("Id_rn").value = id;
+    function selectOption(selectedOption, textValue) {
+        document.getElementById(textValue).value = selectedOption;
         toggleDropdown(); // You may want to hide the dropdown after selecting an option
     }
 
     window.onclick = function(event) {
         if (!event.target.matches('.dropdown-content') && !event.target.matches('.dropdown-content a') && !event.target.matches('#Id_rn')) {
-            var dropdowns = document.getElementsByClassName("dropdown-content");
+            var dropdownsIdRn = document.getElementsByClassName("dropdown-content");
+            for (var i = 0; i < dropdownsIdRn.length; i++) {
+                var openDropdownIdRn = dropdownsIdRn[i];
+                if (openDropdownIdRn.classList.contains('show')) {
+                    openDropdownIdRn.classList.remove('show');
+                }
+            }
+        }
+        if (!event.target.matches('.dropdown-content-faza') && !event.target.matches('.dropdown-content-faza a') && !event.target.matches('#Faza')) {
+            var dropdowns = document.getElementsByClassName("dropdown-content-faza");
             for (var i = 0; i < dropdowns.length; i++) {
                 var openDropdown = dropdowns[i];
                 if (openDropdown.classList.contains('show')) {
@@ -238,12 +149,16 @@
     var DelovniNalogValue = document.getElementById('Id_rn').value;
     var DUreValue = document.getElementById('DUre').value;
     var DMinuteValue = document.getElementById('DMinute').value;
+    var Faza = document.getElementById('Faza').value;
+    var Opomba = document.getElementById('Opomba').value;
 
     // Create a FormData object to send form data
     var formData = new FormData();
     formData.append('Id_rn', DelovniNalogValue);
     formData.append('DUre', DUreValue);
     formData.append('DMinute', DMinuteValue);
+    formData.append('Faza', Faza);
+    formData.append('Opomba', Opomba);
 
     // Send a POST request with form data to the server
     fetch('/submitEvidencaUr', {

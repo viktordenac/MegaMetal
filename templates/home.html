@@ -12,6 +12,16 @@
             padding: 20px;
             max-width: 240px;
         }
+
+        /* Ensure only one dropdown is visible at a time */
+        .dropdown-content {
+            display: none;
+        }
+
+        .show-dropdown {
+            display: block;
+        }
+
         /* Links inside the dropdown */
         .dropdown-content a {
             color: black;
@@ -53,35 +63,75 @@
             padding: 20px;
         }
 
-        .dropdown-one {
-            cursor: pointer;
-            display: none;
-            position: absolute;
-            background-color: #f0f0f0;
-            min-width: 180px;
+        .potrosnja-materiala {
+            cursor: default; /* Change cursor style */
+            position: relative; /* Change position to relative */
+            display: block;
+            padding: 10px 0;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #ccc;
         }
 
-        .dropdown-two {
+        .dropdown-potrosnja-materiala {
             cursor: pointer;
             display: none;
             position: absolute;
-            left: 180px;
-            top: 0px;
+            top: 2%;
+            left: 70%;
             min-width: 180px;
             background-color: #f9f9f9;
+            margin-left: 30%;
         }
-        .dropdown:hover .dropdown-one, #link1:hover > .dropdown-two {
+
+        .potrosnja-materiala:hover .dropdown-potrosnja-materiala {
             display: block;
         }
 
-        .dropdown-one .dItem {
+        .potrosnja-materiala .ddPotrosnja {
             color: black;
             padding: 12px 16px;
             display: block;
             text-align: left;
         }
 
-        .dropdown-one .dItem:hover, .dropdown-two a:hover {
+        .potrosnja-materiala .ddPotrosnja:hover {
+            background-color: #ddd;
+        }
+
+        .planiranje-proizvodnje {
+            cursor: default; /* Change cursor style */
+            position: relative; /* Change position to relative */
+            display: block;
+            padding: 10px 0;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .dropdown-planiranje-proizvodnje {
+            cursor: pointer;
+            display: none;
+            position: absolute;
+            top: 2%;
+            left: 70%;
+            min-width: 180px;
+            background-color: #f9f9f9;
+            margin-left: 30%;
+        }
+
+        .planiranje-proizvodnje:hover .dropdown-planiranje-proizvodnje {
+            display: block;
+        }
+
+        .planiranje-proizvodnje .dItem {
+            color: black;
+            padding: 12px 16px;
+            display: block;
+            text-align: left;
+        }
+
+        .planiranje-proizvodnje .dItem:hover {
             background-color: #ddd;
         }
     </style>
@@ -95,14 +145,22 @@
     <!-- Navigation bar -->
     <div class="navbar">
         <a href="{{ url_for('home', username=username) }}">Home</a>
-        <a href="#">Potrošnja materiala</a>
-        <a id="link1" class="dropdown-one" href="#">Planiranje proizvodnje &rarr;
+        <div class="potrosnja-materiala">
+            Potrošnja materiala &rarr;
             <!-- Inside Dropdown -->
-            <div class="dropdown-two">
-                <div class="dItem" id="file" href="#">Planiranje pripravnega dela</div>
-                <div class="dItem" id="file" href="#">Aktivni nalogi</div>
+            <div class="dropdown-potrosnja-materiala">
+                <a href="{{ url_for('potrosnja_materiala') }}"><div class="ddPotrosnja">Grafi</div></a>
+                <a href="#"><div class="ddPotrosnja">TODO</div></a>
             </div>
-        </a>
+        </div>
+        <div class="planiranje-proizvodnje">
+            Planiranje proizvodnje &rarr;
+            <!-- Inside Dropdown -->
+            <div class="dropdown-planiranje-proizvodnje">
+                <a href="#"><div class="dItem">Planiranje pripravnega dela</div></a>
+                <a href="#"><div class="dItem">Aktivni nalogi</div></a>
+            </div>
+        </div>
         <a href="#">Normativi</a>
         <a href="#">Verzug lista</a>
         <a href="#">Evidenca ur</a>
@@ -115,8 +173,7 @@
 
     <!-- Main content -->
     <div class="content">
-        <h1>Welcome, {{ username }}!</h1>
-        <p>Your role is: {{ role }}</p>
+        <h1>Welcome, {{ Username }}!</h1>
     </div>
 
 </body>

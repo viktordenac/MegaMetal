@@ -1,0 +1,36 @@
+
+/* Main content */
+.content {
+    border: 1px solid black;
+    align-content: center;
+    text-align: center;
+    margin-left: 14%; /* Adjust based on the width of the navbar */
+    padding: 20px;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+    display: grid;
+}
+
+.header-logo img {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    max-width: 100%;
+}
+
+select{
+    display: inline-block;
+    width: 20%;
+    height: 20%;
+    font-size: 25px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.textboxOpomba {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    height: 100%;
+    vertical-align: middle;
+}

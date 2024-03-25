@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -47,6 +47,7 @@ class TBA_RAD(db.Model):
     Mjesto = db.Column(db.CHAR(15))
     Username = db.Column(db.CHAR(15))
     Password = db.Column(db.CHAR(10))
+    Datexp = db.Column(db.DateTime())
 
 class TREZ_TIME(db.Model):
     __tablename__ = 'TREZ_TIME'
@@ -79,6 +80,11 @@ def login():
         form_username = request.form["username"]
         form_password = request.form["password"]
         user = TBA_RAD.query.filter_by(Username=form_username).first()
+
+        if form_username in ['uprava', 'proizvodnja', 'prodaja']:
+            if user.Datexp < date.today():
+                print(user.Datexp)
+                return render_template("login.html", error="Invalid username or password.")
 
         if user and form_password == str(user.Password):
             # Authentication successful
@@ -131,12 +137,16 @@ def proizvodnja():
 def potrosnja_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
     return render_template("/Uprava/potrosnja_materiala_grafi.html")
 
 @app.route("/Grupiranje_materiala")
 def grupiranje_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
     return render_template("/Uprava/grupiranje_materiala.html")
 
 @app.route("/Potrošnja materiala grafi")

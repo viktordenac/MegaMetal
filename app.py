@@ -235,5 +235,94 @@ def index():
         # Handle other roles or unauthorized access
         return render_template('unauthorized.html')
 
+
+@app.route('/user')
+def user():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
+    # Query all data
+    data = TBA_RAD.query.all()
+
+    unique_values = {}
+    for column in TBA_RAD.__table__.columns:
+        column_name = column.name
+        unique_values[column_name] = [getattr(row, column_name) for row in data if getattr(row, column_name) is not None]
+        # Filter out duplicates and sort
+        unique_values[column_name] = sorted(set(unique_values[column_name]))
+    return render_template('/Uprava/add_user.html', data=data, unique_values=unique_values)
+
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    # Get data from the form submission
+    name = request.form.get('name')
+    username = request.form.get('username')
+    kartica = request.form.get('kartica')
+    mjesto = request.form.get('mjesto')
+    password = request.form.get('password')
+    if(request.form.get('datexp') != ''):
+        datexp = request.form.get('datexp')
+    else:
+        datexp = None
+
+    # Check if a user with the same username already exists
+    existing_user = TBA_RAD.query.filter_by(Username=username).first()
+    if existing_user:
+        # User already exists, prompt the user for confirmation
+        return jsonify({'prompt': True, 'username': username})
+
+    # User does not exist, proceed with adding the user
+    new_user = TBA_RAD(Ime=name, Kartica=kartica, Mjesto=mjesto, Username=username, Password=password, Datexp=datexp)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'success': True})
+
+@app.route('/edit_user', methods=['POST'])
+def edit_user():
+    # Get data from the form submission
+    username = request.form.get('username')
+    # Retrieve other form data as needed
+
+    user = TBA_RAD.query.filter_by(Username=username).first()
+    user.Ime = request.form.get('name')
+    user.Kartica = request.form.get('kartica')
+    user.Mjesto = request.form.get('mjesto')
+    user.Password = request.form.get('password')
+    if(request.form.get('datexp') != ''):
+        user.Datexp = request.form.get('datexp')
+    else:
+        user.Datexp = None
+    db.session.commit()
+
+    # Return a JSON response indicating success
+    return jsonify({'success': True})
+
+from flask import request, jsonify
+
+@app.route('/delete_user', methods=['POST'])
+def delete_user():
+    if request.method == 'POST':
+        # Get the username to delete from the request
+        username = request.json.get('username')
+
+        # Check if the user exists
+        user = TBA_RAD.query.filter_by(Username=username).first()
+        if user:
+            try:
+                # Delete the user from the database
+                db.session.delete(user)
+                db.session.commit()
+                return jsonify({'success': True})
+            except Exception as e:
+                # Handle any errors that occur during deletion
+                print(e)
+                return jsonify({'success': False, 'error': 'Failed to delete user.'}), 500
+        else:
+            # Return a message indicating that the user does not exist
+            return jsonify({'success': False, 'error': 'User not found.'}), 404
+
+
 if __name__ == "__main__":
     app.run(debug=True)

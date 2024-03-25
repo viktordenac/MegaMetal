@@ -28,6 +28,7 @@
             background-color: #f0f0f0;
             padding: 20px;
             margin-top: 1px;
+            font-family: "Sans Serif Collection", sans-serif;
         }
         .navbar a {
             display: block;
@@ -152,9 +153,7 @@
         <a href="#">Verzug lista</a>
         <a href="#">Evidenca ur</a>
         <a href="{{ url_for('logout') }}">Sign Out</a>
-        {% if role == "admin" %}
-            <a href="{{ url_for('add_user') }}">Add User</a>
-        {% endif %}
+        <a href="{{ url_for('user') }}">Add User</a>
     </div>
 
     <!-- Main content -->

@@ -3,6 +3,9 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
+
+from flask import Flask, render_template, redirect, url_for
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 #python -m pip install flask_sqlalchemy
 
 app = Flask(__name__)
@@ -10,9 +13,32 @@ app.secret_key = "your_secret_key"  # Change this to a random secret key
 
 # Replace the following with your actual PostgreSQL connection string
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:potgresql@192.168.100.216/megametal'
-
 # Initialize SQLAlchemy extension
 db = SQLAlchemy(app)
+
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# Example user model
+class User(UserMixin):
+    def __init__(self, Kartica, Username, Mjesto):
+        self.id = Kartica
+        self.username = Username
+        self.role = Mjesto
+
+    def is_authenticated(self):
+        return True  # Assuming all users are authenticated
+
+    def is_active(self):
+        return True  # Assuming all users are active
+
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
+
 
 class TBA_RAD(db.Model):
     __tablename__ = 'TBA_RAD'
@@ -37,6 +63,12 @@ class TREZ_KALK(db.Model):
     Kvaliteta = db.Column(db.CHAR(20))  # Adjust data type and length as per your table schema
 
 
+@login_manager.user_loader
+def load_user(kartica):
+    employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
+    if employee:
+        return User(employee.Kartica, employee.Username, employee.Mjesto)
+    return None
 
 def is_authenticated():
     return "username" in session
@@ -46,26 +78,37 @@ def login():
     if request.method == "POST":
         form_username = request.form["username"]
         form_password = request.form["password"]
-        username = TBA_RAD.query.filter_by(Username=form_username).first()
+        user = TBA_RAD.query.filter_by(Username=form_username).first()
 
-        if username and form_password == str(username.Password):
-            # Authentication successful, store username in session
-            session["username"] = username.Username
-            session["role"] = username.Mjesto
-            print(session["role"])
-            print(session["username"])
-            return redirect(url_for("home"))
+        if user and form_password == str(user.Password):
+            # Authentication successful
+            login_user(User(user.Kartica, user.Username, user.Mjesto))
+            session["username"] = user.Username
+            session["role"] = user.Mjesto
+            return redirect(url_for('index'))
         else:
-            # Authentication failed, reload login page with an error message
+            # Authentication failed
             return render_template("login.html", error="Invalid username or password.")
     return render_template("login.html", error=None)
 
-@app.route("/home")
-def home():
+
+@app.route("/upravaHome")
+def uprava_home():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
     username = session["username"]
-    return render_template("home.html", Username=username)
+    return render_template("/Uprava/upravaHome.html", Username=username)
+
+@app.route("/proizvodnjaHome")
+def proizvodnja():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Proizvodnja':
+        return render_template('unauthorized.html')
+    username = session["username"]
+    return render_template("/Proizvodnja/proizvodnjaHome.html", Username=username)
 
 # @app.route("/add_user", methods=["GET", "POST"])
 # def add_user():
@@ -88,13 +131,13 @@ def home():
 def potrosnja_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
-    return render_template("potrosnja_materiala_grafi.html")
+    return render_template("/Uprava/potrosnja_materiala_grafi.html")
 
 @app.route("/Grupiranje_materiala")
 def grupiranje_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
-    return render_template("grupiranje_materiala.html")
+    return render_template("/Uprava/grupiranje_materiala.html")
 
 @app.route("/Potrošnja materiala grafi")
 def potrosnja_materiala_grafi():
@@ -162,13 +205,25 @@ def grupiranje_materiala_table():
         return jsonify({"error": str(e)})
 
 
-
-
-@app.route("/sign_out")
-def sign_out():
-    # Clear the session data
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
     session.clear()
-    return redirect(url_for("login"))
+    return redirect(url_for('login'))
+
+@app.route('/index')
+@login_required
+def index():
+    if current_user.role == 'Uprava':
+        # Return page accessible to 'uprava' role
+        return redirect(url_for("uprava_home"))
+    elif current_user.role == 'Proizvodnja':
+        # Return page accessible to 'prodaja' role
+        return redirect(url_for("proizvodnja"))
+    else:
+        # Handle other roles or unauthorized access
+        return render_template('unauthorized.html')
 
 if __name__ == "__main__":
     app.run(debug=True)

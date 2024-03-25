@@ -2,6 +2,7 @@ from datetime import datetime
 
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
+import pandas as pd
 #python -m pip install flask_sqlalchemy
 
 app = Flask(__name__)
@@ -17,7 +18,7 @@ class TBA_RAD(db.Model):
     __tablename__ = 'TBA_RAD'
     Ime = db.Column(db.String(100))
     Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
-    Mjesto = db.Column(db.String(10))
+    Mjesto = db.Column(db.CHAR(15))
     Username = db.Column(db.CHAR(15))
     Password = db.Column(db.CHAR(10))
 
@@ -26,6 +27,15 @@ class TREZ_TIME(db.Model):
     JobCode = db.Column(db.CHAR(25), primary_key=True)
     DateCreated = db.Column(db.DateTime)
     Postotak = db.Column(db.REAL)
+
+class TREZ_KALK(db.Model):
+    __tablename__ = 'TREZ_KALK'
+    Ident = db.Column(db.CHAR(10), primary_key=True)
+    Id_rn = db.Column(db.Integer, primary_key=True)  # Define additional columns as per your table schema
+    Bruto = db.Column(db.REAL)
+    Debljina = db.Column(db.INT())
+    Kvaliteta = db.Column(db.CHAR(20))  # Adjust data type and length as per your table schema
+
 
 
 def is_authenticated():
@@ -41,6 +51,8 @@ def login():
         if username and form_password == str(username.Password):
             # Authentication successful, store username in session
             session["username"] = username.Username
+            session["role"] = username.Mjesto
+            print(session["role"])
             print(session["username"])
             return redirect(url_for("home"))
         else:
@@ -72,14 +84,17 @@ def home():
 #     return render_template("add_user.html")
 
 
-from flask import request
-
-
 @app.route("/Potrosnja_materiala")
 def potrosnja_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
     return render_template("potrosnja_materiala_grafi.html")
+
+@app.route("/Grupiranje_materiala")
+def grupiranje_materiala():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    return render_template("grupiranje_materiala.html")
 
 @app.route("/Potrošnja materiala grafi")
 def potrosnja_materiala_grafi():
@@ -116,6 +131,37 @@ def potrosnja_materiala_grafi():
     else:
         print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
+
+
+from collections import defaultdict
+
+@app.route("/Grupiranje_materiala_table", methods=['POST'])
+def grupiranje_materiala_table():
+    if not is_authenticated():
+        return jsonify({"error": "Not authenticated"})
+
+    documentId = request.form.get('documentInput')
+
+    try:
+        # Fetch data from the database and create a pandas DataFrame
+        grouped_data = TREZ_KALK.query.filter(TREZ_KALK.Ident == documentId).all()
+        df = pd.DataFrame([(item.Ident, item.Bruto, item.Debljina, item.Kvaliteta) for item in grouped_data],
+                          columns=['Ident', 'Bruto', 'Debljina', 'Kvaliteta'])
+
+        # Group by 'Ident' and sum 'Bruto'
+        grouped_df = df.groupby('Ident').agg({'Bruto': 'sum'}).reset_index()
+
+        # Extract display_ident and display_bruto
+        display_ident = grouped_df['Ident'].iloc[0] if not grouped_df.empty else None
+        display_bruto = grouped_df['Bruto'].iloc[0] if not grouped_df.empty else None
+
+        # Return only display_ident and display_bruto
+        return jsonify({'Ident': display_ident, 'Bruto': display_bruto})
+
+    except Exception as e:
+        return jsonify({"error": str(e)})
+
+
 
 
 @app.route("/sign_out")

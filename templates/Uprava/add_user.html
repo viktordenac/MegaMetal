@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management</title>
+    <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -114,15 +115,6 @@
             max-width: 100%;
         }
 
-        /* Ensure only one dropdown is visible at a time */
-        .dropdown-content {
-            display: none;
-        }
-
-        .show-dropdown {
-            display: block;
-        }
-
         /* Links inside the dropdown */
         .dropdown-content a {
             color: black;
@@ -134,106 +126,6 @@
         /* Change color of dropdown links on hover */
         .dropdown-content a:hover {
             background-color: #f1f1f1;
-        }
-
-        /* Styles for the navigation bar */
-        .navbar {
-            height: 100%;
-            width: 12%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            background-color: #f0f0f0;
-            padding: 20px;
-            margin-top: 1px;
-            font-family: "Sans Serif Collection", sans-serif;
-        }
-        .navbar a {
-            display: block;
-            padding: 10px 0;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #ccc;
-        }
-        .navbar a:hover {
-            background-color: #ddd;
-        }
-        /* Main content */
-        .content {
-            margin-left: 14%; /* Adjust based on the width of the navbar */
-            padding: 20px;
-        }
-
-        .potrosnja-materiala {
-            cursor: default; /* Change cursor style */
-            position: relative; /* Change position to relative */
-            display: block;
-            padding: 10px 0;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .dropdown-potrosnja-materiala {
-            cursor: pointer;
-            display: none;
-            position: absolute;
-            top: 2%;
-            left: 70%;
-            min-width: 180px;
-            background-color: #f9f9f9;
-            margin-left: 30%;
-        }
-
-        .potrosnja-materiala:hover .dropdown-potrosnja-materiala {
-            display: block;
-        }
-
-        .potrosnja-materiala .ddPotrosnja {
-            color: black;
-            padding: 12px 16px;
-            display: block;
-            text-align: left;
-        }
-
-        .potrosnja-materiala .ddPotrosnja:hover {
-            background-color: #ddd;
-        }
-
-        .planiranje-proizvodnje {
-            cursor: default; /* Change cursor style */
-            position: relative; /* Change position to relative */
-            display: block;
-            padding: 10px 0;
-            text-decoration: none;
-            color: #333;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .dropdown-planiranje-proizvodnje {
-            cursor: pointer;
-            display: none;
-            position: absolute;
-            top: 2%;
-            left: 70%;
-            min-width: 180px;
-            background-color: #f9f9f9;
-            margin-left: 30%;
-        }
-
-        .planiranje-proizvodnje:hover .dropdown-planiranje-proizvodnje {
-            display: block;
-        }
-
-        .planiranje-proizvodnje .dItem {
-            color: black;
-            padding: 12px 16px;
-            display: block;
-            text-align: left;
-        }
-
-        .planiranje-proizvodnje .dItem:hover {
-            background-color: #ddd;
         }
     </style>
 </head>
@@ -265,7 +157,14 @@
         <a href="#">Evidenca ur</a>
 
         <a href="{{ url_for('logout') }}">Sign Out</a>
-        <a href="{{ url_for('user') }}">Add User</a>
+        <div class="administrativna-dela">
+            Administrativna dela &rarr;
+            <!-- Inside Dropdown -->
+            <div class="dropdown-administrativna-dela">
+                <a href="{{ url_for('user') }}"><div class="dItem">Add user</div></a>
+                <a href="#"><div class="dItem">Aktivni nalogi</div></a>
+            </div>
+        </div>
     </div>
     <div>
         <h1>User Management</h1>

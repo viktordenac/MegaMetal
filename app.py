@@ -68,6 +68,8 @@ def evidenca_ur():
     return render_template("evidencaUr.html", radniNalogi=activities, faze=faze)
 
 
+from flask import jsonify
+
 @app.route("/submitEvidencaUr", methods=["GET", "POST"])
 def submit_evidenca_ur():
     if not is_authenticated():
@@ -82,9 +84,8 @@ def submit_evidenca_ur():
     id_rn = request.form.get('Id_rn')
     faza = request.form.get('Faza')
     opombe = request.form.get('Opomba')
-    print(faza,opombe)
-    vrijeme = ure + minute
 
+    vrijeme = ure + minute
     datum = datetime.now().date()
     trenutni_cas = datetime.now().time()
 
@@ -95,16 +96,16 @@ def submit_evidenca_ur():
         izmena = 2
     else:
         izmena = 3
-    if id_rn:
+
+    if id_rn and vrijeme and faza:
         # Create a new TBA_EVID object
         new_entry = TEV_EVID(Datum=datum, Izmena=izmena, Faza=faza, Opombe=opombe, Vrijeme=vrijeme, Kartica=kartica, Id_rn=id_rn)
         # Add the new entry to the database session and commit
         db.session.add(new_entry)
         db.session.commit()
-
-
-
-    return "Data inserted successfully!"
+        return "Data inserted successfully!"
+    else:
+        return jsonify({"error": "Please select a valid activity"}), 400  # Return a 400 Bad Request status code along with the error message
 
 
 @app.route("/get_user_id", methods=["GET"])

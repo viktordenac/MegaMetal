@@ -30,7 +30,7 @@
         </div>
         <div></div>
         <div class="dropdownIdNr">
-            <input type="text" id="Id_rn" oninput="filterDropdown('Id_rn', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown')" placeholder="Išči Delovni Nalog..." autocomplete="off">
+            <input type="text" id="Id_rn" oninput="filterDropdown('Id_rn', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown')" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
             <div id="delovniNalogDropdown" class="dropdown-content">
                 {% for idRadnogNaloga in radniNalogi %}
                     <a class="dropdown-option-id-rn" onclick="selectOption('{{ idRadnogNaloga.Id_rn }}', 'Id_rn')">{{ idRadnogNaloga.Id_rn }}</a>
@@ -67,7 +67,7 @@
             </div>
         </div>
         <div class="dropdownFaza">
-            <input type="text" id="Faza" oninput="filterDropdown('Faza', 'fazaDropdown', 'faza-dropdown-option')" onclick="toggleDropdown('fazaDropdown')" placeholder="Išči Fazo ali Vnesi Ročno" autocomplete="off">
+            <input type="text" id="Faza" oninput="filterDropdown('Faza', 'fazaDropdown', 'faza-dropdown-option')" onclick="toggleDropdown('fazaDropdown')" placeholder="Išči Fazo ali Vnesi Ročno" autocomplete="off" required>
             <div id="fazaDropdown" class="dropdown-content-faza">
                 {% for faz in faze %}
                     <a class="faza-dropdown-option" onclick="selectOption('{{ faz.Test }}', 'Faza')">{{ faz.Test }}</a>
@@ -143,45 +143,45 @@
     }
 
     document.getElementById('send-selected-timee').addEventListener('click', function(event) {
-    event.preventDefault(); // Prevent the default form submission behavior
+        event.preventDefault(); // Prevent the default form submission behavior
 
-    // Get the values from the DUre and DMinute elements
-    var DelovniNalogValue = document.getElementById('Id_rn').value;
-    var DUreValue = document.getElementById('DUre').value;
-    var DMinuteValue = document.getElementById('DMinute').value;
-    var Faza = document.getElementById('Faza').value;
-    var Opomba = document.getElementById('Opomba').value;
+        // Get the values from the DUre and DMinute elements
+        var DelovniNalogValue = document.getElementById('Id_rn').value;
+        var DUreValue = document.getElementById('DUre').value;
+        var DMinuteValue = document.getElementById('DMinute').value;
+        var Faza = document.getElementById('Faza').value;
+        var Opomba = document.getElementById('Opomba').value;
 
-    // Create a FormData object to send form data
-    var formData = new FormData();
-    formData.append('Id_rn', DelovniNalogValue);
-    formData.append('DUre', DUreValue);
-    formData.append('DMinute', DMinuteValue);
-    formData.append('Faza', Faza);
-    formData.append('Opomba', Opomba);
+        // Create a FormData object to send form data
+        var formData = new FormData();
+        formData.append('Id_rn', DelovniNalogValue);
+        formData.append('DUre', DUreValue);
+        formData.append('DMinute', DMinuteValue);
+        formData.append('Faza', Faza);
+        formData.append('Opomba', Opomba);
 
-    // Send a POST request with form data to the server
-    fetch('/submitEvidencaUr', {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => {
-        if (response.ok) {
-            // Show the notification popup
-            showNotification('Data inserted successfully!');
+        // Send a POST request with form data to the server
+        fetch('/submitEvidencaUr', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                // Show the notification popup
+                showNotification('Data inserted successfully!');
 
-            // Reload the page after 2 seconds
-            setTimeout(function() {
-                location.reload();
-            }, 2000);
-        } else {
-            throw new Error('Network response was not ok.');
-        }
-    })
-    .catch(error => {
-        console.error('There was a problem with the fetch operation:', error);
+                // Reload the page after 2 seconds
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            } else {
+                showNotification('ERROR: Data not inserted! At least Insert DN, Ure, Minute and Faza!');
+            }
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
     });
-});
 
 function showNotification(message) {
     var notificationPopup = document.getElementById('notification-popup');

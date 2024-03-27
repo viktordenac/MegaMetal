@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
@@ -66,6 +66,7 @@ def evidenca_ur():
     print(faze_values)  # This will print a list of values
     return render_template("evidencaUr.html", radniNalogi=activities, faze=faze)
 
+
 @app.route("/submitEvidencaUr", methods=["GET", "POST"])
 def submit_evidenca_ur():
     if not is_authenticated():
@@ -103,6 +104,13 @@ def submit_evidenca_ur():
 
 
     return "Data inserted successfully!"
+
+
+@app.route("/get_user_id", methods=["GET"])
+def get_user_id():
+    # Return the user ID as a JSON response
+    return jsonify({"user_id": "219052678526"})
+
 
 @app.route("/sign_out")
 def sign_out():

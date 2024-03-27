@@ -116,22 +116,6 @@ def proizvodnja():
     username = session["username"]
     return render_template("/Proizvodnja/proizvodnjaHome.html", Username=username)
 
-# @app.route("/add_user", methods=["GET", "POST"])
-# def add_user():
-#TODO FIX ADD USER
-#     if not is_authenticated():
-#         return redirect(url_for("login"))
-#     if request.method == "POST":
-#         username = request.form["username"]
-#         password = request.form["password"]
-#         role = request.form["role"]
-#         if .get(session["username"], {}).get("role") == "admin":
-#             users[username] = {"password": password, "role": role}
-#             return redirect(url_for("home"))
-#         else:
-#             return "Unauthorized: Only admin users can add new users."
-#     return render_template("add_user.html")
-
 
 @app.route("/Potrosnja_materiala")
 def potrosnja_materiala():

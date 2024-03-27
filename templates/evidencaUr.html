@@ -30,7 +30,7 @@
         </div>
         <div></div>
         <div class="dropdownIdNr">
-            <input type="text" id="Id_rn" oninput="filterDropdown('Id_rn', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown')" placeholder="Išči Delovni Nalog...">
+            <input type="text" id="Id_rn" oninput="filterDropdown('Id_rn', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown')" placeholder="Išči Delovni Nalog..." autocomplete="off">
             <div id="delovniNalogDropdown" class="dropdown-content">
                 {% for idRadnogNaloga in radniNalogi %}
                     <a class="dropdown-option-id-rn" onclick="selectOption('{{ idRadnogNaloga.Id_rn }}', 'Id_rn')">{{ idRadnogNaloga.Id_rn }}</a>
@@ -67,7 +67,7 @@
             </div>
         </div>
         <div class="dropdownFaza">
-            <input type="text" id="Faza" oninput="filterDropdown('Faza', 'fazaDropdown', 'faza-dropdown-option')" onclick="toggleDropdown('fazaDropdown')" placeholder="Išči Fazo ali Vnesi Ročno">
+            <input type="text" id="Faza" oninput="filterDropdown('Faza', 'fazaDropdown', 'faza-dropdown-option')" onclick="toggleDropdown('fazaDropdown')" placeholder="Išči Fazo ali Vnesi Ročno" autocomplete="off">
             <div id="fazaDropdown" class="dropdown-content-faza">
                 {% for faz in faze %}
                     <a class="faza-dropdown-option" onclick="selectOption('{{ faz.Test }}', 'Faza')">{{ faz.Test }}</a>
@@ -75,7 +75,7 @@
             </div>
         </div>
         <div class="textboxOpomba">
-                <input type="text" id="Opomba" placeholder="Vnesi opombo po potrebi">
+                <input type="text" id="Opomba" placeholder="Vnesi opombo po potrebi" autocomplete="off">
         </div>
     </div>
     <div id="send-selected-time">

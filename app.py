@@ -1,4 +1,5 @@
 from datetime import datetime
+import rdm6300
 
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
@@ -108,7 +109,18 @@ def submit_evidenca_ur():
 
 @app.route("/get_user_id", methods=["GET"])
 def get_user_id():
-    # Return the user ID as a JSON response
+    # # Return the user ID as a JSON response
+    # reader = rdm6300.Reader('/dev/ttyS0')
+    # print("Please insert an RFID card")
+    # while True:
+    #     card = reader.read()
+    #     if card:
+    #         print(f"[{card.value}] read card {card}")
+    #
+    #         return jsonify({"user_id": card.value})
+    #     else:
+    #         print("No card detected")
+    #         continue
     return jsonify({"user_id": "219052678526"})
 
 

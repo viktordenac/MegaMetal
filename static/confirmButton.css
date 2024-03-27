@@ -1,15 +1,20 @@
 /* Style for the confrim button */
 #send-selected-time{
     text-align: center;
+    margin-left: 45%;
+    margin-top: 2%;
+    width: 20%;
 }
 a[type="submit"] {
     width: 100px;
     background-color: #4CAF50;
     color: white;
-    padding: 10px 0;
+    padding: 10% 10%;
     border: none;
     border-radius: 3px;
     cursor: pointer;
+    text-align: center;
+    font-size: 24px;
 }
 a[type="submit"]:hover {
     background-color: #45a049;

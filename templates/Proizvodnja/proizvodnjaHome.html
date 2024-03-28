@@ -34,6 +34,16 @@
         .dropdown-content a:hover {
             background-color: #f1f1f1;
         }
+
+        /* Change color of dropdown links on hover */
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+        #todayDate, #username{
+            color: rgba(157,165,171,255);
+            font-size: 1.5em;
+            font-weight: bold;
+        }
     </style>
 </head>
 <header>
@@ -61,8 +71,31 @@
 
     <!-- Main content -->
     <div class="content">
-        <h1>Welcome, {{ Username }}!</h1>
+        <h1>Welcome, <span id="username">{{ Username }}!</span></h1>
+        <hr>
+        <h2>Today is <span id="todayDate"></span></h2>
     </div>
 
+<script>
+    // Get today's date
+    var today = new Date();
+
+    // Define the days of the week
+    var daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+    // Get the day of the week (0 - Sunday, 1 - Monday, etc.)
+    var dayOfWeekIndex = today.getDay();
+
+    // Get the day, month, and year
+    var day = today.getDate();
+    var month = today.getMonth() + 1; // Months are zero-based (0 - January, 1 - February, etc.)
+    var year = today.getFullYear();
+
+    // Format the date as "DayOfWeek, Day. Month Year"
+    var formattedDate = daysOfWeek[dayOfWeekIndex] + ', ' + day + '. ' + month + '. ' + year;
+
+    // Set the formatted date into the HTML element
+    document.getElementById('todayDate').textContent = formattedDate;
+</script>
 </body>
 </html>

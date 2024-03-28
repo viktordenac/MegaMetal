@@ -87,6 +87,8 @@
     document.getElementById('from_date').value = yesterdayFormatted;
     document.getElementById('to_date').value = todayFormatted;
 
+    fetchData()
+
     var myChart; // Declare the chart variable globally
 
     function fetchData() {
@@ -111,10 +113,13 @@
             return row.JobCode;
         });
         var postotakData = data.map(function(row, index) {
+            var color = row.Postotak > 100 ? 'rgb(255,86,86)' : (index % 2 === 0 ? 'rgba(54, 162, 235, 0.4)' : 'rgba(54, 162, 235, 0.2)');
+            var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)' : (index % 2 === 0 ? 'rgb(229,164,48)' : 'rgba(54, 162, 235, 1)');
+
             return {
                 value: row.Postotak,
-                color: index % 2 === 0 ? 'rgba(255, 99, 132, 0.2)' : 'rgba(54, 162, 235, 0.2)', // Alternating colors
-                borderColor: index % 2 === 0 ? 'rgba(255, 99, 132, 1)' : 'rgba(54, 162, 235, 1)',
+                color: color,
+                borderColor: borderColor
             };
         });
 
@@ -151,6 +156,7 @@
             }
         });
     }
+
 </script>
 </body>
 </html>

@@ -95,7 +95,7 @@
         var from_date = document.getElementById('from_date').value;
         var to_date = document.getElementById('to_date').value;
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/Potrošnja%20materiala%20grafi?from_date=' + from_date + '&to_date=' + to_date);
+        xhr.open('GET', '/Potrošnja-materiala-grafi?from_date=' + from_date + '&to_date=' + to_date);
         xhr.onload = function() {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
@@ -113,8 +113,8 @@
             return row.JobCode;
         });
         var postotakData = data.map(function(row, index) {
-            var color = row.Postotak > 100 ? 'rgb(255,86,86)' : (index % 2 === 0 ? 'rgba(54, 162, 235, 0.4)' : 'rgba(54, 162, 235, 0.2)');
-            var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)' : (index % 2 === 0 ? 'rgb(229,164,48)' : 'rgba(54, 162, 235, 1)');
+            var color = row.Postotak > 100 ? 'rgb(255,165,0, 0.8)': row.Postotak < 50 ? 'rgba(213,20,20, 0.4)': row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0, 0.8)' : (index % 2 === 0 ? 'rgba(0,255,0,0.4)' : 'rgba(0,255,0,0.2)');
+            var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)': row.Postotak < 50 ? 'rgba(0,0,0)' : row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0)' : (index % 2 === 0 ? 'rgb(0,255,0)' : 'rgb(0,255,0)');
 
             return {
                 value: row.Postotak,

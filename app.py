@@ -133,7 +133,7 @@ def grupiranje_materiala():
         return render_template('unauthorized.html')
     return render_template("/Uprava/grupiranje_materiala.html")
 
-@app.route("/Potrošnja materiala grafi")
+@app.route("/Potrošnja-materiala-grafi")
 def potrosnja_materiala_grafi():
     if not is_authenticated():
         return jsonify({"error": "Not authenticated"})
@@ -151,7 +151,7 @@ def potrosnja_materiala_grafi():
 
     if result:
         data = []
-        print("Rows found for date range:", from_date_str, "to", to_date_str)
+        #print("Rows found for date range:", from_date_str, "to", to_date_str)
         # Formatting the results
         for row in result:
             try:
@@ -163,10 +163,10 @@ def potrosnja_materiala_grafi():
                 "DateCreated": row.DateCreated.strftime('%Y-%m-%d'),
                 "Postotak": row.Postotak
             })
-            print(row.JobCode, row.DateCreated, row.Postotak)
+            #print(row.JobCode, row.DateCreated, row.Postotak)
         return jsonify({"data": data})
     else:
-        print("No rows found for date range:", from_date_str, "to", to_date_str)
+        #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
 
 

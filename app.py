@@ -6,6 +6,8 @@ import pandas as pd
 
 from flask import Flask, render_template, redirect, url_for
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from sqlalchemy import func, select
+
 #python -m pip install flask_sqlalchemy
 
 app = Flask(__name__)
@@ -13,6 +15,7 @@ app.secret_key = "your_secret_key"  # Change this to a random secret key
 
 # Replace the following with your actual PostgreSQL connection string
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:potgresql@192.168.100.216/megametal'
+
 # Initialize SQLAlchemy extension
 db = SQLAlchemy(app)
 
@@ -204,23 +207,15 @@ def grupiranje_materiala_table():
 
     try:
         # Fetch data from the database and create a pandas DataFrame
-        grouped_data = TREZ_KALK.query.filter(TREZ_KALK.Id_rn == documentId).all()
-        df = pd.DataFrame(
-            [(item.Ident, item.Id_rn, item.Bruto, item.Debljina, item.Kvaliteta) for item in grouped_data],
-            columns=['Ident', 'Id_rn', 'Bruto', 'Debljina', 'Kvaliteta'])
+        allData = TREZ_KALK.query.with_entities(TREZ_KALK.Id_rn, func.sum(TREZ_KALK.Bruto)).group_by(TREZ_KALK.Id_rn).all()
+        filtered_results = [row for row in allData if row[0] == documentId]
+        filtered_bruto = [row[1] for row in filtered_results]
 
-        # Group by 'Ident' and sum 'Bruto'
-        grouped_df = df.groupby('Id_rn').agg({'Bruto': 'sum'}).reset_index()
-
-        if grouped_df.empty:
+        if not filtered_results:
             return jsonify({"error": "No data found for the given document ID"})
 
-        # Extract display_ident and display_bruto
-        display_ident = grouped_df['Id_rn'].iloc[0]
-        display_bruto = grouped_df['Bruto'].iloc[0]
-
         # Return only display_ident and display_bruto
-        return jsonify({'Id_rn': display_ident, 'Bruto': display_bruto})
+        return jsonify({'Id_rn': documentId, 'Bruto': filtered_bruto})
 
     except Exception as e:
         return jsonify({"error": str(e)})

@@ -172,7 +172,6 @@ def potrosnja_materiala_grafi():
 
 from collections import defaultdict
 
-
 @app.route("/Grupiranje_materiala_table", methods=['POST'])
 def grupiranje_materiala_table():
     if not is_authenticated():
@@ -182,23 +181,19 @@ def grupiranje_materiala_table():
 
     try:
         # Fetch data from the database and create a pandas DataFrame
-        grouped_data = TREZ_KALK.query.filter(TREZ_KALK.Id_rn == documentId).all()
-        df = pd.DataFrame(
-            [(item.Ident, item.Id_rn, item.Bruto, item.Debljina, item.Kvaliteta) for item in grouped_data],
-            columns=['Ident', 'Id_rn', 'Bruto', 'Debljina', 'Kvaliteta'])
+        grouped_data = TREZ_KALK.query.filter(TREZ_KALK.Ident == documentId).all()
+        df = pd.DataFrame([(item.Ident, item.Bruto, item.Debljina, item.Kvaliteta) for item in grouped_data],
+                          columns=['Ident', 'Bruto', 'Debljina', 'Kvaliteta'])
 
         # Group by 'Ident' and sum 'Bruto'
-        grouped_df = df.groupby('Id_rn').agg({'Bruto': 'sum'}).reset_index()
-
-        if grouped_df.empty:
-            return jsonify({"error": "No data found for the given document ID"})
+        grouped_df = df.groupby('Ident').agg({'Bruto': 'sum'}).reset_index()
 
         # Extract display_ident and display_bruto
-        display_ident = grouped_df['Id_rn'].iloc[0]
-        display_bruto = grouped_df['Bruto'].iloc[0]
+        display_ident = grouped_df['Ident'].iloc[0] if not grouped_df.empty else None
+        display_bruto = grouped_df['Bruto'].iloc[0] if not grouped_df.empty else None
 
         # Return only display_ident and display_bruto
-        return jsonify({'Id_rn': display_ident, 'Bruto': display_bruto})
+        return jsonify({'Ident': display_ident, 'Bruto': display_bruto})
 
     except Exception as e:
         return jsonify({"error": str(e)})

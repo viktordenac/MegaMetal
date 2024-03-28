@@ -173,6 +173,7 @@
         <table>
             <thead>
                 <tr>
+                    <th>ID</th>
                     <th>Datum</th>
                     <th>Izmena</th>
                     <th>Faza</th>
@@ -186,6 +187,7 @@
             <tbody>
                 {% for item in data %}
                 <tr>
+                    <td>{{ item.ID }}</td>
                     <td>{{ item.Datum }}</td>
                     <td>{{ item.Izmena }}</td>
                     <td>{{ item.Faza }}</td>
@@ -193,7 +195,7 @@
                     <td>{{ item.Vrijeme }}</td>
                     <td>{{ item.Kartica }}</td>
                     <td>{{ item.Id_rn }}</td>
-                    <td><button class="edit-button" data-datum="{{ item.Datum }}" data-izmena="{{ item.Izmena }}" data-faza="{{ item.Faza }}" data-opombe="{{ item.Opombe }}" data-vrijeme="{{ item.Vrijeme }}" data-kartica="{{ item.Kartica }}" data-id_rn="{{ item.Id_rn }}">Edit</button></td>
+                    <td><button class="edit-button" data-ID="{{ item.ID}}" data-datum="{{ item.Datum }}" data-izmena="{{ item.Izmena }}" data-faza="{{ item.Faza }}" data-opombe="{{ item.Opombe }}" data-vrijeme="{{ item.Vrijeme }}" data-kartica="{{ item.Kartica }}" data-id_rn="{{ item.Id_rn }}">Edit</button></td>
                     <td><button class="delete-button" data-id="{{ item.Id_rn }}">Delete</button></td> <!-- Delete button -->
                 </tr>
                 {% endfor %}
@@ -203,6 +205,8 @@
             <button onclick="hideEditForm()">Close</button>
             <h2>Edit User</h2>
             <form id="editForm">
+                <label for="iddd">ID:</label>
+                <input type="text" name="ID" id="editID" readonly>
                 <label for="datum">Datum:</label>
                 <input type="date" id="editDatum" name="datum" required><br>
                 <label for="izmena">Izmena:</label>
@@ -210,7 +214,7 @@
                 <label for="faza">Faza:</label>
                 <input type="text" id="editFaza" name="faza" required><br>
                 <label for="opombe">Opombe:</label>
-                <input type="text" id="editOpombe" name="opombe" required><br>
+                <input type="text" id="editOpombe" name="opombe"><br>
                 <label for="vrijeme">Vrijeme:</label>
                 <input type="text" id="editVrijeme" name="vrijeme" required><br>
                 <label for="kartica">Kartica:</label>
@@ -230,6 +234,7 @@
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('.edit-button').forEach(button => {
             button.addEventListener('click', function() {
+                const id = this.dataset.id;
                 const datum = this.dataset.datum;
                 const izmena = this.dataset.izmena;
                 const faza = this.dataset.faza;
@@ -238,7 +243,7 @@
                 const kartica = this.dataset.kartica;
                 const id_rn = this.dataset.id_rn;
 
-                showEditForm(datum, izmena, faza, opombe, vrijeme, kartica, id_rn);
+                showEditForm(id, datum, izmena, faza, opombe, vrijeme, kartica, id_rn);
             });
         });
 
@@ -271,7 +276,8 @@
         });
     });
 
-    function showEditForm(datum, izmena, faza, opombe, vrijeme, kartica, id_rn) {
+    function showEditForm(id, datum, izmena, faza, opombe, vrijeme, kartica, id_rn) {
+        document.getElementById('editID').value = id;
         document.getElementById('editDatum').value = datum;
         document.getElementById('editIzmena').value = izmena;
         document.getElementById('editFaza').value = faza;

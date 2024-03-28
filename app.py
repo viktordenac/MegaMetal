@@ -65,12 +65,13 @@ class TREZ_KALK(db.Model):
 
 class TEV_EVID(db.Model):
     __tablename__ = 'TEV_EVID'
+    ID = db.Column(db.INT(), primary_key=True)
     Datum = db.Column(db.DATE())
     Izmena = db.Column(db.INT())
     Faza = db.Column(db.CHAR(50))
     Opombe = db.Column(db.CHAR(100))
     Vrijeme = db.Column(db.FLOAT())
-    Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
+    Kartica = db.Column(db.Numeric(25, 0))
     Id_rn = db.Column(db.CHAR(50))
 
 
@@ -126,6 +127,14 @@ def proizvodnja():
     username = session["username"]
     return render_template("/Proizvodnja/proizvodnjaHome.html", Username=username)
 
+@app.route("/prodajaHome")
+def prodaja():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Prodaja':
+        return render_template('unauthorized.html')
+    username = session["username"]
+    return render_template("/Prodaja/prodajaHome.html", Username=username)
 
 @app.route("/Potrosnja_materiala")
 def potrosnja_materiala():
@@ -139,9 +148,12 @@ def potrosnja_materiala():
 def grupiranje_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava':
+    if current_user.role != 'Uprava' and current_user.role != 'Prodaja':
         return render_template('unauthorized.html')
-    return render_template("/Uprava/grupiranje_materiala.html")
+    if current_user.role == 'Prodaja':
+        return render_template("/Prodaja/grupiranje_materiala_proizvodnja.html")
+    else:
+        return render_template("/Uprava/grupiranje_materiala.html")
 
 @app.route("/Potrošnja-materiala-grafi")
 def potrosnja_materiala_grafi():
@@ -230,6 +242,9 @@ def index():
     elif current_user.role == 'Proizvodnja':
         # Return page accessible to 'prodaja' role
         return redirect(url_for("proizvodnja"))
+    elif current_user.role == 'Prodaja':
+        # Return page accessible to 'prodaja' role
+        return redirect(url_for("prodaja"))
     else:
         # Handle other roles or unauthorized access
         return render_template('unauthorized.html')
@@ -340,6 +355,7 @@ def tev_evid():
                                       getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
+        print("AAAA" + str(unique_values[column_name]))
 
     return render_template('/Uprava/evidencaUr.html', data=data, unique_values=unique_values)
 
@@ -353,6 +369,7 @@ def edit_tev_evid():
         return render_template('unauthorized.html')
 
     # Get data from the form
+    ID = request.form.get('ID')
     datum = request.form.get('datum')
     izmena = request.form.get('izmena')
     faza = request.form.get('faza')
@@ -362,8 +379,8 @@ def edit_tev_evid():
     id_rn = request.form.get('id_rn')
 
     # Find the TEV EVID record to edit
-    tev_evid_record = TEV_EVID.query.filter_by(Kartica=kartica).first()
-
+    tev_evid_record = TEV_EVID.query.filter_by(ID=ID).first()
+    print(tev_evid_record)
     # Update the record with the new data
     if tev_evid_record:
         tev_evid_record.Datum = datum

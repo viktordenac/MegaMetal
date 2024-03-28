@@ -80,12 +80,11 @@
     var yyyy = today.getFullYear();
     var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
     var dd = String(today.getDate()).padStart(2, '0');
-    var todayFormatted = yyyy + '-' + mm + '-' + dd;
     var yesterdayFormatted = yyyy + '-' + mm + '-' + (dd - 1);
 
     // Set the 'from_date' and 'to_date' input values to today's date
     document.getElementById('from_date').value = yesterdayFormatted;
-    document.getElementById('to_date').value = todayFormatted;
+    document.getElementById('to_date').value = yesterdayFormatted
 
     fetchData()
 

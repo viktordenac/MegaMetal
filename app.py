@@ -63,6 +63,16 @@ class TREZ_KALK(db.Model):
     Debljina = db.Column(db.INT())
     Kvaliteta = db.Column(db.CHAR(20))  # Adjust data type and length as per your table schema
 
+class TEV_EVID(db.Model):
+    __tablename__ = 'TEV_EVID'
+    Datum = db.Column(db.DATE())
+    Izmena = db.Column(db.INT())
+    Faza = db.Column(db.CHAR(50))
+    Opombe = db.Column(db.CHAR(100))
+    Vrijeme = db.Column(db.FLOAT())
+    Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
+    Id_rn = db.Column(db.CHAR(50))
+
 
 @login_manager.user_loader
 def load_user(kartica):
@@ -312,6 +322,85 @@ def delete_user():
             # Return a message indicating that the user does not exist
             return jsonify({'success': False, 'error': 'User not found.'}), 404
 
+
+@app.route('/tev_evid')
+def tev_evid():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
+
+    # Query all data
+    data = TEV_EVID.query.all()
+
+    unique_values = {}
+    for column in TEV_EVID.__table__.columns:
+        column_name = column.name
+        unique_values[column_name] = [getattr(row, column_name) for row in data if
+                                      getattr(row, column_name) is not None]
+        # Filter out duplicates and sort
+        unique_values[column_name] = sorted(set(unique_values[column_name]))
+
+    return render_template('/Uprava/evidencaUr.html', data=data, unique_values=unique_values)
+
+from flask import request
+
+@app.route('/edit_tev_evid', methods=['POST'])
+def edit_tev_evid():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
+
+    # Get data from the form
+    datum = request.form.get('datum')
+    izmena = request.form.get('izmena')
+    faza = request.form.get('faza')
+    opombe = request.form.get('opombe')
+    vrijeme = request.form.get('vrijeme')
+    kartica = request.form.get('kartica')
+    id_rn = request.form.get('id_rn')
+
+    # Find the TEV EVID record to edit
+    tev_evid_record = TEV_EVID.query.filter_by(Kartica=kartica).first()
+
+    # Update the record with the new data
+    if tev_evid_record:
+        tev_evid_record.Datum = datum
+        tev_evid_record.Izmena = izmena
+        tev_evid_record.Faza = faza
+        tev_evid_record.Opombe = opombe
+        tev_evid_record.Vrijeme = vrijeme
+        tev_evid_record.Id_rn = id_rn
+        db.session.commit()
+
+        # Optionally, you can return a success response
+        return jsonify({'success': True})
+    else:
+        # Return an error response if the record was not found
+        return jsonify({'success': False, 'message': 'TEV EVID record not found'})
+
+@app.route('/delete_tev_evid', methods=['POST'])
+def delete_tev_evid():
+    if request.method == 'POST':
+        # Get the id_rn of the TEV EVID entry to delete from the request
+        id_rn = request.json.get('id_rn')
+
+        # Check if the TEV EVID entry exists
+        tev_evid_entry = TEV_EVID.query.filter_by(Id_rn=id_rn).first()
+        if tev_evid_entry:
+            try:
+                # Delete the TEV EVID entry from the database
+                db.session.delete(tev_evid_entry)
+                db.session.commit()
+                return jsonify({'success': True})
+            except Exception as e:
+                # Handle any errors that occur during deletion
+                print(e)
+                return jsonify({'success': False, 'error': 'Failed to delete TEV EVID entry.'}), 500
+        else:
+            # Return a message indicating that the TEV EVID entry does not exist
+            return jsonify({'success': False, 'error': 'TEV EVID entry not found.'}), 404
 
 if __name__ == "__main__":
     app.run(debug=True)

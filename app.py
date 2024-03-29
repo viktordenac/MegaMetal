@@ -335,7 +335,7 @@ def delete_user():
 def tev_evid():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava':
+    if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
         return render_template('unauthorized.html')
 
     # Query all data
@@ -348,7 +348,8 @@ def tev_evid():
                                       getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
-
+    if current_user.role == 'Proizvodnja':
+        return render_template('/Proizvodnja/evidencaUr.html', data=data, unique_values=unique_values)
     return render_template('/Uprava/evidencaUr.html', data=data, unique_values=unique_values)
 
 from flask import request
@@ -413,12 +414,10 @@ def delete_tev_evid():
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-    print(current_user.role)
     if current_user.role != 'Proizvodnja' and current_user.role != 'Uprava':
         return render_template('unauthorized.html')
     if current_user.role == 'Proizvodnja':
         return render_template("/Proizvodnja/planiranjePripravnegaDela.html")
-
     return render_template('/Uprava/planiranjePripravnegaDela.html')
 
 if __name__ == "__main__":

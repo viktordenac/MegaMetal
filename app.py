@@ -97,7 +97,6 @@ def login():
 
         if form_username in ['uprava', 'proizvodnja', 'prodaja']:
             if user.Datexp < date.today():
-                print(user.Datexp)
                 return render_template("login.html", error="Invalid username or password.")
 
         if user and form_password == str(user.Password):
@@ -326,7 +325,6 @@ def delete_user():
                 return jsonify({'success': True})
             except Exception as e:
                 # Handle any errors that occur during deletion
-                print(e)
                 return jsonify({'success': False, 'error': 'Failed to delete user.'}), 500
         else:
             # Return a message indicating that the user does not exist
@@ -350,7 +348,6 @@ def tev_evid():
                                       getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
-        print("AAAA" + str(unique_values[column_name]))
 
     return render_template('/Uprava/evidencaUr.html', data=data, unique_values=unique_values)
 
@@ -375,7 +372,6 @@ def edit_tev_evid():
 
     # Find the TEV EVID record to edit
     tev_evid_record = TEV_EVID.query.filter_by(ID=ID).first()
-    print(tev_evid_record)
     # Update the record with the new data
     if tev_evid_record:
         tev_evid_record.Datum = datum
@@ -408,11 +404,22 @@ def delete_tev_evid():
                 return jsonify({'success': True})
             except Exception as e:
                 # Handle any errors that occur during deletion
-                print(e)
                 return jsonify({'success': False, 'error': 'Failed to delete TEV EVID entry.'}), 500
         else:
             # Return a message indicating that the TEV EVID entry does not exist
             return jsonify({'success': False, 'error': 'TEV EVID entry not found.'}), 404
+
+@app.route('/planiranjePripravnegaDela')
+def planiranjePripravnegaDela():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    print(current_user.role)
+    if current_user.role != 'Proizvodnja' and current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
+    if current_user.role == 'Proizvodnja':
+        return render_template("/Proizvodnja/planiranjePripravnegaDela.html")
+
+    return render_template('/Uprava/planiranjePripravnegaDela.html')
 
 if __name__ == "__main__":
     app.run(debug=True)

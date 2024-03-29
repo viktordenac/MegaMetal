@@ -1,5 +1,5 @@
-<!-- add_user.html -->
 <!DOCTYPE html>
+<!--suppress ALL -->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -97,16 +97,6 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
-        #add-user-button {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
 
         .header-logo img {
             display: flex;
@@ -126,6 +116,17 @@
         /* Change color of dropdown links on hover */
         .dropdown-content a:hover {
             background-color: #f1f1f1;
+        }
+
+        .download-button-container {
+            text-align: right;
+        }
+        .download-button-container button, a{
+            text-decoration: none;
+            color: white;
+            background-color: #4CAF50;
+            padding: 10px 20px;
+            border-radius: 5px;
         }
     </style>
 </head>
@@ -202,25 +203,28 @@
                 {% endfor %}
             </tbody>
         </table>
+        <div class="download-button-container">
+            <button><a href="{{ url_for('download_evidencaUr') }}" class="download-button">Download TEV EVID Data</a></button>
+        </div>
         <div id="editFormContainer">
             <button onclick="hideEditForm()">Close</button>
             <h2>Edit User</h2>
             <form id="editForm">
-                <label for="id">ID:</label>
+                <label for="editID">ID:</label>
                 <input type="text" name="ID" id="editID" readonly>
-                <label for="datum">Datum:</label>
+                <label for="editDatum">Datum:</label>
                 <input type="date" id="editDatum" name="datum" required><br>
-                <label for="izmena">Izmena:</label>
+                <label for="editIzmena">Izmena:</label>
                 <input type="text" id="editIzmena" name="izmena" required><br>
-                <label for="faza">Faza:</label>
+                <label for="editFaza">Faza:</label>
                 <input type="text" id="editFaza" name="faza" required><br>
-                <label for="opombe">Opombe:</label>
+                <label for="editOpombe">Opombe:</label>
                 <input type="text" id="editOpombe" name="opombe"><br>
-                <label for="vrijeme">Vrijeme:</label>
+                <label for="editVrijeme">Vrijeme:</label>
                 <input type="text" id="editVrijeme" name="vrijeme" required><br>
-                <label for="kartica">Kartica:</label>
+                <label for="editKartica">Kartica:</label>
                 <input type="text" id="editKartica" name="kartica" required><br>
-                <label for="id_rn">Id_rn:</label>
+                <label for="editId_rn">Id_rn:</label>
                 <input type="text" id="editId_rn" name="id_rn" required><br>
                 <!-- Add more input fields for other TEV EVID attributes -->
 

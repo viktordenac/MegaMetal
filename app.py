@@ -452,6 +452,13 @@ def download_evidencaUr():
     # Return the Excel file as a downloadable attachment
     return send_file(output, download_name="TEV_EVID.xlsx", as_attachment=True)
 
+@app.route('/kapaciteta', methods=['GET'])
+def kapaciteta():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
+    return render_template('/Uprava/kapaciteta.html')
 
 if __name__ == "__main__":
     app.run(debug=True)

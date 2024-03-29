@@ -1,12 +1,12 @@
 from datetime import datetime, date
 
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
-from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, send_file, session
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func, select
+
 
 #python -m pip install flask_sqlalchemy
 
@@ -419,6 +419,33 @@ def planiranjePripravnegaDela():
     if current_user.role == 'Proizvodnja':
         return render_template("/Proizvodnja/planiranjePripravnegaDela.html")
     return render_template('/Uprava/planiranjePripravnegaDela.html')
+
+from io import BytesIO
+@app.route('/evidencaUr/download', methods=['GET'])
+def download_evidencaUr():
+    # Query data from the database
+    tev_evid_data = TEV_EVID.query.all()
+
+    # Convert the data to a Pandas DataFrame
+    df = pd.DataFrame([(item.ID, item.Datum, item.Izmena, item.Faza, item.Opombe, item.Vrijeme, item.Kartica, item.Id_rn) for item in tev_evid_data], columns=['ID', 'Datum', 'Izmena', 'Faza', 'Opombe', 'Vrijeme', 'Kartica', 'Id_rn'])
+
+    # Create an output stream
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+    # Write the DataFrame to Excel
+    df.to_excel(writer, index=False, sheet_name='TEV_EVID')
+
+    # Customize the Excel sheet as needed
+
+    # Close the Pandas Excel writer
+    writer.close()
+
+    # Go back to the beginning of the stream
+    output.seek(0)
+
+    # Return the Excel file as a downloadable attachment
+    return send_file(output, download_name="TEV_EVID.xlsx", as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)

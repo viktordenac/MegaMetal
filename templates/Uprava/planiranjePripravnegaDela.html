@@ -51,41 +51,8 @@
 </header>
 <body>
     <!-- Navigation bar -->
-    <div class="navbar">
-        <div class="header-logo">
-            <img src="../../static/style/MEGA-METAL-logotip.jpg" alt="Logo">
-        </div>
-        <a href="{{ url_for('index') }}">Home</a>
-        <div class="potrosnja-materiala">
-            Potrošnja materiala &rarr;
-            <!-- Inside Dropdown -->
-            <div class="dropdown-potrosnja-materiala">
-                <a href="{{ url_for('potrosnja_materiala') }}"><div class="ddPotrosnja">Grafi</div></a>
-                <a href="{{ url_for('grupiranje_materiala') }}"><div class="ddPotrosnja">TODO</div></a>
-            </div>
-        </div>
-        <div class="planiranje-proizvodnje">
-            Planiranje proizvodnje &rarr;
-            <!-- Inside Dropdown -->
-            <div class="dropdown-planiranje-proizvodnje">
-                <a href="{{ url_for('planiranjePripravnegaDela')}}"><div class="dItem">Planiranje pripravnega dela</div></a>
-                <a href="#"><div class="dItem">Aktivni nalogi</div></a>
-            </div>
-        </div>
-        <a href="#">Normativi</a>
-        <a href="#">Verzug lista</a>
-        <a href="{{ url_for('tev_evid') }}">Evidenca ur</a>
-
-        <a href="{{ url_for('logout') }}">Sign Out</a>
-        <div class="administrativna-dela">
-            Administrativna dela &rarr;
-            <!-- Inside Dropdown -->
-            <div class="dropdown-administrativna-dela">
-                <a href="{{ url_for('user') }}"><div class="dItem">Add user</div></a>
-                <a href="#"><div class="dItem">Aktivni nalogi</div></a>
-            </div>
-        </div>
-    </div>
+    <!-- Include the navigation bar using JavaScript -->
+    {% include '/Uprava/adminNavigation.html' %}
 
     <!-- Main content -->
     <div class="content">

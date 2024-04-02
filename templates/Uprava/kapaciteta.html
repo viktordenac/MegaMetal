@@ -119,6 +119,9 @@
     </style>
 </head>
 <body>
+    <!-- Include the navigation bar using JavaScript -->
+    {% include '/Uprava/adminNavigation.html' %}
+
     <h1>Database Table</h1>
     {% for position, position_datas in datas.items() %}
         <h2>{{ position }}</h2>

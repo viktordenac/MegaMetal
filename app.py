@@ -143,22 +143,48 @@ def prodaja():
     username = session["username"]
     return render_template("/Prodaja/prodajaHome.html", Username=username)
 
+@app.route("/konPosHome")
+def konPos():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'KonPos':
+        return render_template('unauthorized.html')
+    username = session["username"]
+    return render_template("/Konstrukcija/Poslovodja/konPoslovodjaHome.html", Username=username)
+
+@app.route("/rezPosHome")
+def rezPos():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'RezPos':
+        return render_template('unauthorized.html')
+    username = session["username"]
+    return render_template("/Rezanje/Poslovodja/rezPoslovodjaHome.html", Username=username)
+
 @app.route("/Potrosnja_materiala")
 def potrosnja_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava':
+    if current_user.role != 'Uprava' and current_user.role != 'KonPos' and current_user.role != 'RezPos':
         return render_template('unauthorized.html')
+    elif current_user.role == 'KonPos':
+        return render_template("/Konstrukcija/Poslovodja/potrosnja_materiala_grafi_konstrukcija.html")
+    elif current_user.role == 'RezPos':
+        return render_template("/Rezanje/Poslovodja/potrosnja_materiala_grafi_rezanje.html")
     return render_template("/Uprava/potrosnja_materiala_grafi.html")
 
 @app.route("/Grupiranje_materiala")
 def grupiranje_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava' and current_user.role != 'Prodaja':
+    if current_user.role != 'Uprava' and current_user.role != 'Prodaja' and current_user.role != 'KonPos' and current_user.role != 'RezPos':
         return render_template('unauthorized.html')
-    if current_user.role == 'Prodaja':
-        return render_template("/Prodaja/grupiranje_materiala_proizvodnja.html")
+    elif current_user.role == 'Prodaja':
+        return render_template("/Prodaja/potrosnja_materiala.html")
+    elif current_user.role == 'KonPos':
+        return render_template("/Konstrukcija/Poslovodja/grupiranje_materiala_konstrukcija.html")
+    elif current_user.role == 'RezPos':
+        return render_template("/Rezanje/Poslovodja/grupiranje_materiala_rezanje.html")
     else:
         return render_template("/Uprava/grupiranje_materiala.html")
 
@@ -202,6 +228,8 @@ def potrosnja_materiala_grafi():
 from collections import defaultdict
 
 
+from flask import jsonify
+
 @app.route("/Grupiranje_materiala_table", methods=['POST'])
 def grupiranje_materiala_table():
     if not is_authenticated():
@@ -210,16 +238,20 @@ def grupiranje_materiala_table():
     documentId = request.form.get('documentInput')
 
     try:
-        # Fetch data from the database and create a pandas DataFrame
-        allData = TREZ_KALK.query.with_entities(TREZ_KALK.Id_rn, func.sum(TREZ_KALK.Bruto)).group_by(TREZ_KALK.Id_rn).all()
-        filtered_results = [row for row in allData if row[0] == documentId]
+        # Fetch data from the database
+        sumData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, func.sum(TREZ_KALK.Bruto)).group_by(TREZ_KALK.Ident).all()
+        filtered_results = [(row[0], float(row[1])) for row in sumData if row[0] == documentId]
         filtered_bruto = [row[1] for row in filtered_results]
+        allData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, TREZ_KALK.Id_rn, TREZ_KALK.Bruto).filter_by(Ident=documentId).all()
 
-        if not filtered_results:
+        if not filtered_results and not allData:
             return jsonify({"error": "No data found for the given document ID"})
 
-        # Return only display_ident and display_bruto
-        return jsonify({'Id_rn': documentId, 'Bruto': filtered_bruto})
+        # Convert allData to a list of dictionaries
+        all_data_dict = [{'Ident': row.Ident, 'Id_rn': row.Id_rn, 'Bruto': float(row.Bruto)} for row in allData]
+
+        # Return JSON response
+        return jsonify({'AllData': all_data_dict, 'skupnoBruto': sum(filtered_bruto)})
 
     except Exception as e:
         return jsonify({"error": str(e)})
@@ -244,6 +276,12 @@ def index():
     elif current_user.role == 'Prodaja':
         # Return page accessible to 'prodaja' role
         return redirect(url_for("prodaja"))
+    elif current_user.role == 'KonPos':
+        # Return page accessible to 'konPos' role
+        return redirect(url_for("konPos"))
+    elif current_user.role == 'RezPos':
+        # Return page accessible to 'rezPos' role
+        return redirect(url_for("rezPos"))
     else:
         # Handle other roles or unauthorized access
         return render_template('unauthorized.html')

@@ -119,6 +119,11 @@
             background-color: #f2f2f2;
         }
 
+        .scrollable-table {
+            max-height: 700px; /* Assuming navbar height is 50px */
+            overflow: auto;
+        }
+
     </style>
 </head>
 <body>
@@ -134,10 +139,35 @@
     </div>
 
     <div class="table-container">
-        <div id="data_container" class="data-container">
-        <table id="resultTable">
-            <thead><tr><th>ID</th><th>Bruto</th></tr></thead><tbody>
-        </table>
+        <!-- Main table container -->
+        <div id="mainTableContainer" class ="scrollable-table">
+            <div id="data_container" class="data-container">
+                <table id="mainTable">
+                    <thead>
+                        <tr>
+                            <th>Ident</th>
+                            <th>Id_rn</th>
+                            <th>Bruto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Summary table container -->
+    <div id="summaryTableContainer">
+        <div class="data-container">
+            <table id="summaryTable">
+                <thead>
+                    <tr>
+                        <th>Skupno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
     </div>
 </body>
@@ -159,22 +189,30 @@
     }
 
     function displayData(response) {
-        var container = document.getElementById('data_container');
-        var table = document.getElementById('resultTable');
+        var mainTableContainer = document.getElementById('mainTableContainer');
+        var mainTable = document.getElementById('mainTable');
+        var summaryTableContainer = document.getElementById('summaryTableContainer');
+        var summaryTable = document.getElementById('summaryTable');
 
         if (response.error) {
-            container.innerHTML = '<p>' + response.error + '</p>';
-            // Hide the table if there's an error
-            table.style.display = 'none';
+            alert(response.error); // Display error message in a popup
+            return; // Exit function early
         } else {
-            var html = '<table><thead><tr><th>ID</th><th>Bruto</th></tr></thead><tbody>';
-            html += '<tr><td>' + response.Id_rn.toString() + '</td><td>' + response.Bruto.toString() + '</td></tr>';
-            html += '</tbody></table>';
-            container.innerHTML = html;
-            // Show the table when data is available
+            mainTable.style.display = 'table';
+            summaryTable.style.display = 'table';
+            var mainHtml = '';
+            var summaryHtml = '';
+
+            // Populate main table
+            response.AllData.forEach(function(row) {
+                mainHtml += '<tr><td>' + row.Ident.toString() + '</td><td>' + row.Id_rn.toString() + '</td><td>' + row.Bruto.toString() + '</td></tr>';
+            });
+            mainTable.querySelector('tbody').innerHTML = mainHtml;
+
+            // Populate summary table
+            summaryHtml += '<tr><td>' + response.skupnoBruto.toString() + '</td></tr>';
+            summaryTable.querySelector('tbody').innerHTML = summaryHtml;
         }
     }
 
-
 </script>
-</html>

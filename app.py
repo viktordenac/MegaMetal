@@ -77,6 +77,11 @@ class TEV_EVID(db.Model):
     Kartica = db.Column(db.Numeric(25, 0))
     Id_rn = db.Column(db.CHAR(50))
 
+class TEV_IZMENE(db.Model):
+    __tablename__ = 'TEV_IZMENE'
+    ID = db.Column(db.INT(), primary_key=True)
+    Oddelek = db.Column(db.CHAR(50))
+    Izmjena = db.Column(db.INT())
 
 @login_manager.user_loader
 def load_user(kartica):
@@ -459,6 +464,65 @@ def kapaciteta():
     if current_user.role != 'Uprava':
         return render_template('unauthorized.html')
     return render_template('/Uprava/kapaciteta.html')
+
+@app.route('/izmene', methods=['GET'])
+def izmene():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
+    return render_template('/Uprava/izmene.html')
+
+@app.route('/editIzmene', methods=['POST'])
+def edit_izmene():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    print(current_user.role)
+    if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
+        return render_template('unauthorized.html')
+
+    # Get data from the form
+    id = request.form.get('ID')
+    oddelek = request.form.get('Oddelek')
+    izmjena = request.form.get('Izmjena')
+
+    # Find the TEV EVID record to edit
+    tev_evid_record = TEV_EVID.query.filter_by(ID=id).first()
+    # Update the record with the new data
+    if tev_evid_record:
+        tev_evid_record.Oddelek = oddelek
+        tev_evid_record.Izmjena = izmjena
+        db.session.commit()
+
+        # Optionally, you can return a success response
+        return jsonify({'success': True})
+    else:
+        # Return an error response if the record was not found
+        return jsonify({'success': False, 'message': 'TEV EVID record not found'})
+
+@app.route('/izmene/download', methods=['GET'])
+def download_izmene():
+    # Query data from the database
+    tev_evid_data = TEV_EVID.query.all()
+
+    # Convert the data to a Pandas DataFrame
+    df = pd.DataFrame([(item.ID, item.Oddelek, item.Izmjena) for item in tev_evid_data], columns=['ID', 'Oddelek', 'Izmjena'])
+
+    # Create an output stream
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+    # Write the DataFrame to Excel
+    df.to_excel(writer, index=False, sheet_name='TEV_EVID')
+
+    # Close the Pandas Excel writer
+    writer.close()
+
+    # Go back to the beginning of the stream
+    output.seek(0)
+
+    # Return the Excel file as a downloadable attachment
+    return send_file(output, download_name="TEV_EVID.xlsx", as_attachment=True)
 
 if __name__ == "__main__":
     app.run(debug=True)

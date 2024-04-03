@@ -41,18 +41,20 @@
 <script>
     // Get today's date
     var today = new Date();
+    today.setDate(today.getDate() - 1); // Set to yesterday
 
-    // Format today's date as 'YYYY-MM-DD' for input[type=date]
+    // Format yesterday's date as 'YYYY-MM-DD' for input[type=date]
     var yyyy = today.getFullYear();
-    var mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
     var dd = String(today.getDate()).padStart(2, '0');
-    var yesterdayFormatted = yyyy + '-' + mm + '-' + (dd - 1);
+    var yesterdayFormatted = yyyy + '-' + mm + '-' + dd;
 
-    // Set the 'from_date' and 'to_date' input values to today's date
+    // Set the 'from_date' and 'to_date' input values to yesterday's date
     document.getElementById('from_date').value = yesterdayFormatted;
-    document.getElementById('to_date').value = yesterdayFormatted
+    document.getElementById('to_date').value = yesterdayFormatted;
 
-    fetchData()
+    fetchData(); // Fetch data when the page loads initially
+
 
     var myChart; // Declare the chart variable globally
 

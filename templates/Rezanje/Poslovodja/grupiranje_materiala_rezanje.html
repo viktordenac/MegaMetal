@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* Align items at the top */
+            min-height: 100vh; /* Use min-height to ensure full page height */
+        }
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            width: 300px; /* Set a width for the form */
+            margin-top: 2%; /* Adjust top margin as needed */
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0 20px 0;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 0;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            margin-bottom: 10px;
+        }
+
+        /* Add this CSS to your existing style block */
+        .data-container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+        }
+
+        .data-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-container th, .data-container td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .data-container th {
+            background-color: #f2f2f2;
+        }
+
+        /* Add this CSS to your existing style block */
+        .form-container {
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .login-form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+            width: 300px; /* Set a width for the form */
+            margin: 0 auto; /* Center the form horizontally */
+        }
+
+        .table-container {
+            margin-top: 20px;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .data-container {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+        }
+
+        .data-container table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-container th, .data-container td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .data-container th {
+            background-color: #f2f2f2;
+        }
+
+        .scrollable-table {
+            max-height: 700px; /* Assuming navbar height is 50px */
+            overflow: auto;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Include the navigation bar using JavaScript -->
+    {% include '/Rezanje/Poslovodja/rezPoslovodjaNavigation.html' %}
+
+    <div class="form-container">
+        <form class="login-form" id="textForm" onsubmit="fetchData(); return false;">
+            <h2>Iskanje bruto identa</h2>
+            <input type="text" id="documentInput" name="documentInput" placeholder="Enter Document ID" required>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+
+    <div class="table-container">
+        <!-- Main table container -->
+        <div id="mainTableContainer" class ="scrollable-table">
+            <div id="data_container" class="data-container">
+                <table id="mainTable">
+                    <thead>
+                        <tr>
+                            <th>Ident</th>
+                            <th>Id_rn</th>
+                            <th>Bruto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Summary table container -->
+    <div id="summaryTableContainer">
+        <div class="data-container">
+            <table id="summaryTable">
+                <thead>
+                    <tr>
+                        <th>Skupno</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+<script>
+    function fetchData() {
+        var documentId = document.getElementById('documentInput').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', '/Grupiranje_materiala_table');
+        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                displayData(response);
+            } else {
+                console.error('Request failed. Status: ' + xhr.status);
+            }
+        };
+        xhr.send('documentInput=' + encodeURIComponent(documentId));
+    }
+
+    function displayData(response) {
+        var mainTableContainer = document.getElementById('mainTableContainer');
+        var mainTable = document.getElementById('mainTable');
+        var summaryTableContainer = document.getElementById('summaryTableContainer');
+        var summaryTable = document.getElementById('summaryTable');
+
+        if (response.error) {
+            alert(response.error); // Display error message in a popup
+            return; // Exit function early
+        } else {
+            mainTable.style.display = 'table';
+            summaryTable.style.display = 'table';
+            var mainHtml = '';
+            var summaryHtml = '';
+
+            // Populate main table
+            response.AllData.forEach(function(row) {
+                mainHtml += '<tr><td>' + row.Ident.toString() + '</td><td>' + row.Id_rn.toString() + '</td><td>' + row.Bruto.toString() + '</td></tr>';
+            });
+            mainTable.querySelector('tbody').innerHTML = mainHtml;
+
+            // Populate summary table
+            summaryHtml += '<tr><td>' + response.skupnoBruto.toString() + '</td></tr>';
+            summaryTable.querySelector('tbody').innerHTML = summaryHtml;
+        }
+    }
+
+</script>

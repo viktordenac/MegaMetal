@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realizacija bruto/neto za period</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <style>
+        /* Adjust chart container size */
+        #myChart {
+            width: 100%;
+            max-height: 780px;
+            margin: 0 auto; /* Center the container */
+        }
+
+        /* Adjust canvas size */
+        canvas {
+            max-width: 100%; /* Ensure canvas doesn't overflow its container */
+            height: auto; /* Maintain canvas aspect ratio */
+        }
+    </style>
+</head>
+<body>
+    <!-- Include the navigation bar using JavaScript -->
+    {% include '/Rezanje/Poslovodja/rezPoslovodjaNavigation.html' %}
+
+    <!-- Main content -->
+    <div class="content">
+        <h1>Realizacija bruto/neto za period</h1>
+        <form id="date_form">
+            <label for="from_date">From:</label>
+            <input type="date" id="from_date" name="from_date" value="2024-01-01">
+            <label for="to_date">To:</label>
+            <input type="date" id="to_date" name="to_date" value="2024-12-31">
+            <button type="button" onclick="fetchData()">Select Dates</button>
+        </form>
+        <canvas id="myChart"></canvas>
+    </div>
+
+<script>
+    // Get today's date
+    var today = new Date();
+    today.setDate(today.getDate() - 1); // Set to yesterday
+
+    // Format yesterday's date as 'YYYY-MM-DD' for input[type=date]
+    var yyyy = today.getFullYear();
+    var mm = String(today.getMonth() + 1).padStart(2, '0');
+    var dd = String(today.getDate()).padStart(2, '0');
+    var yesterdayFormatted = yyyy + '-' + mm + '-' + dd;
+
+    // Set the 'from_date' and 'to_date' input values to yesterday's date
+    document.getElementById('from_date').value = yesterdayFormatted;
+    document.getElementById('to_date').value = yesterdayFormatted;
+
+    fetchData(); // Fetch data when the page loads initially
+
+
+    var myChart; // Declare the chart variable globally
+
+    function fetchData() {
+        var from_date = document.getElementById('from_date').value;
+        var to_date = document.getElementById('to_date').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/Potrošnja-materiala-grafi?from_date=' + from_date + '&to_date=' + to_date);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                displayChart(response);
+            } else {
+                console.error('Request failed. Status: ' + xhr.status);
+            }
+        };
+        xhr.send();
+    }
+
+    function displayChart(response) {
+        var data = response.data;
+        var labels = data.map(function(row) {
+            return row.JobCode;
+        });
+        var postotakData = data.map(function(row, index) {
+            var color = row.Postotak > 100 ? 'rgb(255,165,0, 0.8)': row.Postotak < 50 ? 'rgba(213,20,20, 0.4)': row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0, 0.8)' : (index % 2 === 0 ? 'rgba(0,255,0,0.4)' : 'rgba(0,255,0,0.2)');
+            var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)': row.Postotak < 50 ? 'rgba(0,0,0)' : row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0)' : (index % 2 === 0 ? 'rgb(0,255,0)' : 'rgb(0,255,0)');
+
+            return {
+                value: row.Postotak,
+                color: color,
+                borderColor: borderColor
+            };
+        });
+
+        // Destroy the existing chart instance if it exists
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Postotak',
+                    data: postotakData.map(function(item) {
+                        return item.value;
+                    }),
+                    backgroundColor: postotakData.map(function(item) {
+                        return item.color;
+                    }),
+                    borderColor: postotakData.map(function(item) {
+                        return item.borderColor;
+                    }),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+</script>
+</body>
+</html>

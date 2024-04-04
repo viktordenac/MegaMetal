@@ -41,6 +41,7 @@ class DELOVNI_NALOG(db.Model):
     __tablename__ = 'TRN_RN'
     Id_rn = db.Column(db.CHAR(50), primary_key=True)
     Aktivan = db.Column(db.CHAR(2))
+    Status = db.Column(db.CHAR(15))
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -51,6 +52,7 @@ def login():
             # Authentication successful, store user ID in session
             session["user_id"] = employee.Kartica
             session["username"] = employee.Ime
+            session["vloga"] = employee.Mjesto
             return redirect(url_for("evidenca_ur"))
         else:
             # Authentication failed, reload login page with an error message
@@ -61,10 +63,9 @@ def login():
 def evidenca_ur():
     if not is_authenticated():
         return redirect(url_for("login"))
-    activities = DELOVNI_NALOG.query.filter_by(Aktivan='1').all()
+    activities = DELOVNI_NALOG.query.filter_by(Aktivan='1', Status=session["vloga"]).all()
     faze = TBA_FAZA.query.filter_by(Key='V').all()
     faze_values = [faza.Test for faza in TBA_FAZA.query.all()]
-    print(faze_values)  # This will print a list of values
     return render_template("evidencaUr.html", radniNalogi=activities, faze=faze)
 
 

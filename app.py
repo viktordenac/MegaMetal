@@ -25,9 +25,10 @@ login_manager.init_app(app)
 
 # Example user model
 class User(UserMixin):
-    def __init__(self, Kartica, Username, Mjesto):
+    def __init__(self, Kartica, Username, Ime, Mjesto):
         self.id = Kartica
         self.username = Username
+        self.name = Ime
         self.role = Mjesto
 
     def is_authenticated(self):
@@ -93,7 +94,7 @@ class TRN_RN(db.Model):
 def load_user(kartica):
     employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
     if employee:
-        return User(employee.Kartica, employee.Username, employee.Mjesto)
+        return User(employee.Kartica, employee.Username, employee.Ime, employee.Mjesto)
     return None
 
 def is_authenticated():
@@ -112,9 +113,11 @@ def login():
 
         if user and form_password == str(user.Password):
             # Authentication successful
-            login_user(User(user.Kartica, user.Username, user.Mjesto))
+            login_user(User(user.Kartica, user.Username, user.Ime, user.Mjesto))
             session["username"] = user.Username
             session["role"] = user.Mjesto
+            session["name"] = user.Ime
+            print("Logged in as:", user.Ime)
             return redirect(url_for('index'))
         else:
             # Authentication failed
@@ -129,16 +132,18 @@ def uprava_home():
     if current_user.role != 'Uprava':
         return render_template('unauthorized.html')
     username = session["username"]
-    return render_template("/Uprava/upravaHome.html", Username=username)
+    name = session["name"]
+    return render_template("/Uprava/upravaHome.html", Username=username, Name=name)
 
-@app.route("/proizvodnjaHome")
-def proizvodnja():
+@app.route("/proizvodnjaMM1PosHome")
+def proizvodnjaMM1Pos():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Proizvodnja':
+    if current_user.role != 'MM1Pos':
         return render_template('unauthorized.html')
     username = session["username"]
-    return render_template("/Proizvodnja/proizvodnjaHome.html", Username=username)
+    name = session["name"]
+    return render_template("/Proizvodnja/MM1Pos/proizvodnjaHome.html", Username=username, Ime=name)
 
 @app.route("/prodajaHome")
 def prodaja():
@@ -206,8 +211,8 @@ def grupiranje_materiala():
         return render_template("/Konstrukcija/Poslovodja/grupiranje_materiala_konstrukcija.html", radniNalogi=identi)
     elif current_user.role == 'RezPos':
         return render_template("/Rezanje/Poslovodja/grupiranje_materiala_rezanje.html", radniNalogi=identi)
-    elif current_user.role == 'Proizvodnja':
-        return render_template("/Proizvodnja/grupiranje_materiala_proizvodnja.html", radniNalogi=identi)
+    elif current_user.role == 'MM1Pos':
+        return render_template("/Proizvodnja/MM1Pos/grupiranje_materiala_proizvodnja.html", radniNalogi=identi)
     else:
         return render_template("/Uprava/grupiranje_materiala.html", radniNalogi=identi)
 
@@ -229,10 +234,10 @@ def aktivni_nalogi():
                                       getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
-    if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
+    if current_user.role != 'Uprava' and current_user.role != 'MM1Pos':
         return render_template('unauthorized.html')
-    elif current_user.role == 'Proizvodnja':
-        return render_template("/Proizvodnja/aktivniNalogi.html", data=data, unique_values=unique_values)
+    elif current_user.role == 'MM1Pos':
+        return render_template("/Proizvodnja/MM1Pos/aktivniNalogi.html", data=data, unique_values=unique_values)
     return render_template("/Uprava/aktivniNalogi.html", data=data, unique_values=unique_values)
 
 @app.route("/Edit-Aktivni-Nalogi", methods=['POST'])
@@ -369,9 +374,9 @@ def index():
     if current_user.role == 'Uprava':
         # Return page accessible to 'uprava' role
         return redirect(url_for("uprava_home"))
-    elif current_user.role == 'Proizvodnja':
+    elif current_user.role == 'MM1Pos':
         # Return page accessible to 'prodaja' role
-        return redirect(url_for("proizvodnja"))
+        return redirect(url_for("proizvodnjaMM1Pos"))
     elif current_user.role == 'Prodaja':
         # Return page accessible to 'prodaja' role
         return redirect(url_for("prodaja"))
@@ -477,7 +482,7 @@ def delete_user():
 def tev_evid():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
+    if current_user.role != 'Uprava' and current_user.role != 'MM1Pos':
         return render_template('unauthorized.html')
 
     # Query all data
@@ -490,8 +495,8 @@ def tev_evid():
                                       getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
-    if current_user.role == 'Proizvodnja':
-        return render_template('/Proizvodnja/evidencaUr.html', data=data, unique_values=unique_values)
+    if current_user.role == 'MM1Pos':
+        return render_template('/Proizvodnja/MM1Pos/evidencaUr.html', data=data, unique_values=unique_values)
     return render_template('/Uprava/evidencaUr.html', data=data, unique_values=unique_values)
 
 from flask import request
@@ -501,7 +506,7 @@ def edit_tev_evid():
     if not is_authenticated():
         return redirect(url_for("login"))
 
-    if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
+    if current_user.role != 'Uprava' and current_user.role != 'MM1Pos':
         return render_template('unauthorized.html')
 
     # Get data from the form
@@ -557,10 +562,10 @@ def delete_tev_evid():
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Proizvodnja' and current_user.role != 'Uprava':
+    if current_user.role != 'MM1Pos' and current_user.role != 'Uprava':
         return render_template('unauthorized.html')
-    if current_user.role == 'Proizvodnja':
-        return render_template("/Proizvodnja/planiranjePripravnegaDela.html")
+    if current_user.role == 'MM1Pos':
+        return render_template("/Proizvodnja/MM1Pos/planiranjePripravnegaDela.html")
     return render_template('/Uprava/planiranjePripravnegaDela.html')
 
 
@@ -615,7 +620,7 @@ def edit_izmene():
     if not is_authenticated():
         return redirect(url_for("login"))
 
-    if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
+    if current_user.role != 'Uprava' and current_user.role != 'MM1Pos':
         return render_template('unauthorized.html')
 
     # Get data from the form

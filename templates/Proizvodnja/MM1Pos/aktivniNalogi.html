@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nalog Management</title>
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <style>
+         #successMessage {
+            display: none;
+            text-align: center;
+            background-color: #4CAF50;
+            color: #fff;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+         form {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        /* Your existing styles */
+        #editFormContainer {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        #add-nalog-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+          label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        #edit-button {
+            cursor: pointer;
+            background-color: darkorange;
+            color: black;
+        }
+        #delete-button {
+            cursor: pointer;
+            background-color: red;
+            color: white;
+        }
+        input[type="text"],
+        input[type="password"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgb(220, 220, 220);
+        }
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .table-container {
+            max-height: 400px; /* Adjust as needed */
+            overflow-y: auto;
+            margin-left: 14%;
+            width: 86%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        /* Styles for Edit and Delete buttons */
+        #edit-button, #delete-button {
+            cursor: pointer;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+        }
+        #edit-button {
+            background-color: darkorange;
+        }
+        #delete-button {
+            background-color: red;
+        }
+        /* Your existing styles */
+    </style>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <!-- Include the navigation bar using JavaScript -->
+    {% include '/Proizvodnja/MM1Pos/proizNavigation.html' %}
+
+    <div>
+        <h1>Nalog Management</h1>
+
+    <h2>Nalog Data</h2>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID_RN</th>
+                    <th>Status</th>
+                    <th>Aktivan</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for nalog in data %}
+                <tr>
+                    <td>{{ nalog.Id_rn }}</td>
+                    <td>{{ nalog.Status }}</td>
+                    <td>{{ nalog.Aktivan }}</td>
+                    <td><button id="edit-button" onclick="showEditForm(); editNalog('{{ nalog.Id_rn }}', '{{ nalog.Satus }}', '{{ nalog.Aktivan }}')">Edit</button></td> <!-- Add Edit button -->
+                    <td><button id="delete-button" onclick="deleteNalog('{{ nalog.Id_rn }}')">Delete</button></td>
+                    <!-- Add more columns here as needed -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <button id="add-nalog-button" onclick="showEditForm('','', '')">Add Nalog</button>
+    <!-- Edit form container -->
+    <div id="editFormContainer">
+        <button onclick="hideEditForm()">Close</button>
+        <h2>Edit Nalog</h2>
+        <form action="/Edit-Aktivni-Nalogi" method="post" id="editForm">
+            <label for="Id_rn">Id_rn:</label>
+            <input type="text" id="editId_rn" name="id_rn" required readonly><br>
+            <label for="Status">Status:</label>
+            <input type="text" id="editStatus" name="status" required><br>
+            <label for="Aktivan">Aktivan:</label>
+            <input type="text" id="editAktivan" name="aktivan" required><br>
+
+            <input type="submit" value="Add or Edit Nalog" >
+        </form>
+    </div>
+
+    <div id="successMessage">Nalog updated successfully!</div>
+    </div>
+
+
+<script>
+    function editNalog(Id_rn, Status, Aktivan) {
+        document.getElementById("editId_rn").value = Id_rn; // Clear previous values if any
+        document.getElementById("editAktivan").value = Aktivan;
+    }
+
+    function confirmEdit() {
+        var nalog = document.getElementById("editId_rn").value;
+        var obstojeciNalogi = Array.from(document.querySelectorAll("tbody td:first-child")).map(td => td.textContent);
+        if (obstojeciNalogi.includes(nalog)) {
+            return confirm("Nalog already exists. Do you want to edit the selected nalog?");
+        }
+        return true;
+    }
+
+
+    // Assume the form is submitted using AJAX
+    document.querySelector('form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent form submission
+        var formData = new FormData(this);
+
+        fetch('/Add-Aktivni-Nalog', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.prompt) {
+                confirmEdit();
+                if (confirmEdit) {
+                    // Proceed with updating the Nalog
+                    formData.append('edit_existing', true);
+                    formData.append('Id_rn', data.Id_rn);
+                    fetch('/Edit-Aktivni-Nalogi', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        // Handle response after editing Nalog
+                        // For example, display success message or redirect to Nalog page
+                        if (data.success) {
+                            // Display success message
+                            hideEditForm()
+                            document.getElementById('successMessage').style.display = 'block';
+                            // Reload the page after 2 seconds
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
+                        }
+                    });
+                }
+            } else if (data.success) {
+                // Handle success after adding Nalog
+                // For example, display success message or redirect to Nalog page
+                // Display success message
+                hideEditForm()
+                document.getElementById('successMessage').style.display = 'block';
+                // Reload the page after 2 seconds
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Handle error
+        });
+    });
+
+    function deleteNalog(nalog) {
+        if (confirm("Are you sure you want to delete nalog '" + nalog + "'?")) {
+            // Proceed with deletion
+            fetch('/delete_nalog', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nalog: nalog })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Handle response after deletion
+                if (data.success) {
+                    // Refresh the page after deletion
+                    document.getElementById('successMessage').style.display = 'block';
+                            // Reload the page after 2 seconds
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
+                } else {
+                    // Display an error message if deletion fails
+                    alert("Failed to delete nalog. Please try again.");
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Handle error
+            });
+        }
+    }
+
+    // Function to show edit form and populate fields
+        function showEditForm(Id_rn, Status, Aktivan) {
+            // Populate form fields
+            document.getElementById("editId_rn").value = Id_rn;
+            document.getElementById("editStatus").value = Status;
+            document.getElementById("editAktivan").value = Aktivan;
+
+            // Show the edit form container
+            document.getElementById("editFormContainer").style.display = "block";
+        }
+
+        // Function to hide edit form
+        function hideEditForm() {
+            // Hide the edit form container
+            document.getElementById("editFormContainer").style.display = "none";
+        }
+
+</script>
+</body>
+</html>

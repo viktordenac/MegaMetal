@@ -173,20 +173,37 @@ def potrosnja_materiala():
         return render_template("/Rezanje/Poslovodja/potrosnja_materiala_grafi_rezanje.html")
     return render_template("/Uprava/potrosnja_materiala_grafi.html")
 
+@app.route("/Potrosnja_materiala_torta")
+def potrosnja_materiala_torta():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Uprava' and current_user.role != 'KonPos' and current_user.role != 'RezPos':
+        return render_template('unauthorized.html')
+    elif current_user.role == 'KonPos':
+        return render_template("/Konstrukcija/Poslovodja/potrosnja_materiala_torta_konstrukcija.html")
+    elif current_user.role == 'RezPos':
+        return render_template("/Rezanje/Poslovodja/potrosnja_materiala_torta_rezanje.html")
+    return render_template("/Uprava/potrosnja_materiala_torta.html")
+
 @app.route("/Grupiranje_materiala")
 def grupiranje_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
+    identi = TREZ_KALK.query.with_entities(TREZ_KALK.Ident).distinct().all()
+    identi = [row[0] for row in identi]
+
     if current_user.role != 'Uprava' and current_user.role != 'Prodaja' and current_user.role != 'KonPos' and current_user.role != 'RezPos':
         return render_template('unauthorized.html')
     elif current_user.role == 'Prodaja':
-        return render_template("/Prodaja/potrosnja_materiala.html")
+        return render_template("/Prodaja/grupiranje_materiala_prodaja.html", radniNalogi=identi)
     elif current_user.role == 'KonPos':
-        return render_template("/Konstrukcija/Poslovodja/grupiranje_materiala_konstrukcija.html")
+        return render_template("/Konstrukcija/Poslovodja/grupiranje_materiala_konstrukcija.html", radniNalogi=identi)
     elif current_user.role == 'RezPos':
-        return render_template("/Rezanje/Poslovodja/grupiranje_materiala_rezanje.html")
+        return render_template("/Rezanje/Poslovodja/grupiranje_materiala_rezanje.html", radniNalogi=identi)
+    elif current_user.role == 'Proizvodnja':
+        return render_template("/Proizvodnja/grupiranje_materiala_proizvodnja.html", radniNalogi=identi)
     else:
-        return render_template("/Uprava/grupiranje_materiala.html")
+        return render_template("/Uprava/grupiranje_materiala.html", radniNalogi=identi)
 
 @app.route("/Potrošnja-materiala-grafi")
 def potrosnja_materiala_grafi():
@@ -224,12 +241,6 @@ def potrosnja_materiala_grafi():
         #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
 
-
-from collections import defaultdict
-
-
-from flask import jsonify
-
 @app.route("/Grupiranje_materiala_table", methods=['POST'])
 def grupiranje_materiala_table():
     if not is_authenticated():
@@ -242,16 +253,19 @@ def grupiranje_materiala_table():
         sumData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, func.sum(TREZ_KALK.Bruto)).group_by(TREZ_KALK.Ident).all()
         filtered_results = [(row[0], float(row[1])) for row in sumData if row[0] == documentId]
         filtered_bruto = [row[1] for row in filtered_results]
-        allData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, TREZ_KALK.Id_rn, TREZ_KALK.Bruto).filter_by(Ident=documentId).all()
+
+        allData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, TREZ_KALK.Id_rn, func.sum(TREZ_KALK.Bruto)).filter_by(
+            Ident=documentId).group_by(TREZ_KALK.Ident, TREZ_KALK.Id_rn).all()
+
 
         if not filtered_results and not allData:
             return jsonify({"error": "No data found for the given document ID"})
 
         # Convert allData to a list of dictionaries
-        all_data_dict = [{'Ident': row.Ident, 'Id_rn': row.Id_rn, 'Bruto': float(row.Bruto)} for row in allData]
+        all_data_dict = [{'Ident': row[0], 'Id_rn': row[1], 'Bruto': row[2]} for row in allData]
 
         # Return JSON response
-        return jsonify({'AllData': all_data_dict, 'skupnoBruto': sum(filtered_bruto)})
+        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto})
 
     except Exception as e:
         return jsonify({"error": str(e)})
@@ -401,7 +415,7 @@ from flask import request
 def edit_tev_evid():
     if not is_authenticated():
         return redirect(url_for("login"))
-    print(current_user.role)
+
     if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
         return render_template('unauthorized.html')
 
@@ -515,7 +529,7 @@ def izmene():
 def edit_izmene():
     if not is_authenticated():
         return redirect(url_for("login"))
-    print(current_user.role)
+
     if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
         return render_template('unauthorized.html')
 

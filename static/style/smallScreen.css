@@ -1,0 +1,36 @@
+@media screen and (max-width: 768px) {
+    /* Adjustments for smaller screens */
+
+    /* Form container */
+    .form-container {
+        width: 90%;
+        margin-left: 5%;
+    }
+
+    /* Login form */
+    .login-form {
+        width: 100%;
+    }
+
+    /* Table container */
+    .table-container {
+        width: 90%;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    /* Main table container */
+    .scrollable-table {
+        max-height: 500px;
+    }
+
+    /* Dropdown input */
+    .dropdownIdNr {
+        width: 100%;
+    }
+
+    /* Dropdown content */
+    .dropdown-content {
+        min-width: 100%;
+    }
+}

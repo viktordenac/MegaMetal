@@ -83,6 +83,12 @@ class TEV_IZMENE(db.Model):
     Oddelek = db.Column(db.CHAR(50))
     Izmjena = db.Column(db.INT())
 
+class TRN_RN(db.Model):
+    __tablename__ = 'TRN_RN'
+    Id_rn = db.Column(db.CHAR(50), primary_key=True)
+    Status = db.Column(db.CHAR(15))
+    Aktivan = db.Column(db.CHAR(2))
+
 @login_manager.user_loader
 def load_user(kartica):
     employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
@@ -204,6 +210,85 @@ def grupiranje_materiala():
         return render_template("/Proizvodnja/grupiranje_materiala_proizvodnja.html", radniNalogi=identi)
     else:
         return render_template("/Uprava/grupiranje_materiala.html", radniNalogi=identi)
+
+@app.route("/Aktivni_nalogi")
+def aktivni_nalogi():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+
+    # Get the status parameter from the request
+    status = request.args.get('status', default='1')  # Default value is '1' if parameter is not provided
+
+    # Query data based on the status
+    data = TRN_RN.query.filter(TRN_RN.Aktivan == status).all()
+
+    unique_values = {}
+    for column in TRN_RN.__table__.columns:
+        column_name = column.name
+        unique_values[column_name] = [getattr(row, column_name) for row in data if
+                                      getattr(row, column_name) is not None]
+        # Filter out duplicates and sort
+        unique_values[column_name] = sorted(set(unique_values[column_name]))
+    if current_user.role != 'Uprava' and current_user.role != 'Proizvodnja':
+        return render_template('unauthorized.html')
+    elif current_user.role == 'Proizvodnja':
+        return render_template("/Proizvodnja/aktivniNalogi.html", data=data, unique_values=unique_values)
+    return render_template("/Uprava/aktivniNalogi.html", data=data, unique_values=unique_values)
+
+@app.route("/Edit-Aktivni-Nalogi", methods=['POST'])
+def edit_aktivni_nalogi():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    # Get data from the form submission
+    id_rn = request.form.get('id_rn')
+    # Retrieve other form data as needed
+    nalog = TRN_RN.query.filter_by(Id_rn=id_rn).first()
+    nalog.Status = request.form.get('status')
+    nalog.Aktivan = request.form.get('aktivan')
+    db.session.commit()
+
+    # Return a JSON response indicating success
+    return jsonify({'success': True})
+
+@app.route('/delete_nalog', methods=['POST'])
+def delete_nalog():
+    if request.method == 'POST':
+        # Get the username to delete from the request
+        nalog = request.json.get('nalog')
+
+        # Check if the user exists
+        nalog = TRN_RN.query.filter_by(Id_rn=nalog).first()
+        if nalog:
+            try:
+                # Delete the user from the database
+                db.session.delete(nalog)
+                db.session.commit()
+                return jsonify({'success': True})
+            except Exception as e:
+                # Handle any errors that occur during deletion
+                return jsonify({'success': False, 'error': 'Failed to delete user.'}), 500
+        else:
+            # Return a message indicating that the user does not exist
+            return jsonify({'success': False, 'error': 'User not found.'}), 404
+
+@app.route('/Add-Aktivni-Nalog', methods=['POST'])
+def add_aktivni_nalog():
+    # Get data from the form submission
+    id_rn = request.form.get('id_rn')
+    aktivan = request.form.get('aktivan')
+
+    # Check if a user with the same username already exists
+    existing_user = TRN_RN.query.filter_by(Id_rn=id_rn).first()
+    if existing_user:
+        # User already exists, prompt the user for confirmation
+        return jsonify({'prompt': True, 'username': id_rn})
+
+    # User does not exist, proceed with adding the user
+    new_nalog = TRN_RN(Id_rn=id_rn, Aktivan=aktivan)
+    db.session.add(new_nalog)
+    db.session.commit()
+
+    return jsonify({'success': True})
 
 @app.route("/Potrošnja-materiala-grafi")
 def potrosnja_materiala_grafi():
@@ -577,4 +662,5 @@ def download_izmene():
     return send_file(output, download_name="TEV_EVID.xlsx", as_attachment=True)
 
 if __name__ == "__main__":
+    #app.run(host='192.168.100.216', port=5000)
     app.run(debug=True)

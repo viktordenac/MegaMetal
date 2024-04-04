@@ -7,34 +7,16 @@
     <title>User Management</title>
     <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: rgb(220, 220, 220);
-        }
-        h1, h2 {
+        #successMessage {
+            display: none;
             text-align: center;
-            margin-top: 20px;
-        }
-        table {
-            margin-left: 14%;
-            width: 86%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
+            background-color: #4CAF50;
+            color: #fff;
             padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
+            margin-top: 20px;
+            border-radius: 5px;
         }
-        th {
-            background-color: #f2f2f2;
-        }
-        tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        form {
+         form {
             max-width: 400px;
             margin: 20px auto;
             padding: 20px;
@@ -42,7 +24,30 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
-        label {
+        /* Your existing styles */
+        #editFormContainer {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+        #add-user-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+          label {
             display: block;
             margin-bottom: 5px;
         }
@@ -75,57 +80,50 @@
             border-radius: 3px;
             cursor: pointer;
         }
-        #successMessage {
-            display: none;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgb(220, 220, 220);
+        }
+        h1, h2 {
             text-align: center;
-            background-color: #4CAF50;
-            color: #fff;
-            padding: 10px;
             margin-top: 20px;
-            border-radius: 5px;
         }
-        /* Your existing styles */
-        #editFormContainer {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            z-index: 1000;
+        .table-container {
+            max-height: 400px; /* Adjust as needed */
+            overflow-y: auto;
+            margin-left: 14%;
+            width: 86%;
         }
-        #add-user-button {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: #fff;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        /* Styles for Edit and Delete buttons */
+        #edit-button, #delete-button {
+            cursor: pointer;
+            padding: 5px 10px;
             border: none;
             border-radius: 5px;
-            cursor: pointer;
+            color: #fff;
         }
-
-        .header-logo img {
-            display: flex;
-            justify-content: left;
-            align-items: center;
-            max-width: 100%;
+        #edit-button {
+            background-color: darkorange;
         }
-
-        /* Links inside the dropdown */
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        /* Change color of dropdown links on hover */
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
+        #delete-button {
+            background-color: red;
         }
     </style>
 </head>
@@ -138,35 +136,37 @@
         <h1>User Management</h1>
 
     <h2>User Data</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Ime</th>
-                <th>Username</th>
-                <th>Kartica</th>
-                <th>Mjesto</th>
-                <th>Password</th>
-                <th>Password Last Updated</th>
-                <th>Edit</th>
-                <th>Delete</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in data %}
-            <tr>
-                <td>{{ user.Ime }}</td>
-                <td>{{ user.Username }}</td>
-                <td>{{ user.Kartica }}</td>
-                <td>{{ user.Mjesto }}</td>
-                <td>{{ user.Password }}</td>
-                <td>{{ user.Datexp }}</td>
-                <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}', '{{ user.Mjesto }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
-                <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}')">Delete</button></td>
-                <!-- Add more columns here as needed -->
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Ime</th>
+                    <th>Username</th>
+                    <th>Kartica</th>
+                    <th>Mjesto</th>
+                    <th>Password</th>
+                    <th>Password Last Updated</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in data %}
+                <tr>
+                    <td>{{ user.Ime }}</td>
+                    <td>{{ user.Username }}</td>
+                    <td>{{ user.Kartica }}</td>
+                    <td>{{ user.Mjesto }}</td>
+                    <td>{{ user.Password }}</td>
+                    <td>{{ user.Datexp }}</td>
+                    <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}', '{{ user.Mjesto }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
+                    <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}')">Delete</button></td>
+                    <!-- Add more columns here as needed -->
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     <button id="add-user-button" onclick="showEditForm('','','','','','')">Add user</button>
 <!-- Edit form container -->
     <div id="editFormContainer">
@@ -319,6 +319,12 @@
             // Hide the edit form container
             document.getElementById("editFormContainer").style.display = "none";
         }
+
+        document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            hideEditForm();
+        }
+    });
 
 </script>
 </body>

@@ -117,7 +117,6 @@ def login():
             session["username"] = user.Username
             session["role"] = user.Mjesto
             session["name"] = user.Ime
-            print("Logged in as:", user.Ime)
             return redirect(url_for('index'))
         else:
             # Authentication failed
@@ -133,7 +132,7 @@ def uprava_home():
         return render_template('unauthorized.html')
     username = session["username"]
     name = session["name"]
-    return render_template("/Uprava/upravaHome.html", Username=username, Name=name)
+    return render_template("/Uprava/upravaHome.html", Username=username, Ime=name)
 
 @app.route("/proizvodnjaMM1PosHome")
 def proizvodnjaMM1Pos():
@@ -152,7 +151,8 @@ def prodaja():
     if current_user.role != 'Prodaja':
         return render_template('unauthorized.html')
     username = session["username"]
-    return render_template("/Prodaja/prodajaHome.html", Username=username)
+    name = session["name"]
+    return render_template("/Prodaja/prodajaHome.html", Username=username, Ime=name)
 
 @app.route("/konPosHome")
 def konPos():
@@ -161,7 +161,8 @@ def konPos():
     if current_user.role != 'KonPos':
         return render_template('unauthorized.html')
     username = session["username"]
-    return render_template("/Konstrukcija/Poslovodja/konPoslovodjaHome.html", Username=username)
+    name = session["name"]
+    return render_template("/Konstrukcija/Poslovodja/konPoslovodjaHome.html", Username=username, Ime=name)
 
 @app.route("/rezPosHome")
 def rezPos():
@@ -170,7 +171,8 @@ def rezPos():
     if current_user.role != 'RezPos':
         return render_template('unauthorized.html')
     username = session["username"]
-    return render_template("/Rezanje/Poslovodja/rezPoslovodjaHome.html", Username=username)
+    name = session["name"]
+    return render_template("/Rezanje/Poslovodja/rezPoslovodjaHome.html", Username=username, Ime=name)
 
 @app.route("/Potrosnja_materiala")
 def potrosnja_materiala():

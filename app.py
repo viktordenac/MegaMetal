@@ -3,11 +3,12 @@ from datetime import datetime, date
 
 import pandas as pd
 
-from flask import Flask, render_template, redirect, url_for, send_file, session
+from flask import Flask, render_template, redirect, url_for, send_file, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from io import BytesIO
+from sqlalchemy.exc import IntegrityError
 import openpyxl
 
 #python -m pip install flask_sqlalchemy
@@ -412,6 +413,21 @@ def user():
         unique_values[column_name] = sorted(set(unique_values[column_name]))
     return render_template('/Uprava/add_user.html', data=data, unique_values=unique_values)
 
+@app.route('/add_or_edit_user', methods=['POST'])
+def add_or_edit_user():
+    # Get data from the form submission
+    kartica = request.form.get('kartica')
+
+    # Check if a user with the provided Kartica already exists
+    existing_user = TBA_RAD.query.filter_by(Kartica=kartica).first()
+    if existing_user:
+        # User already exists, return a JSON response indicating the existence and providing the username
+        return jsonify({'exists': True, 'username': existing_user.Username})
+    else:
+        # User does not exist, proceed with adding the user
+        return jsonify({'exists': False})
+
+
 @app.route('/add_user', methods=['POST'])
 def add_user():
     # Get data from the form submission
@@ -420,54 +436,62 @@ def add_user():
     kartica = request.form.get('kartica')
     mjesto = request.form.get('mjesto')
     password = request.form.get('password')
-    if(request.form.get('datexp') != ''):
+
+    print("asdasfags")
+    if (request.form.get('datexp') != ''):
         datexp = request.form.get('datexp')
     else:
         datexp = None
 
-    # Check if a user with the same username already exists
-    existing_user = TBA_RAD.query.filter_by(Username=username).first()
+    # Check if a user with the same Kartica already exists
+    existing_user = TBA_RAD.query.filter_by(Kartica=kartica).first()
     if existing_user:
-        # User already exists, prompt the user for confirmation
-        return jsonify({'prompt': True, 'username': username})
+        # User already exists, return an error response
+        return jsonify({'success': False, 'error': 'User already exists.'})
 
     # User does not exist, proceed with adding the user
     new_user = TBA_RAD(Ime=name, Kartica=kartica, Mjesto=mjesto, Username=username, Password=password, Datexp=datexp)
-    db.session.add(new_user)
-    db.session.commit()
-
-    return jsonify({'success': True})
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+        return jsonify({'success': True})
+    except IntegrityError:
+        # Handle any integrity errors that occur during user creation
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to add user.'}), 500
 
 @app.route('/edit_user', methods=['POST'])
 def edit_user():
     # Get data from the form submission
-    username = request.form.get('username')
+    kartica = request.form.get('kartica')
     # Retrieve other form data as needed
 
-    user = TBA_RAD.query.filter_by(Username=username).first()
-    user.Ime = request.form.get('name')
-    user.Kartica = request.form.get('kartica')
-    user.Mjesto = request.form.get('mjesto')
-    user.Password = request.form.get('password')
-    if(request.form.get('datexp') != ''):
-        user.Datexp = request.form.get('datexp')
+    user = TBA_RAD.query.filter_by(Kartica=kartica).first()
+    if user:
+        user.Ime = request.form.get('name')
+        user.Kartica = request.form.get('kartica')
+        user.Mjesto = request.form.get('mjesto')
+        user.Password = request.form.get('password')
+        if (request.form.get('datexp') != ''):
+            user.Datexp = request.form.get('datexp')
+        else:
+            user.Datexp = None
+        db.session.commit()
+        return jsonify({'success': True})
     else:
-        user.Datexp = None
-    db.session.commit()
+        return jsonify({'success': False, 'error': 'User not found.'}), 404
 
-    # Return a JSON response indicating success
-    return jsonify({'success': True})
-
-from flask import request, jsonify
 
 @app.route('/delete_user', methods=['POST'])
 def delete_user():
     if request.method == 'POST':
-        # Get the username to delete from the request
-        username = request.json.get('username')
+        # Get the kartica to delete from the request
+        kartica = request.json.get('kartica')
+        print("Kartica: " + str(kartica))
 
         # Check if the user exists
-        user = TBA_RAD.query.filter_by(Username=username).first()
+        user = TBA_RAD.query.filter_by(Kartica=kartica).first()
+        print(user)
         if user:
             try:
                 # Delete the user from the database
@@ -480,7 +504,6 @@ def delete_user():
         else:
             # Return a message indicating that the user does not exist
             return jsonify({'success': False, 'error': 'User not found.'}), 404
-
 
 @app.route('/tev_evid')
 def tev_evid():
@@ -700,5 +723,7 @@ def replace_nan(data):
     return [[cell if not pd.isna(cell) else None for cell in row] for row in data]
 
 if __name__ == "__main__":
-    #app.run(host='192.168.100.216', port=5000)
+    #from waitress import serve
+    #serve(app, host='192.168.100.37', port=5000)
+    app.run(host='192.168.100.37', port=5000)
     app.run(debug=True)

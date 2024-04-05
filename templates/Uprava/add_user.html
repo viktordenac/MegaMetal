@@ -160,7 +160,7 @@
                     <td>{{ user.Password }}</td>
                     <td>{{ user.Datexp }}</td>
                     <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}', '{{ user.Mjesto }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
-                    <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}')">Delete</button></td>
+                    <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}', '{{ user.Kartica }}')">Delete</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
                 {% endfor %}
@@ -172,7 +172,7 @@
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
         <h2>Edit User</h2>
-        <form action="/update_user" method="post" id="editForm">
+        <form action="/add_or_edit_user" method="post" id="editForm">
             <label for="name">Ime:</label>
             <input type="text" id="editName" name="name" required><br>
             <label for="username">Username:</label>
@@ -191,7 +191,7 @@
         </form>
     </div>
 
-    <div id="successMessage">User updated successfully!</div>
+    <div id="successMessage">User Altered Successfully!</div>
     </div>
 
 
@@ -204,28 +204,19 @@
         document.getElementById("editPassword").value = password;
         document.getElementById("editDatexp").value = datexp;
     }
-
-    function confirmEdit() {
-        var username = document.getElementById("editUsername").value;
-        var existingUsernames = Array.from(document.querySelectorAll("tbody td:first-child")).map(td => td.textContent);
-        if (existingUsernames.includes(username)) {
-            return confirm("User already exists. Do you want to edit the selected user?");
-        }
-        return true;
-    }
-
-    // Assume the form is submitted using AJAX
+    // Function to handle form submission
     document.querySelector('form').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form submission
         var formData = new FormData(this);
 
-        fetch('/add_user', {
+        fetch('/add_or_edit_user', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
-            if (data.prompt) {
+            if (data.exists) {
+                // User already exists, prompt the user
                 var confirmEdit = confirm("User already exists. Do you want to edit the selected user?");
                 if (confirmEdit) {
                     // Proceed with updating the user
@@ -250,16 +241,25 @@
                         }
                     });
                 }
-            } else if (data.success) {
-                // Handle success after adding user
-                // For example, display success message or redirect to user page
-                // Display success message
-                hideEditForm()
-                document.getElementById('successMessage').style.display = 'block';
-                // Reload the page after 2 seconds
-                setTimeout(function() {
-                    location.reload();
-                }, 2000);
+            } else {
+                // User does not exist, proceed with adding the user
+                fetch('/add_user', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle response after adding user
+                    if (data.success) {
+                        // Display success message
+                        hideEditForm()
+                        document.getElementById('successMessage').style.display = 'block';
+                        // Reload the page after 2 seconds
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    }
+                });
             }
         })
         .catch(error => {
@@ -268,15 +268,15 @@
         });
     });
 
-    function deleteUser(username) {
-        if (confirm("Are you sure you want to delete user '" + username + "'?")) {
+    function deleteUser(username, kartica) {
+        if (confirm("Are you sure you want to delete user '" + username + "'?" + kartica)) {
             // Proceed with deletion
             fetch('/delete_user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ username: username })
+                body: JSON.stringify({ kartica: kartica }) // Send only the 'kartica' to the backend
             })
             .then(response => response.json())
             .then(data => {
@@ -284,10 +284,10 @@
                 if (data.success) {
                     // Refresh the page after deletion
                     document.getElementById('successMessage').style.display = 'block';
-                            // Reload the page after 2 seconds
-                            setTimeout(function() {
-                                location.reload();
-                            }, 2000);
+                    // Reload the page after 2 seconds
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
                 } else {
                     // Display an error message if deletion fails
                     alert("Failed to delete user. Please try again.");
@@ -299,6 +299,7 @@
             });
         }
     }
+
 
     // Function to show edit form and populate fields
         function showEditForm(name, username, kartica, mjesto, password, datexp) {

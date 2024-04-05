@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Viewer</title>
+    <link rel="stylesheet" href="../../static/style/vercugsLista.css">
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <style>
+        .scrollable-table {
+            max-height: 700px;
+            overflow: auto;
+        }
+    </style>
+</head>
+<body>
+    {% include '/Uprava/adminNavigation.html' %}
+
+    <div id="container">
+        <h1>Excel Viewer</h1>
+        <div id="sheets"></div>
+        <div id="table-container"></div>
+    </div>
+
+    <script>
+        fetch('/verzugsListaLoad')
+        .then(response => response.json())
+        .then(data => {
+            const sheetNames = data.sheet_names;
+            const sheetsData = data.data;
+
+            const sheetsDiv = document.getElementById('sheets');
+            const tableContainer = document.getElementById('table-container');
+
+            sheetNames.forEach(sheetName => {
+                const button = document.createElement('button');
+                button.textContent = sheetName;
+                button.addEventListener('click', () => {
+                    const sheetData = sheetsData[sheetName];
+                    const table = document.createElement('table');
+                    table.classList.add('excel-table');
+                    const thead = table.createTHead();
+                    const headerRow = thead.insertRow();
+                    sheetData[0].forEach(column => {
+                        const th = document.createElement('th');
+                        th.textContent = column;
+                        headerRow.appendChild(th);
+                    });
+                    const tbody = table.createTBody();
+                    sheetData.slice(1).forEach(rowData => {
+                        const row = tbody.insertRow();
+                        rowData.forEach(cellData => {
+                            const cell = row.insertCell();
+                            cell.textContent = cellData;
+                        });
+                    });
+                    tableContainer.innerHTML = '';
+                    tableContainer.appendChild(table);
+                });
+                sheetsDiv.appendChild(button);
+            });
+        })
+        .catch(error => console.error('Error:', error));
+    </script>
+</body>
+</html>

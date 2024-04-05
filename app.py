@@ -1,5 +1,6 @@
 from datetime import datetime, date
 
+
 import pandas as pd
 
 from flask import Flask, render_template, redirect, url_for, send_file, session
@@ -7,6 +8,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from io import BytesIO
+import openpyxl
 
 #python -m pip install flask_sqlalchemy
 
@@ -667,6 +669,35 @@ def download_izmene():
 
     # Return the Excel file as a downloadable attachment
     return send_file(output, download_name="TEV_EVID.xlsx", as_attachment=True)
+
+@app.route('/verzugsLista', methods=['GET'])
+def verzugsLista():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if current_user.role != 'Uprava':
+        return render_template('unauthorized.html')
+    return render_template('/General/vercugsLista.html')
+
+@app.route('/verzugsListaLoad', methods=['GET'])
+def verzugsListaLoad():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    today = datetime.now()
+
+    godina = today.strftime('%Y')
+    mjesec = today.strftime('%m')
+    dan = today.strftime('%d')
+    file_path = "//192.168.100.216/Users/ivan.tonkic/Desktop/Share/Verzugs_liste/Verzugs_lista_"+ dan + "-" + mjesec + "-" + godina + ".xlsx"
+    try:
+        dfs = pd.read_excel(file_path, sheet_name=None, header=None)
+        sheet_names = list(dfs.keys())
+        data = {sheet_name: replace_nan(df.values.tolist()) for sheet_name, df in dfs.items()}
+        return jsonify({'sheet_names': sheet_names, 'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+def replace_nan(data):
+    return [[cell if not pd.isna(cell) else None for cell in row] for row in data]
 
 if __name__ == "__main__":
     #app.run(host='192.168.100.216', port=5000)

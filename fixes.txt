@@ -1,0 +1,2 @@
+- Naredi filtriranje pri npr. iskanju ID_RN v tabelah
+- Popravi overlay pri dd na meniju ko se odpre Iskanje bruto identa (grupiranje_materiala)

@@ -18,8 +18,6 @@
         <!-- Inside Dropdown -->
         <div class="dropdown-planiranje-proizvodnje">
             <a href="{{ url_for('planiranjePripravnegaDela') }}"><div class="dItem">Planiranje pripravnega dela</div></a>
-            <a href="{{ url_for('aktivni_nalogi', status='1') }}"><div class="dItem">Aktivni nalogi</div></a>
-            <a href="{{ url_for('aktivni_nalogi', status='0') }}"><div class="dItem">NeAktivni nalogi</div></a>
         </div>
     </div>
     <a href="#">Normativi</a>
@@ -34,7 +32,8 @@
         <!-- Inside Dropdown -->
         <div class="dropdown-administrativna-dela">
             <a href="{{ url_for('user') }}"><div class="dItem">Add user</div></a>
-            <a href="#"><div class="dItem">Aktivni nalogi</div></a>
+            <a href="{{ url_for('aktivni_nalogi', status='1') }}"><div class="dItem">Aktivni nalogi</div></a>
+            <a href="{{ url_for('aktivni_nalogi', status='0') }}"><div class="dItem">NeAktivni nalogi</div></a>
         </div>
     </div>
 </div>

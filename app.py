@@ -187,7 +187,7 @@ def potrosnja_materiala():
         return render_template("/Konstrukcija/Poslovodja/potrosnja_materiala_grafi_konstrukcija.html")
     elif current_user.role == 'RezPos':
         return render_template("/Rezanje/Poslovodja/potrosnja_materiala_grafi_rezanje.html")
-    return render_template("/Uprava/potrosnja_materiala_grafi.html")
+    return render_template("/Uprava/potrosnja_materiala_grafi_uprava.html")
 
 @app.route("/Potrosnja_materiala_torta")
 def potrosnja_materiala_torta():
@@ -199,7 +199,7 @@ def potrosnja_materiala_torta():
         return render_template("/Konstrukcija/Poslovodja/potrosnja_materiala_torta_konstrukcija.html")
     elif current_user.role == 'RezPos':
         return render_template("/Rezanje/Poslovodja/potrosnja_materiala_torta_rezanje.html")
-    return render_template("/Uprava/potrosnja_materiala_torta.html")
+    return render_template("/Uprava/potrosnja_materiala_torta_uprava.html")
 
 @app.route("/Grupiranje_materiala")
 def grupiranje_materiala():
@@ -219,7 +219,7 @@ def grupiranje_materiala():
     elif current_user.role == 'MM1Pos':
         return render_template("/Proizvodnja/MM1Pos/grupiranje_materiala_proizvodnja.html", radniNalogi=identi)
     else:
-        return render_template("/Uprava/grupiranje_materiala.html", radniNalogi=identi)
+        return render_template("/Uprava/grupiranje_materiala_uprava.html", radniNalogi=identi)
 
 @app.route("/Aktivni_nalogi")
 def aktivni_nalogi():
@@ -242,8 +242,8 @@ def aktivni_nalogi():
     if current_user.role != 'Uprava' and current_user.role != 'MM1Pos':
         return render_template('unauthorized.html')
     elif current_user.role == 'MM1Pos':
-        return render_template("/Proizvodnja/MM1Pos/aktivniNalogi.html", data=data, unique_values=unique_values)
-    return render_template("/Uprava/aktivniNalogi.html", data=data, unique_values=unique_values)
+        return render_template("/Proizvodnja/MM1Pos/aktivni_nalogi_uprava.html", data=data, unique_values=unique_values)
+    return render_template("/Uprava/aktivni_nalogi_uprava.html", data=data, unique_values=unique_values)
 
 @app.route("/Edit-Aktivni-Nalogi", methods=['POST'])
 def edit_aktivni_nalogi():
@@ -347,17 +347,16 @@ def grupiranje_materiala_table():
         # Fetch data from the database
         sumData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, func.sum(TREZ_KALK.Bruto)).group_by(TREZ_KALK.Ident).all()
         filtered_results = [(row[0], float(row[1])) for row in sumData if row[0] == documentId]
-        filtered_bruto = [row[1] for row in filtered_results]
+        filtered_bruto = [round((row[1]), 3) for row in filtered_results]  # Round to 3 decimals
 
         allData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, TREZ_KALK.Id_rn, func.sum(TREZ_KALK.Bruto)).filter_by(
             Ident=documentId).group_by(TREZ_KALK.Ident, TREZ_KALK.Id_rn).all()
-
 
         if not filtered_results and not allData:
             return jsonify({"error": "No data found for the given document ID"})
 
         # Convert allData to a list of dictionaries
-        all_data_dict = [{'Ident': row[0], 'Id_rn': row[1], 'Bruto': row[2]} for row in allData]
+        all_data_dict = [{'Ident': row[0], 'Id_rn': row[1], 'Bruto': round((row[2]), 3)} for row in allData]  # Round to 3 decimals
 
         # Return JSON response
         return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto})
@@ -523,8 +522,8 @@ def tev_evid():
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
     if current_user.role == 'MM1Pos':
-        return render_template('/Proizvodnja/MM1Pos/evidencaUr.html', data=data, unique_values=unique_values)
-    return render_template('/Uprava/evidencaUr.html', data=data, unique_values=unique_values)
+        return render_template('/Proizvodnja/MM1Pos/evidenca_ur_uprava.html', data=data, unique_values=unique_values)
+    return render_template('/Uprava/evidenca_ur_uprava.html', data=data, unique_values=unique_values)
 
 from flask import request
 
@@ -592,8 +591,8 @@ def planiranjePripravnegaDela():
     if current_user.role != 'MM1Pos' and current_user.role != 'Uprava':
         return render_template('unauthorized.html')
     if current_user.role == 'MM1Pos':
-        return render_template("/Proizvodnja/MM1Pos/planiranjePripravnegaDela.html")
-    return render_template('/Uprava/planiranjePripravnegaDela.html')
+        return render_template("/Proizvodnja/MM1Pos/planiranje_pripravnega_dela.html")
+    return render_template('/Uprava/planiranje_pripravnega_dela.html')
 
 
 @app.route('/evidencaUr/download', methods=['GET'])
@@ -640,7 +639,7 @@ def izmene():
         return redirect(url_for("login"))
     if current_user.role != 'Uprava':
         return render_template('unauthorized.html')
-    return render_template('/Uprava/izmene.html')
+    return render_template('/Uprava/izmene_uprava.html')
 
 @app.route('/editIzmene', methods=['POST'])
 def edit_izmene():
@@ -699,7 +698,9 @@ def verzugsLista():
         return redirect(url_for("login"))
     if current_user.role != 'Uprava':
         return render_template('unauthorized.html')
-    return render_template('/General/vercugsLista.html')
+    if current_user.role == 'Uprava':
+        return render_template('/Uprava/vercugs_lista_uprava.html')
+    return render_template('unauthorized.html')
 
 @app.route('/verzugsListaLoad', methods=['GET'])
 def verzugsListaLoad():

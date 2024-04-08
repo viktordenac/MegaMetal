@@ -1,12 +1,13 @@
+<!-- add_user.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nalog Management</title>
+    <title>Upravljanje uporabnikov</title>
     <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
-         #successMessage {
+        #successMessage {
             display: none;
             text-align: center;
             background-color: #4CAF50;
@@ -36,7 +37,7 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             z-index: 1000;
         }
-        #add-nalog-button {
+        #add-user-button {
             display: block;
             margin: 20px auto;
             padding: 10px 20px;
@@ -124,105 +125,107 @@
         #delete-button {
             background-color: red;
         }
-        /* Your existing styles */
     </style>
 </head>
 <body>
-    <!-- Navigation bar -->
-    <!-- Include the navigation bar using JavaScript -->
-    {% include '/Uprava/adminNavigation.html' %}
-
     <div>
-        <h1>Nalog Management</h1>
+        <h1>Upravljanje uporabnikov</h1>
 
-    <h2>Nalog Data</h2>
+    <h2>Uporabniki</h2>
     <div class="table-container">
         <table>
             <thead>
                 <tr>
-                    <th>ID_RN</th>
-                    <th>Status</th>
-                    <th>Aktivan</th>
+                    <th>Ime</th>
+                    <th>Username</th>
+                    <th>Kartica</th>
+                    <th>Mjesto</th>
+                    <th>Password</th>
+                    <th>Password Last Updated</th>
                     <th>Edit</th>
                     <th>Delete</th>
                 </tr>
             </thead>
             <tbody>
-                {% for nalog in data %}
+                {% for user in data %}
                 <tr>
-                    <td>{{ nalog.Id_rn }}</td>
-                    <td>{{ nalog.Status }}</td>
-                    <td>{{ nalog.Aktivan }}</td>
-                    <td><button id="edit-button" onclick="showEditForm(); editNalog('{{ nalog.Id_rn }}', '{{ nalog.Satus }}', '{{ nalog.Aktivan }}')">Edit</button></td> <!-- Add Edit button -->
-                    <td><button id="delete-button" onclick="deleteNalog('{{ nalog.Id_rn }}')">Delete</button></td>
+                    <td>{{ user.Ime }}</td>
+                    <td>{{ user.Username }}</td>
+                    <td>{{ user.Kartica }}</td>
+                    <td>{{ user.Mjesto }}</td>
+                    <td>{{ user.Password }}</td>
+                    <td>{{ user.Datexp }}</td>
+                    <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}', '{{ user.Mjesto }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
+                    <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}', '{{ user.Kartica }}')">Delete</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <button id="add-nalog-button" onclick="showEditForm('','', '')">Add Nalog</button>
-    <!-- Edit form container -->
+    <button id="add-user-button" onclick="showEditForm('','','','','','')">Add user</button>
+<!-- Edit form container -->
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
-        <h2>Edit Nalog</h2>
-        <form action="/Edit-Aktivni-Nalogi" method="post" id="editForm">
-            <label for="Id_rn">Id_rn:</label>
-            <input type="text" id="editId_rn" name="id_rn" required readonly><br>
-            <label for="Status">Status:</label>
-            <input type="text" id="editStatus" name="status" required><br>
-            <label for="Aktivan">Aktivan:</label>
-            <input type="text" id="editAktivan" name="aktivan" required><br>
+        <h2>Edit User</h2>
+        <form action="/add_or_edit_user" method="post" id="editForm">
+            <label for="name">Ime:</label>
+            <input type="text" id="editName" name="name" required><br>
+            <label for="username">Username:</label>
+            <input type="text" id="editUsername" name="username" required><br>
+            <label for="kartica">Kartica:</label>
+            <input type="text" id="editKartica" name="kartica" required><br>
+            <label for="mjesto">Vloga:</label>
+            <input type="text" id="editMjesto" name="mjesto" required><br>
+            <label for="password">Geslo:</label>
+            <input type="text" id="editPassword" name="password" required><br>
+            <label for="datexp">Geslo poteče:</label>
+            <input type="date" id="editDatexp" name="datexp"><br>
+            <!-- Add more input fields for other user attributes -->
 
-            <input type="submit" value="Add or Edit Nalog" >
+            <input type="submit" value="Add or Edit User" onclick="confirmEdit()">
         </form>
     </div>
 
-    <div id="successMessage">Nalog updated successfully!</div>
+    <div id="successMessage">User Altered Successfully!</div>
     </div>
 
 
 <script>
-    function editNalog(Id_rn, Status, Aktivan) {
-        document.getElementById("editId_rn").value = Id_rn; // Clear previous values if any
-        document.getElementById("editAktivan").value = Aktivan;
+    function editUser(name, username, kartica, mjesto, password, datexp) {
+        document.getElementById("editName").value = name; // Clear previous values if any
+        document.getElementById("editUsername").value = username;
+        document.getElementById("editKartica").value = kartica;
+        document.getElementById("editMjesto").value = mjesto; // Replace with actual value
+        document.getElementById("editPassword").value = password;
+        document.getElementById("editDatexp").value = datexp;
     }
-
-    function confirmEdit() {
-        var nalog = document.getElementById("editId_rn").value;
-        var obstojeciNalogi = Array.from(document.querySelectorAll("tbody td:first-child")).map(td => td.textContent);
-        if (obstojeciNalogi.includes(nalog)) {
-            return confirm("Nalog already exists. Do you want to edit the selected nalog?");
-        }
-        return true;
-    }
-
-
-    // Assume the form is submitted using AJAX
+    // Function to handle form submission
     document.querySelector('form').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form submission
         var formData = new FormData(this);
 
-        fetch('/Add-Aktivni-Nalog', {
+        fetch('/add_or_edit_user', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
-            if (data.prompt) {
-                confirmEdit();
+            if (data.exists) {
+                // User already exists, prompt the user
+                var confirmEdit = confirm("User already exists. Do you want to edit the selected user?");
                 if (confirmEdit) {
-                    // Proceed with updating the Nalog
+                    // Proceed with updating the user
                     formData.append('edit_existing', true);
-                    formData.append('Id_rn', data.Id_rn);
-                    fetch('/Edit-Aktivni-Nalogi', {
+                    formData.append('username', data.username);
+                    fetch('/edit_user', {
                         method: 'POST',
                         body: formData
                     })
                     .then(response => response.json())
                     .then(data => {
-                        // Handle response after editing Nalog
-                        // For example, display success message or redirect to Nalog page
+                        // Handle response after editing user
+                        // For example, display success message or redirect to user page
                         if (data.success) {
                             // Display success message
                             hideEditForm()
@@ -234,16 +237,25 @@
                         }
                     });
                 }
-            } else if (data.success) {
-                // Handle success after adding Nalog
-                // For example, display success message or redirect to Nalog page
-                // Display success message
-                hideEditForm()
-                document.getElementById('successMessage').style.display = 'block';
-                // Reload the page after 2 seconds
-                setTimeout(function() {
-                    location.reload();
-                }, 2000);
+            } else {
+                // User does not exist, proceed with adding the user
+                fetch('/add_user', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Handle response after adding user
+                    if (data.success) {
+                        // Display success message
+                        hideEditForm()
+                        document.getElementById('successMessage').style.display = 'block';
+                        // Reload the page after 2 seconds
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    }
+                });
             }
         })
         .catch(error => {
@@ -252,15 +264,15 @@
         });
     });
 
-    function deleteNalog(nalog) {
-        if (confirm("Are you sure you want to delete nalog '" + nalog + "'?")) {
+    function deleteUser(username, kartica) {
+        if (confirm("Are you sure you want to delete user '" + username + "'?" + kartica)) {
             // Proceed with deletion
-            fetch('/delete_nalog', {
+            fetch('/delete_user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ nalog: nalog })
+                body: JSON.stringify({ kartica: kartica }) // Send only the 'kartica' to the backend
             })
             .then(response => response.json())
             .then(data => {
@@ -268,13 +280,13 @@
                 if (data.success) {
                     // Refresh the page after deletion
                     document.getElementById('successMessage').style.display = 'block';
-                            // Reload the page after 2 seconds
-                            setTimeout(function() {
-                                location.reload();
-                            }, 2000);
+                    // Reload the page after 2 seconds
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
                 } else {
                     // Display an error message if deletion fails
-                    alert("Failed to delete nalog. Please try again.");
+                    alert("Failed to delete user. Please try again.");
                 }
             })
             .catch(error => {
@@ -284,12 +296,16 @@
         }
     }
 
+
     // Function to show edit form and populate fields
-        function showEditForm(Id_rn, Status, Aktivan) {
+        function showEditForm(name, username, kartica, mjesto, password, datexp) {
             // Populate form fields
-            document.getElementById("editId_rn").value = Id_rn;
-            document.getElementById("editStatus").value = Status;
-            document.getElementById("editAktivan").value = Aktivan;
+            document.getElementById("editName").value = name;
+            document.getElementById("editUsername").value = username;
+            document.getElementById("editKartica").value = kartica;
+            document.getElementById("editMjesto").value = mjesto;
+            document.getElementById("editPassword").value = password;
+            document.getElementById("editDatexp").value = datexp;
 
             // Show the edit form container
             document.getElementById("editFormContainer").style.display = "block";
@@ -300,6 +316,12 @@
             // Hide the edit form container
             document.getElementById("editFormContainer").style.display = "none";
         }
+
+        document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            hideEditForm();
+        }
+    });
 
 </script>
 </body>

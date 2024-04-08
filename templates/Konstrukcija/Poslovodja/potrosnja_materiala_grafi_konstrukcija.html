@@ -39,19 +39,25 @@
     </div>
 
 <script>
-    // Get today's date
+        // Get today's date
     var today = new Date();
-    today.setDate(today.getDate() - 1); // Set to yesterday
 
-    // Format yesterday's date as 'YYYY-MM-DD' for input[type=date]
+    // Check if today is Monday (0 index for Sunday, 1 for Monday, and so on)
+    if (today.getDay() === 1) { // If today is Monday
+        today.setDate(today.getDate() - 3); // Set to previous Friday
+    } else {
+        today.setDate(today.getDate() - 1); // Set to yesterday
+    }
+
+    // Format the date as 'YYYY-MM-DD' for input[type=date]
     var yyyy = today.getFullYear();
     var mm = String(today.getMonth() + 1).padStart(2, '0');
     var dd = String(today.getDate()).padStart(2, '0');
-    var yesterdayFormatted = yyyy + '-' + mm + '-' + dd;
+    var formattedDate = yyyy + '-' + mm + '-' + dd;
 
-    // Set the 'from_date' and 'to_date' input values to yesterday's date
-    document.getElementById('from_date').value = yesterdayFormatted;
-    document.getElementById('to_date').value = yesterdayFormatted;
+    // Set the 'from_date' and 'to_date' input values to the calculated date
+    document.getElementById('from_date').value = formattedDate;
+    document.getElementById('to_date').value = formattedDate;
 
     fetchData(); // Fetch data when the page loads initially
 
@@ -117,12 +123,20 @@
             options: {
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        max : 105,
+                        ticks: {
+                            stepSize: 10,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
                     }
                 }
             }
         });
-    }
+        }
+
 
 </script>
 </body>

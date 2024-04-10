@@ -38,7 +38,7 @@
     border-radius: 5px;
     cursor: pointer;
 }
-  label {
+label {
     display: block;
     margin-bottom: 5px;
 }
@@ -82,14 +82,22 @@ h1, h2 {
     margin-top: 20px;
 }
 .table-container {
-    max-height: 400px; /* Adjust as needed */
+    max-height: 600px; /* Adjust as needed */
     overflow-y: auto;
     margin-left: 14%;
-    width: 86%;
+    width: 85%;
 }
 table {
     width: 100%;
     border-collapse: collapse;
+}
+thead {
+    font-size: 15px;
+    table-layout: fixed;
+    background-color: #f8f9fa; /* Background color of floating header */
+    position: sticky;
+    top: 0;
+    z-index: 1; /* Ensure the floating header stays on top of the table */
 }
 th, td {
     padding: 10px;

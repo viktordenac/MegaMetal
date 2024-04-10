@@ -30,7 +30,7 @@ select{
 .textboxOpomba {
     position: relative;
     display: inline-block;
-    width: 100%;
+    width: 99%;
     height: 100%;
     vertical-align: middle;
 }

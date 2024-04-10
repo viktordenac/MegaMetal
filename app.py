@@ -21,6 +21,7 @@ class TBA_RAD(db.Model):
     Ime = db.Column(db.String(100))
     Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
     Mjesto = db.Column(db.String(10))
+    Kombinirani = db.Column(db.CHAR(15))
 
 class TEV_EVID(db.Model):
     __tablename__ = 'TEV_EVID'
@@ -34,10 +35,10 @@ class TEV_EVID(db.Model):
 
 class TBA_FAZA(db.Model):
     __tablename__ = 'TBA_FAZA'
-    Key = db.Column(db.CHAR(2), primary_key=True)
-    Test = db.Column(db.CHAR(20))
+    Key = db.Column(db.CHAR(15))
+    Test = db.Column(db.CHAR(20), primary_key=True)
 
-class DELOVNI_NALOG(db.Model):
+class TRN_RN(db.Model):
     __tablename__ = 'TRN_RN'
     Id_rn = db.Column(db.CHAR(50), primary_key=True)
     Aktivan = db.Column(db.CHAR(2))
@@ -52,7 +53,8 @@ def login():
             # Authentication successful, store user ID in session
             session["user_id"] = employee.Kartica
             session["username"] = employee.Ime
-            session["vloga"] = employee.Mjesto
+            session["pozicija"] = employee.Kombinirani
+            session["mjesto"] = employee.Mjesto
             return redirect(url_for("evidenca_ur"))
         else:
             # Authentication failed, reload login page with an error message
@@ -63,9 +65,8 @@ def login():
 def evidenca_ur():
     if not is_authenticated():
         return redirect(url_for("login"))
-    activities = DELOVNI_NALOG.query.filter_by(Aktivan='1', Status=session["vloga"]).all()
-    faze = TBA_FAZA.query.filter_by(Key='V').all()
-    faze_values = [faza.Test for faza in TBA_FAZA.query.all()]
+    activities = TRN_RN.query.filter_by(Aktivan='1', Status=session["pozicija"]).all()
+    faze = TBA_FAZA.query.filter(TBA_FAZA.Key == session["mjesto"]).all()
     return render_template("evidencaUr.html", radniNalogi=activities, faze=faze)
 
 

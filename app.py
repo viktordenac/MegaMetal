@@ -71,6 +71,7 @@ class TREZ_KALK(db.Model):
 
 class TEV_EVID(db.Model):
     __tablename__ = 'TEV_EVID'
+    Ime = db.Column(db.CHAR(100))
     ID = db.Column(db.INT(), primary_key=True)
     Datum = db.Column(db.DATE())
     Izmena = db.Column(db.INT())

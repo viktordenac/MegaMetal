@@ -79,6 +79,13 @@
             border-radius: 3px;
             cursor: pointer;
         }
+        thead {
+            table-layout: fixed;
+            background-color: #f8f9fa; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;

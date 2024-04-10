@@ -8,6 +8,7 @@
     padding: 20px;
     margin-top: 1px;
     font-family: "Sans Serif Collection", sans-serif;
+    z-index: 1001; /* Ensure the navbar appears above the thead */
 }
 .navbar a {
     display: block;

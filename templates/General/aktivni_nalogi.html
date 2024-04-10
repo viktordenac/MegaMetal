@@ -164,7 +164,7 @@
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
         <h2>Edit Nalog</h2>
-        <form action="/Edit-Aktivni-Nalogi" method="post" id="editForm">
+        <form action="/edit_aktivni_nalogi" method="post" id="editForm">
             <label for="Id_rn">Id_rn:</label>
             <input type="text" id="editId_rn" name="id_rn" required readonly><br>
             <label for="Status">Status:</label>
@@ -201,7 +201,7 @@
         event.preventDefault(); // Prevent form submission
         var formData = new FormData(this);
 
-        fetch('/Add-Aktivni-Nalog', {
+        fetch('/add_aktivni_nalog', {
             method: 'POST',
             body: formData
         })
@@ -213,7 +213,7 @@
                     // Proceed with updating the Nalog
                     formData.append('edit_existing', true);
                     formData.append('Id_rn', data.Id_rn);
-                    fetch('/Edit-Aktivni-Nalogi', {
+                    fetch('/edit_aktivni_nalogi', {
                         method: 'POST',
                         body: formData
                     })

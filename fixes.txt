@@ -1,2 +1,11 @@
 - Naredi filtriranje pri npr. iskanju ID_RN v tabelah
 - Popravi overlay pri dd na meniju ko se odpre Iskanje bruto identa (grupiranje_materiala)
+
+
+- Sastava or varjenje
+
+
+- ko greš preko grafa naj izpiše tudi kilograme ->                          (pusti, bomo se že pogovorili)
+- ko klikneš na graf naj se odpre izbira, naj odpre pdf ali excel ->        (pusti, bomo se že pogovorili)
+
+- autofill disable

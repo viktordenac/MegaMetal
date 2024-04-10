@@ -9,7 +9,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from io import BytesIO
 from sqlalchemy.exc import IntegrityError
-import openpyxl
 
 #python -m pip install flask_sqlalchemy
 
@@ -93,6 +92,11 @@ class TRN_RN(db.Model):
     Status = db.Column(db.CHAR(15))
     Aktivan = db.Column(db.CHAR(2))
 
+class TBA_PRAVA(db.Model):
+    __tablename__ = 'TBA_PRAVA'
+    Username = db.Column(db.CHAR(15), primary_key=True)
+    Stranice = db.Column(db.CHAR(1000))
+
 @login_manager.user_loader
 def load_user(kartica):
     employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
@@ -126,102 +130,31 @@ def login():
             return render_template("login.html", error="Invalid username or password.")
     return render_template("login.html", error=None)
 
-
-@app.route("/upravaHome")
-def uprava_home():
-    if not is_authenticated():
-        return redirect(url_for("login"))
-    if current_user.role != 'Uprava':
-        return render_template('unauthorized.html')
-    username = session["username"]
-    name = session["name"]
-    return render_template("/Uprava/upravaHome.html", Username=username, Ime=name)
-
-@app.route("/proizvodnjaMM1PosHome")
-def proizvodnjaMM1Pos():
-    if not is_authenticated():
-        return redirect(url_for("login"))
-    if current_user.role != 'MM1Pos':
-        return render_template('unauthorized.html')
-    username = session["username"]
-    name = session["name"]
-    return render_template("/Proizvodnja/MM1Pos/proizvodnjaHome.html", Username=username, Ime=name)
-
-@app.route("/prodajaHome")
-def prodaja():
-    if not is_authenticated():
-        return redirect(url_for("login"))
-    if current_user.role != 'Prodaja':
-        return render_template('unauthorized.html')
-    username = session["username"]
-    name = session["name"]
-    return render_template("/Prodaja/prodajaHome.html", Username=username, Ime=name)
-
-@app.route("/konPosHome")
-def konPos():
-    if not is_authenticated():
-        return redirect(url_for("login"))
-    if current_user.role != 'KonPos':
-        return render_template('unauthorized.html')
-    username = session["username"]
-    name = session["name"]
-    return render_template("/Konstrukcija/Poslovodja/konPoslovodjaHome.html", Username=username, Ime=name)
-
-@app.route("/rezPosHome")
-def rezPos():
-    if not is_authenticated():
-        return redirect(url_for("login"))
-    if current_user.role != 'RezPos':
-        return render_template('unauthorized.html')
-    username = session["username"]
-    name = session["name"]
-    return render_template("/Rezanje/Poslovodja/rezPoslovodjaHome.html", Username=username, Ime=name)
-
-@app.route("/Potrosnja_materiala")
+@app.route("/potrosnja_materiala_grafi")
 def potrosnja_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava' and current_user.role != 'KonPos' and current_user.role != 'RezPos':
-        return render_template('unauthorized.html')
-    elif current_user.role == 'KonPos':
-        return render_template("/Konstrukcija/Poslovodja/potrosnja_materiala_grafi_konstrukcija.html")
-    elif current_user.role == 'RezPos':
-        return render_template("/Rezanje/Poslovodja/potrosnja_materiala_grafi_rezanje.html")
-    return render_template("/Uprava/potrosnja_materiala_grafi_uprava.html")
+    stranice_list = session["stranice"]
+    return render_template("potrosnja_materiala_grafi.html", stranice_list=stranice_list)
 
-@app.route("/Potrosnja_materiala_torta")
+@app.route("/potrosnja_materiala_torta")
 def potrosnja_materiala_torta():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava' and current_user.role != 'KonPos' and current_user.role != 'RezPos':
-        return render_template('unauthorized.html')
-    elif current_user.role == 'KonPos':
-        return render_template("/Konstrukcija/Poslovodja/potrosnja_materiala_torta_konstrukcija.html")
-    elif current_user.role == 'RezPos':
-        return render_template("/Rezanje/Poslovodja/potrosnja_materiala_torta_rezanje.html")
-    return render_template("/Uprava/potrosnja_materiala_torta_uprava.html")
+    stranice_list = session["stranice"]
+    return render_template("potrosnja_materiala_torta.html", stranice_list=stranice_list)
 
-@app.route("/Grupiranje_materiala")
+@app.route("/grupiranje_materiala")
 def grupiranje_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
     identi = TREZ_KALK.query.with_entities(TREZ_KALK.Ident).distinct().all()
     identi = [row[0] for row in identi]
+    stranice_list = session["stranice"]
 
-    if current_user.role != 'Uprava' and current_user.role != 'Prodaja' and current_user.role != 'KonPos' and current_user.role != 'RezPos':
-        return render_template('unauthorized.html')
-    elif current_user.role == 'Prodaja':
-        return render_template("/Prodaja/grupiranje_materiala_prodaja.html", radniNalogi=identi)
-    elif current_user.role == 'KonPos':
-        return render_template("/Konstrukcija/Poslovodja/grupiranje_materiala_konstrukcija.html", radniNalogi=identi)
-    elif current_user.role == 'RezPos':
-        return render_template("/Rezanje/Poslovodja/grupiranje_materiala_rezanje.html", radniNalogi=identi)
-    elif current_user.role == 'MM1Pos':
-        return render_template("/Proizvodnja/MM1Pos/grupiranje_materiala_proizvodnja.html", radniNalogi=identi)
-    else:
-        return render_template("/Uprava/grupiranje_materiala_uprava.html", radniNalogi=identi)
+    return render_template("grupiranje_materiala.html", radniNalogi=identi, stranice_list=stranice_list)
 
-@app.route("/Aktivni_nalogi")
+@app.route("/aktivni_nalogi")
 def aktivni_nalogi():
     if not is_authenticated():
         return redirect(url_for("login"))
@@ -239,13 +172,10 @@ def aktivni_nalogi():
                                       getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
-    if current_user.role != 'Uprava' and current_user.role != 'MM1Pos':
-        return render_template('unauthorized.html')
-    elif current_user.role == 'MM1Pos':
-        return render_template("/Proizvodnja/MM1Pos/aktivni_nalogi_uprava.html", data=data, unique_values=unique_values)
-    return render_template("/Uprava/aktivni_nalogi_uprava.html", data=data, unique_values=unique_values)
+    stranice_list = session["stranice"]
+    return render_template("aktivni_nalogi.html", data=data, unique_values=unique_values, stranice_list=stranice_list)
 
-@app.route("/Edit-Aktivni-Nalogi", methods=['POST'])
+@app.route("/edit_aktivni_nalogi", methods=['POST'])
 def edit_aktivni_nalogi():
     if not is_authenticated():
         return redirect(url_for("login"))
@@ -281,7 +211,7 @@ def delete_nalog():
             # Return a message indicating that the user does not exist
             return jsonify({'success': False, 'error': 'User not found.'}), 404
 
-@app.route('/Add-Aktivni-Nalog', methods=['POST'])
+@app.route('/add_aktivni_nalog', methods=['POST'])
 def add_aktivni_nalog():
     # Get data from the form submission
     id_rn = request.form.get('id_rn')
@@ -300,7 +230,7 @@ def add_aktivni_nalog():
 
     return jsonify({'success': True})
 
-@app.route("/Potrošnja-materiala-grafi")
+@app.route("/potrošnja_materiala_grafi")
 def potrosnja_materiala_grafi():
     if not is_authenticated():
         return jsonify({"error": "Not authenticated"})
@@ -336,7 +266,7 @@ def potrosnja_materiala_grafi():
         #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
 
-@app.route("/Grupiranje_materiala_table", methods=['POST'])
+@app.route("/grupiranje_materiala_table", methods=['POST'])
 def grupiranje_materiala_table():
     if not is_authenticated():
         return jsonify({"error": "Not authenticated"})
@@ -375,32 +305,29 @@ def logout():
 @app.route('/index')
 @login_required
 def index():
-    if current_user.role == 'Uprava':
-        # Return page accessible to 'uprava' role
-        return redirect(url_for("uprava_home"))
-    elif current_user.role == 'MM1Pos':
-        # Return page accessible to 'prodaja' role
-        return redirect(url_for("proizvodnjaMM1Pos"))
-    elif current_user.role == 'Prodaja':
-        # Return page accessible to 'prodaja' role
-        return redirect(url_for("prodaja"))
-    elif current_user.role == 'KonPos':
-        # Return page accessible to 'konPos' role
-        return redirect(url_for("konPos"))
-    elif current_user.role == 'RezPos':
-        # Return page accessible to 'rezPos' role
-        return redirect(url_for("rezPos"))
-    else:
-        # Handle other roles or unauthorized access
-        return render_template('unauthorized.html')
+    # Handle other roles or unauthorized access
+    return redirect(url_for("home"))
 
+@app.route('/home')
+def home():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    # Fetch user permissions from the database
+    user_permissions = TBA_PRAVA.query.filter_by(Username=current_user.username).first()
+
+    # Check if user permissions exist
+    if user_permissions:
+        # Split the 'Stranice' column by ';'
+        stranice_list = user_permissions.Stranice.split(';')
+        session["stranice"] = stranice_list
+        return render_template('home.html', stranice_list=stranice_list)
+    else:
+        return render_template('unauthorized.html')
 
 @app.route('/user')
 def user():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava':
-        return render_template('unauthorized.html')
     # Query all data
     data = TBA_RAD.query.all()
 
@@ -410,7 +337,7 @@ def user():
         unique_values[column_name] = [getattr(row, column_name) for row in data if getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
-    return render_template('/Uprava/add_user.html', data=data, unique_values=unique_values)
+    return render_template('add_user.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
 
 @app.route('/add_or_edit_user', methods=['POST'])
 def add_or_edit_user():
@@ -508,8 +435,6 @@ def delete_user():
 def tev_evid():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava' and current_user.role != 'MM1Pos':
-        return render_template('unauthorized.html')
 
     # Query all data
     data = TEV_EVID.query.all()
@@ -521,9 +446,7 @@ def tev_evid():
                                       getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
-    if current_user.role == 'MM1Pos':
-        return render_template('/Proizvodnja/MM1Pos/evidenca_ur_uprava.html', data=data, unique_values=unique_values)
-    return render_template('/Uprava/evidenca_ur_uprava.html', data=data, unique_values=unique_values)
+    return render_template('evidenca_ur.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
 
 from flask import request
 
@@ -588,11 +511,7 @@ def delete_tev_evid():
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'MM1Pos' and current_user.role != 'Uprava':
-        return render_template('unauthorized.html')
-    if current_user.role == 'MM1Pos':
-        return render_template("/Proizvodnja/MM1Pos/planiranje_pripravnega_dela.html")
-    return render_template('/Uprava/planiranje_pripravnega_dela.html')
+    return render_template('planiranje_pripravnega_dela.html', stranice_list=session["stranice"])
 
 
 @app.route('/evidencaUr/download', methods=['GET'])
@@ -629,25 +548,18 @@ def download_evidencaUr():
 def kapaciteta():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava':
-        return render_template('unauthorized.html')
-    return render_template('/Uprava/kapaciteta.html')
+    return render_template('kapaciteta.html', stranice_list=session["stranice"])
 
 @app.route('/izmene', methods=['GET'])
 def izmene():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if current_user.role != 'Uprava':
-        return render_template('unauthorized.html')
-    return render_template('/Uprava/izmene_uprava.html')
+    return render_template('izmene.html', stranice_list=session["stranice"])
 
 @app.route('/editIzmene', methods=['POST'])
 def edit_izmene():
     if not is_authenticated():
         return redirect(url_for("login"))
-
-    if current_user.role != 'Uprava' and current_user.role != 'MM1Pos':
-        return render_template('unauthorized.html')
 
     # Get data from the form
     id = request.form.get('ID')
@@ -694,13 +606,8 @@ def download_izmene():
 
 @app.route('/verzugsLista', methods=['GET'])
 def verzugsLista():
-    if not is_authenticated():
-        return redirect(url_for("login"))
-    if current_user.role != 'Uprava':
-        return render_template('unauthorized.html')
-    if current_user.role == 'Uprava':
-        return render_template('/Uprava/vercugs_lista_uprava.html')
-    return render_template('unauthorized.html')
+    stranice_list = session["stranice"]
+    return render_template('verzugs_lista.html', stranice_list=stranice_list)
 
 @app.route('/verzugsListaLoad', methods=['GET'])
 def verzugsListaLoad():
@@ -719,6 +626,45 @@ def verzugsListaLoad():
         return jsonify({'sheet_names': sheet_names, 'data': data})
     except Exception as e:
         return jsonify({'error': str(e)})
+
+@app.route('/user_roles')
+def user_roles():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    # Query all data
+    data = TBA_PRAVA.query.all()
+
+    unique_values = {}
+    for column in TBA_PRAVA.__table__.columns:
+        column_name = column.name
+        unique_values[column_name] = [getattr(row, column_name) for row in data if getattr(row, column_name) is not None]
+        # Filter out duplicates and sort
+        unique_values[column_name] = sorted(set(unique_values[column_name]))
+    return render_template('user_roles.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
+
+@app.route('/update_privileges', methods=['POST'])
+def update_privileges():
+    try:
+        data = request.json
+        username = data['username']
+        privileges = data['privileges']
+        stranice_string = ';'.join(privileges)
+        user = TBA_PRAVA.query.filter_by(Username=username).first()
+        if user:
+            user.Stranice = stranice_string
+            db.session.commit()
+        else:
+            return jsonify({'error': "FAILED UPDATE"}), 400
+        return 'Success'
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@app.route('/edit_user_role', methods=['POST'])
+def edit_user_role():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+
 
 def replace_nan(data):
     return [[cell if not pd.isna(cell) else None for cell in row] for row in data]

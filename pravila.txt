@@ -1,0 +1,23 @@
+potrosnja_materiala:
+    - grafi
+    - po_identu
+    - torta
+
+planiranje_proizvodnje
+
+normativi
+
+verzug_lista
+
+kapaciteta
+
+izmene
+
+evidenca_ur
+
+administracija:
+    - upravljanje_uporabnikov
+    - aktivni_nalogi
+    - neaktivni_nalogi
+
+top_user (vidi vse)

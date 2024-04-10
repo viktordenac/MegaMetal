@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Roles</title>
+    <link rel="stylesheet" href="../../static/style/user_roles.css">
+    <script>
+        function toggleEditMode(row) {
+            var checkboxes = row.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(function(checkbox) {
+                checkbox.disabled = !checkbox.disabled;
+            });
+
+            var editButton = row.querySelector('.edit-button');
+            if (editButton.innerHTML === 'Edit') {
+                editButton.innerHTML = 'Submit';
+            } else {
+                editButton.innerHTML = 'Edit';
+                // Handle submission of edited privileges (you can implement this)
+                submitEditedPrivileges(row);
+            }
+        }
+
+        function submitEditedPrivileges(row) {
+            var username = row.cells[0].innerHTML; // Get the username from the first cell of the row
+            var privileges = []; // Array to store selected privileges
+            var checkboxes = row.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(function(checkbox) {
+                if (checkbox.checked) {
+                    privileges.push(checkbox.id); // Add the ID of the checked checkbox to the array
+                }
+            });
+
+            // AJAX call to send data to the server
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/update_privileges');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    console.log(xhr.responseText); // Log the response from the server
+                    // You can add further handling here if needed
+                } else {
+                    console.error('Request failed. Status code: ' + xhr.status);
+                }
+            };
+            xhr.onerror = function() {
+                console.error('Request failed');
+            };
+            // Prepare data to send in JSON format
+            var data = {
+                username: username,
+                privileges: privileges
+            };
+            xhr.send(JSON.stringify(data));
+        }
+    </script>
+</head>
+<body>
+    <div>
+        <h1>Upravljanje uporabnikov</h1>
+
+        <h2>Uporabniki</h2>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>grafi</th>
+                        <th>po_identu</th>
+                        <!-- Add more <th> elements for other privileges -->
+                        <th>torta</th>
+                        <th>planiranje_proizvodnje</th>
+                        <th>normativi</th>
+                        <th>verzug_lista</th>
+                        <th>kapaciteta</th>
+                        <th>izmene</th>
+                        <th>evidenca_ur</th>
+                        <th>upravljanje_uporabnikov</th>
+                        <th>aktivni_nalogi</th>
+                        <th>neaktivni_nalogi</th>
+                        <th>top_user</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in data %}
+                    <tr>
+                        <td>{{ user.Username }}</td>
+                        <td><input id="grafi" type="checkbox">{% if 'grafi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="po_identu" type="checkbox">{% if 'po_identu' in user.Stranice %}checked{% endif %} disabled></td>
+                        <!-- Add more <td> elements for other privileges -->
+                        <td><input id="torta" type="checkbox">{% if 'torta' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="planiranje_proizvodnje" type="checkbox"> {% if 'planiranje_proizvodnje' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="normativi" type="checkbox"> {% if 'normativi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="verzug_lista" type="checkbox"> {% if 'verzug_lista' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="kapaciteta" type="checkbox"> {% if 'kapaciteta' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="izmene" type="checkbox"> {% if 'izmene' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="evidenca_ur" type="checkbox"> {% if 'evidenca_ur' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="upravljanje_uporabnikov" type="checkbox"> {% if 'upravljanje_uporabnikov' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="aktivni_nalogi" type="checkbox"> {% if 'aktivni_nalogi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="neaktivni_nalogi" type="checkbox"> {% if 'neaktivni_nalogi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><input id="top_user" type="checkbox"> {% if 'top_user' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Edit</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

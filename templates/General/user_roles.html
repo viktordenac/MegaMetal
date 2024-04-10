@@ -54,6 +54,26 @@
             };
             xhr.send(JSON.stringify(data));
         }
+
+        function filterTable() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("inputID_rn");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("myTable");
+            tr = table.getElementsByTagName("tr");
+
+            for (i = 0; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[0]; // Get the first column (ID_RN)
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = ""; // Display the row if ID_RN matches the filter
+                    } else {
+                        tr[i].style.display = "none"; // Hide the row if ID_RN does not match the filter
+                    }
+                }
+            }
+        }
     </script>
 </head>
 <body>
@@ -61,8 +81,9 @@
         <h1>Upravljanje uporabnikov</h1>
 
         <h2>Uporabniki</h2>
+        <input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Search for usernames..">
         <div class="table-container">
-            <table>
+            <table id="myTable">
                 <thead>
                     <tr>
                         <th>Username</th>

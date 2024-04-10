@@ -132,6 +132,17 @@
             background-color: red;
         }
         /* Your existing styles */
+        #inputID_rn {
+            background-image: url('https://www.w3schools.com/css/searchicon.png'); /* Add a search icon to input */
+            background-position: 10px 12px; /* Position the search icon */
+            background-repeat: no-repeat; /* Do not repeat the icon image */
+            width: 20%; /* Full-width */
+            font-size: 16px; /* Increase font-size */
+            padding: 12px 20px 12px 40px; /* Add some padding */
+            border: 1px solid #ddd; /* Add a grey border */
+            margin-bottom: 12px; /* Add some space below the input */
+            margin-left: 15%;
+        }
     </style>
 </head>
 <body>
@@ -141,8 +152,9 @@
         <h1>Upravljanje nalogov</h1>
 
     <h2>Nalogi</h2>
+    <input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Enter ID_RN...">
     <div class="table-container">
-        <table>
+        <table id="myTable">
             <thead>
                 <tr>
                     <th>ID_RN</th>
@@ -290,22 +302,42 @@
     }
 
     // Function to show edit form and populate fields
-        function showEditForm(Id_rn, Status, Aktivan) {
-            // Populate form fields
-            document.getElementById("editId_rn").value = Id_rn;
-            document.getElementById("editStatus").value = Status;
-            document.getElementById("editAktivan").value = Aktivan;
+    function showEditForm(Id_rn, Status, Aktivan) {
+        // Populate form fields
+        document.getElementById("editId_rn").value = Id_rn;
+        document.getElementById("editStatus").value = Status;
+        document.getElementById("editAktivan").value = Aktivan;
 
-            // Show the edit form container
-            document.getElementById("editFormContainer").style.display = "block";
+        // Show the edit form container
+        document.getElementById("editFormContainer").style.display = "block";
+    }
+
+    // Function to hide edit form
+    function hideEditForm() {
+        // Hide the edit form container
+        document.getElementById("editFormContainer").style.display = "none";
+    }
+    // Filter table based on entered ID_RN
+        // Filter table based on entered ID_RN
+    function filterTable() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("inputID_rn");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[0]; // Get the first column (ID_RN)
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = ""; // Display the row if ID_RN matches the filter
+                } else {
+                    tr[i].style.display = "none"; // Hide the row if ID_RN does not match the filter
+                }
+            }
         }
-
-        // Function to hide edit form
-        function hideEditForm() {
-            // Hide the edit form container
-            document.getElementById("editFormContainer").style.display = "none";
-        }
-
+    }
 </script>
 </body>
 </html>

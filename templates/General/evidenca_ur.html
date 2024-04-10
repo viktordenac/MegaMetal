@@ -111,6 +111,24 @@
             text-decoration: none;
             color: white;
         }
+        thead {
+            table-layout: fixed;
+            background-color: #f8f9fa; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+        #inputID_rn {
+            background-image: url('https://www.w3schools.com/css/searchicon.png'); /* Add a search icon to input */
+            background-position: 10px 12px; /* Position the search icon */
+            background-repeat: no-repeat; /* Do not repeat the icon image */
+            width: 20%; /* Full-width */
+            font-size: 16px; /* Increase font-size */
+            padding: 12px 20px 12px 40px; /* Add some padding */
+            border: 1px solid #ddd; /* Add a grey border */
+            margin-bottom: 12px; /* Add some space below the input */
+            margin-left: 15%;
+        }
     </style>
 </head>
 <body>
@@ -119,7 +137,8 @@
         <h1>Tabela evidenc ur</h1>
 
         <h2>Evidenca ur</h2>
-        <table>
+        <input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Enter ID_RN...">
+        <table id="myTable">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -143,7 +162,7 @@
                     <td>{{ item.Faza }}</td>
                     <td>{{ item.Opombe }}</td>
                     <td>{{ item.Vrijeme }}</td>
-                    <td>{{ item.Kartica }}</td>
+                    <td id="ime">{{ item.Ime }}</td>
                     <td>{{ item.Id_rn }}</td>
                     <td><button class="edit-button" data-ID="{{ item.ID}}" data-datum="{{ item.Datum }}" data-izmena="{{ item.Izmena }}" data-faza="{{ item.Faza }}" data-opombe="{{ item.Opombe }}" data-vrijeme="{{ item.Vrijeme }}" data-kartica="{{ item.Kartica }}" data-id_rn="{{ item.Id_rn }}">Edit</button></td>
                     <td><button class="delete-button" data-id="{{ item.Id_rn }}">Delete</button></td> <!-- Delete button -->
@@ -289,5 +308,25 @@
             hideEditForm();
         }
     });
+
+    function filterTable() {
+        var input, filter, table, tr, td, i, txtValue;
+        input = document.getElementById("inputID_rn");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        for (i = 0; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[6]; // Get the first column (ID_RN)
+            if (td) {
+                txtValue = td.textContent || td.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    tr[i].style.display = ""; // Display the row if ID_RN matches the filter
+                } else {
+                    tr[i].style.display = "none"; // Hide the row if ID_RN does not match the filter
+                }
+            }
+        }
+    }
 </script>
 </html>

@@ -6,20 +6,7 @@
     <title>Realizacija bruto/neto Graf</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="../../static/style/navigation.css">
-    <style>
-        /* Adjust chart container size */
-        #myChart {
-            width: 100%;
-            max-height: 780px;
-            margin: 0 auto; /* Center the container */
-        }
-
-        /* Adjust canvas size */
-        canvas {
-            max-width: 100%; /* Ensure canvas doesn't overflow its container */
-            height: auto; /* Maintain canvas aspect ratio */
-        }
-    </style>
+    <link rel="stylesheet" href="../../static/style/potrosnja_materiala_grafi.css">
 </head>
 <body>
     <!-- Main content -->
@@ -33,6 +20,10 @@
             <button type="button" onclick="fetchData()">Select Dates</button>
         </form>
         <canvas id="myChart"></canvas>
+
+        <!-- Table to display DataFrame -->
+        <h2>Data Frame</h2>
+        <div id="dataFrameTable"></div>
     </div>
 
 <script>
@@ -56,9 +47,7 @@
     document.getElementById('from_date').value = formattedDate;
     document.getElementById('to_date').value = formattedDate;
 
-
     fetchData(); // Fetch data when the page loads initially
-
 
     var myChart; // Declare the chart variable globally
 
@@ -71,6 +60,7 @@
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
                 displayChart(response);
+                displayDataFrame(response.df); // Pass the DataFrame JSON to displayDataFrame function
             } else {
                 console.error('Request failed. Status: ' + xhr.status);
             }
@@ -133,8 +123,35 @@
                 }
             }
         });
-        }
+    }
 
+    function displayDataFrame(data) {
+        // Parse JSON data
+        var jsonData = JSON.parse(data);
+
+        // Create table headers
+        var tableHtml = '<table border="1">';
+        tableHtml += '<tr>';
+        for (var key in jsonData[0]) {
+            tableHtml += '<th>' + key + '</th>';
+        }
+        tableHtml += '</tr>';
+
+        // Add table rows
+        jsonData.forEach(function(item) {
+            tableHtml += '<tr>';
+            for (var key in item) {
+                tableHtml += '<td>' + item[key] + '</td>';
+            }
+            tableHtml += '</tr>';
+        });
+
+        // Close table
+        tableHtml += '</table>';
+
+        // Display the table in the designated div
+        document.getElementById('dataFrameTable').innerHTML = tableHtml;
+    }
 
 </script>
 </body>

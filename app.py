@@ -2,6 +2,7 @@ from datetime import datetime, date
 
 
 import pandas as pd
+import json
 
 from flask import Flask, render_template, redirect, url_for, send_file, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -60,6 +61,8 @@ class TREZ_TIME(db.Model):
     JobCode = db.Column(db.CHAR(25), primary_key=True)
     DateCreated = db.Column(db.DateTime)
     Postotak = db.Column(db.REAL)
+    Bruto = db.Column(db.REAL)
+    Neto = db.Column(db.REAL)
 
 class TREZ_KALK(db.Model):
     __tablename__ = 'TREZ_KALK'
@@ -97,6 +100,16 @@ class TBA_PRAVA(db.Model):
     __tablename__ = 'TBA_PRAVA'
     Username = db.Column(db.CHAR(15), primary_key=True)
     Stranice = db.Column(db.CHAR(1000))
+
+class TPRO_PLAN(db.Model):
+    __tablename__ = 'TPRO_PLAN'
+    IDRN = db.Column(db.CHAR(50), primary_key=True)
+    SOD = db.Column(db.Date())
+    SDO = db.Column(db.Date())
+    SDAN = db.Column(db.INT())
+    VOD = db.Column(db.Date())
+    VDO = db.Column(db.Date())
+    VDAN = db.Column(db.INT())
 
 @login_manager.user_loader
 def load_user(kartica):
@@ -230,6 +243,11 @@ def add_aktivni_nalog():
 
     return jsonify({'success': True})
 
+def format_date(date_str):
+    print(date_str)
+    return date_str.strftime('%Y-%m-%d')
+
+
 @app.route("/potrošnja_materiala_grafi")
 def potrosnja_materiala_grafi():
     if not is_authenticated():
@@ -261,7 +279,37 @@ def potrosnja_materiala_grafi():
                 "Postotak": row.Postotak
             })
             #print(row.JobCode, row.DateCreated, row.Postotak)
-        return jsonify({"data": data})
+        result_dicts = [obj.__dict__ for obj in result]
+        df = pd.DataFrame(result_dicts)
+        print(df.columns)
+        df = df.drop('_sa_instance_state', axis=1)
+        column_sum = df['Bruto'].sum()
+        df.insert(len(df.columns), 'Udio', df['Bruto'] / column_sum * 100)
+        df.insert(len(df.columns), 'Postotak*udio', df['Postotak']/100 * df['Udio']/100)
+        column_sum1 = df['Postotak*udio'].sum()
+        df['Postotak'] = df['Postotak'].astype(str) + "%"  # Add '%' to the 'Postotak' column
+        df['Bruto'] = df['Bruto'].astype(str) + ""  # Round to 3 decimals
+        df['Udio'] = df['Udio'].round(2).astype(str)  + "%"
+        df['Postotak*udio'] = df['Postotak*udio']
+        # Assuming df is your DataFrame
+        # Create a new row as a dictionary
+
+
+
+        print("Sum of the column Bruto:", column_sum)
+        print("Sum of the column Postotak * udio", column_sum1)
+        print(df)
+        # Apply the function to the 'Date' column
+        print(df.to_json(orient='records', date_format='iso'))
+        new_df = df[
+            ['JobCode', 'DateCreated', 'Postotak', 'Bruto', 'Neto', 'Udio', 'Postotak*udio']]
+        new_df['DateCreated'] = new_df['DateCreated'].apply(format_date)
+        new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'Neto': [''], 'Postotak*udio': [column_sum1]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
+
+        # Append the new row to the DataFrame
+        new_df = pd.concat([new_df, new_row], ignore_index=True)
+        print(new_df.to_json(orient='records', date_format='iso'))
+        return jsonify({"data": data, "df": new_df.to_json(orient='records')})
     else:
         #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
@@ -512,6 +560,32 @@ def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
     return render_template('planiranje_pripravnega_dela.html', stranice_list=session["stranice"])
+
+@app.route('/planiranjePripravnegaDelaLoad', methods=['GET'])
+def planiranjePripravnegaDelaLoad():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+
+    try:
+        # Fetch column names from the TPRO_PLAN table
+        column_names = TPRO_PLAN.__table__.columns.keys()
+
+        # Fetch rows from the TPRO_PLAN table
+        rows = TPRO_PLAN.query.all()
+        print(rows)
+
+        # Check if rows are fetched
+        if not rows:
+            return jsonify({'error': 'No data found in the TPRO_PLAN table.'}), 404
+
+        # Convert rows to a list of lists for JSON serialization
+        data = [[getattr(row, column) for column in column_names] for row in rows]
+        print(data)
+
+        # Return the JSON response
+        return jsonify({'headers': column_names, 'data': data})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/evidencaUr/download', methods=['GET'])

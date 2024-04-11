@@ -3,80 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Page</title>
-    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <title>Dates Data</title>
+    <link rel="stylesheet" href="../../static/style/user_roles.css">
     <style>
-        .header-logo img {
-            display: flex;
-            justify-content: left;
-            align-items: center;
-            max-width: 100%;
-        }
-
-        /* Ensure only one dropdown is visible at a time */
-        .dropdown-content {
-            display: none;
-        }
-
-        .show-dropdown {
-            display: block;
-        }
-
-        /* Links inside the dropdown */
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        /* Change color of dropdown links on hover */
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* Change color of dropdown links on hover */
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-        #todayDate, #username{
-            color: rgba(157,165,171,255);
-            font-size: 1.5em;
-            font-weight: bold;
+        #table-container {
+            max-height: 600px; /* Adjust as needed */
+            overflow-y: auto;
+            margin-left: 14%;
+            width: 85%;
         }
     </style>
 </head>
-<header>
-
-</header>
 <body>
-    <!-- Main content -->
-    <div class="content">
-        <h1>Welcome, <span id="username">{{ current_user.username }}!</span></h1>
-        <hr>
-        <h2>Today is <span id="todayDate"></span></h2>
-    </div>
 
-<script>
-    // Get today's date
-    var today = new Date();
+    <div id="table-container"></div>
 
-    // Define the days of the week
-    var daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    <script>
+        fetch('/planiranjePripravnegaDelaLoad')
+        .then(response => response.json())
+        .then(data => {
+            const columns = data.headers;
+            const values = data.data;
 
-    // Get the day of the week (0 - Sunday, 1 - Monday, etc.)
-    var dayOfWeekIndex = today.getDay();
+            const tableContainer = document.getElementById('table-container');
+            const table = document.createElement('table');
+            const thead = document.createElement('thead');
+            const tbody = document.createElement('tbody');
 
-    // Get the day, month, and year
-    var day = today.getDate();
-    var month = today.getMonth() + 1; // Months are zero-based (0 - January, 1 - February, etc.)
-    var year = today.getFullYear();
+            // Create table headers
+            const headerRow = document.createElement('tr');
+            columns.forEach(columnName => {
+                const th = document.createElement('th');
+                th.textContent = columnName;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
 
-    // Format the date as "DayOfWeek, Day. Month Year"
-    var formattedDate = daysOfWeek[dayOfWeekIndex] + ', ' + day + '. ' + month + '. ' + year;
-
-    // Set the formatted date into the HTML element
-    document.getElementById('todayDate').textContent = formattedDate;
-</script>
+            // Create table rows
+            values.forEach(rowData => {
+                const row = document.createElement('tr');
+                rowData.forEach(cellData => {
+                    const cell = document.createElement('td');
+                    cell.textContent = cellData instanceof Date ? cellData.toLocaleDateString() : cellData;
+                    row.appendChild(cell);
+                });
+                tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+        })
+        .catch(error => console.error('Error:', error));
+    </script>
 </body>
 </html>

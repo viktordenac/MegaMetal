@@ -188,22 +188,23 @@
         <button onclick="hideEditForm()">Close</button>
         <h2>Edit User</h2>
         <form action="/add_or_edit_user" method="post" id="editForm">
-            <label for="name">Ime:</label>
+            <label for="editName">Ime:</label>
             <input type="text" id="editName" name="name" required><br>
-            <label for="username">Username:</label>
+            <label for="editUsername">Username:</label>
             <input type="text" id="editUsername" name="username" required><br>
-            <label for="kartica">Kartica:</label>
+            <label for="editKartica">Kartica:</label>
             <input type="text" id="editKartica" name="kartica" required><br>
-            <label for="mjesto">Vloga:</label>
+            <label for="editMjesto">Vloga:</label>
             <input type="text" id="editMjesto" name="mjesto" required><br>
-            <label for="password">Geslo:</label>
+            <label for="editPassword">Geslo:</label>
             <input type="text" id="editPassword" name="password" required><br>
-            <label for="datexp">Geslo poteče:</label>
+            <label for="editDatexp">Geslo poteče:</label>
             <input type="date" id="editDatexp" name="datexp"><br>
             <!-- Add more input fields for other user attributes -->
 
             <input type="submit" value="Add or Edit User" onclick="confirmEdit()">
         </form>
+
     </div>
 
     <div id="successMessage">User Altered Successfully!</div>

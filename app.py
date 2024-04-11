@@ -114,8 +114,7 @@ def login():
         form_username = request.form["username"]
         form_password = request.form["password"]
         user = TBA_RAD.query.filter_by(Username=form_username).first()
-
-        if form_username in ['uprava', 'proizvodnja', 'prodaja']:
+        if user.Datexp != None and user.Datexp != '':
             if user.Datexp < date.today():
                 return render_template("login.html", error="Invalid username or password.")
 

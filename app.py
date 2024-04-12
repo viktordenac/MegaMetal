@@ -111,6 +111,13 @@ class TPRO_PLAN(db.Model):
     VDO = db.Column(db.Date())
     VDAN = db.Column(db.INT())
 
+class TBA_KOS(db.Model):
+    __tablename__ = 'TBA_KOS'
+    Polizdelek = db.Column(db.CHAR(15))
+    Neto_tez = db.Column(db.REAL)
+    Bruto_tez = db.Column(db.REAL)
+    PK = db.Column(db.INT(), primary_key=True)
+
 @login_manager.user_loader
 def load_user(kartica):
     employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
@@ -323,11 +330,19 @@ def grupiranje_materiala_table():
         if not filtered_results and not allData:
             return jsonify({"error": "No data found for the given document ID"})
 
+        # Fetch TBA_KOS data
+        id_rn_values = [row[1] for row in allData]
+        tba_kos_data = TBA_KOS.query.filter(TBA_KOS.Polizdelek.in_(id_rn_values)).all()
+
+        # Convert TBA_KOS data to a dictionary
+        tba_kos_dict = [{'KosId_rn': row.Polizdelek, 'KosNeto': row.Neto_tez, 'KosBruto': row.Bruto_tez} for row in
+                        tba_kos_data]
+
         # Convert allData to a list of dictionaries
         all_data_dict = [{'Ident': row[0], 'Id_rn': row[1], 'Bruto': round((row[2]), 3)} for row in allData]  # Round to 3 decimals
 
         # Return JSON response
-        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto})
+        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto, 'TBA_KOS': tba_kos_dict})
 
     except Exception as e:
         return jsonify({"error": str(e)})

@@ -244,7 +244,6 @@ def add_aktivni_nalog():
     return jsonify({'success': True})
 
 def format_date(date_str):
-    print(date_str)
     return date_str.strftime('%Y-%m-%d')
 
 
@@ -281,34 +280,25 @@ def potrosnja_materiala_grafi():
             #print(row.JobCode, row.DateCreated, row.Postotak)
         result_dicts = [obj.__dict__ for obj in result]
         df = pd.DataFrame(result_dicts)
-        print(df.columns)
         df = df.drop('_sa_instance_state', axis=1)
         column_sum = df['Bruto'].sum()
         df.insert(len(df.columns), 'Udio', df['Bruto'] / column_sum * 100)
         df.insert(len(df.columns), 'Postotak*udio', df['Postotak']/100 * df['Udio']/100)
-        column_sum1 = df['Postotak*udio'].sum()
+        column_sum1 = df['Postotak*udio'].sum().round(2).astype(str) + "%"
         df['Postotak'] = df['Postotak'].astype(str) + "%"  # Add '%' to the 'Postotak' column
         df['Bruto'] = df['Bruto'].astype(str) + ""  # Round to 3 decimals
-        df['Udio'] = df['Udio'].round(2).astype(str)  + "%"
-        df['Postotak*udio'] = df['Postotak*udio']
+        df['Udio'] = df['Udio'].round(2).astype(str) + "%"
+        df['Postotak*udio'] = (df['Postotak*udio'] * 100).round(2).astype(str) + "%"
+
         # Assuming df is your DataFrame
         # Create a new row as a dictionary
-
-
-
-        print("Sum of the column Bruto:", column_sum)
-        print("Sum of the column Postotak * udio", column_sum1)
-        print(df)
-        # Apply the function to the 'Date' column
-        print(df.to_json(orient='records', date_format='iso'))
         new_df = df[
             ['JobCode', 'DateCreated', 'Postotak', 'Bruto', 'Neto', 'Udio', 'Postotak*udio']]
         new_df['DateCreated'] = new_df['DateCreated'].apply(format_date)
-        new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'Neto': [''], 'Postotak*udio': [column_sum1]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
+        new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [column_sum1]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
 
         # Append the new row to the DataFrame
         new_df = pd.concat([new_df, new_row], ignore_index=True)
-        print(new_df.to_json(orient='records', date_format='iso'))
         return jsonify({"data": data, "df": new_df.to_json(orient='records')})
     else:
         #print("No rows found for date range:", from_date_str, "to", to_date_str)
@@ -411,7 +401,6 @@ def add_user():
     mjesto = request.form.get('mjesto')
     password = request.form.get('password')
 
-    print("asdasfags")
     if (request.form.get('datexp') != ''):
         datexp = request.form.get('datexp')
     else:
@@ -461,11 +450,9 @@ def delete_user():
     if request.method == 'POST':
         # Get the kartica to delete from the request
         kartica = request.json.get('kartica')
-        print("Kartica: " + str(kartica))
 
         # Check if the user exists
         user = TBA_RAD.query.filter_by(Kartica=kartica).first()
-        print(user)
         if user:
             try:
                 # Delete the user from the database
@@ -572,7 +559,6 @@ def planiranjePripravnegaDelaLoad():
 
         # Fetch rows from the TPRO_PLAN table
         rows = TPRO_PLAN.query.all()
-        print(rows)
 
         # Check if rows are fetched
         if not rows:
@@ -580,7 +566,6 @@ def planiranjePripravnegaDelaLoad():
 
         # Convert rows to a list of lists for JSON serialization
         data = [[getattr(row, column) for column in column_names] for row in rows]
-        print(data)
 
         # Return the JSON response
         return jsonify({'headers': column_names, 'data': data})

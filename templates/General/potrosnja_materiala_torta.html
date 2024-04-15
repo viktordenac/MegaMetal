@@ -84,6 +84,12 @@
         var values = Object.values(groupedData);
         var colors = ['red', 'yellow', 'green'];
 
+        // Calculate total count
+        var totalCount = values.reduce((a, b) => a + b, 0);
+
+        // Calculate percentages
+        var percentages = values.map(value => ((value / totalCount) * 100).toFixed(2));
+
         // Destroy the existing chart instance if it exists
         if (myChart) {
             myChart.destroy();
@@ -96,7 +102,7 @@
                 labels: labels,
                 datasets: [{
                     label: 'Postotak',
-                    data: values,
+                    data: percentages, // Use percentages instead of values
                     backgroundColor: colors, // Set colors
                     borderWidth: 1
                 }]

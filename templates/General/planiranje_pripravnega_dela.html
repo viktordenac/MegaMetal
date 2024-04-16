@@ -37,17 +37,89 @@
                 th.textContent = columnName;
                 headerRow.appendChild(th);
             });
+            // Add a column for the Edit button
+            headerRow.innerHTML += "<th>Edit</th>";
             thead.appendChild(headerRow);
             table.appendChild(thead);
 
             // Create table rows
-            values.forEach(rowData => {
+            values.forEach((rowData, rowIndex) => {
                 const row = document.createElement('tr');
-                rowData.forEach(cellData => {
+                rowData.forEach((cellData, colIndex) => {
                     const cell = document.createElement('td');
-                    cell.textContent = cellData instanceof Date ? cellData.toLocaleDateString() : cellData;
+                    const input = document.createElement('input');
+                    if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
+                        // Parse string back to date object
+                        var dateParts = cellData.split(".");
+                        console.log(dateParts)
+                        var formattedDate = dateParts[2] + '-' + (dateParts[1].length < 2 ? '0' : '') + dateParts[1] + '-' + (dateParts[0].length < 2 ? '0' : '') + dateParts[0];
+                        console.log(formattedDate)
+
+                        // Create input field for dates
+                        input.type = 'date';
+                        input.value = formattedDate;
+                    } else {
+                        // Create input field for other data
+                        input.type = 'text';
+                        input.value = cellData;
+                    }
+                    input.disabled = true; // Disable input fields by default
+                    cell.appendChild(input);
                     row.appendChild(cell);
                 });
+                // Add an Edit button to each row
+                const editCell = document.createElement('td');
+                const editButton = document.createElement('button');
+                editButton.textContent = "Edit";
+                let editDateToggle = false;
+                // Add an event listener to handle edit functionality
+                editButton.addEventListener('click', () => {
+                    if (editDateToggle === false){
+                        row.querySelectorAll('input').forEach(input => {
+                            if (input.type === 'date') {
+                                input.disabled = input.disabled !== true;
+                                editDateToggle = true;
+                            }
+                        });
+                        editButton.textContent = "Submit";
+                    } else {
+                        if (editButton.textContent === "Submit") {
+                            const updatedRowData = [];
+                            row.querySelectorAll('input').forEach(input => {
+                                updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
+                                input.disabled = true;
+                            });
+                            const updatedData = { row: rowIndex, data: updatedRowData };
+                            // Send the updated data to the backend
+                            fetch('/planiranjePripravnegaDelaUpdate', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(updatedData)
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    console.log('Data updated successfully');
+                                    // Optionally, you can handle success feedback here
+                                } else {
+                                    console.error('Failed to update data');
+                                    // Optionally, you can handle error feedback here
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                // Optionally, you can handle error feedback here
+                            });
+                            console.log("Updated Data:", updatedData);
+                            // Here you can send the updated data to the backend using fetch or any other method
+                        }
+                        editButton.textContent = "Edit";
+                        editDateToggle = false;
+                    }
+                });
+                editCell.appendChild(editButton);
+                row.appendChild(editCell);
                 tbody.appendChild(row);
             });
             table.appendChild(tbody);

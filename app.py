@@ -1,5 +1,8 @@
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
+import calendar
 
+import holidays
+slo_holidays = holidays.SI()  # this is a dict
 
 import pandas as pd
 import json
@@ -282,7 +285,8 @@ def potrosnja_materiala_grafi():
             data.append({
                 "JobCode": row.JobCode,
                 "DateCreated": row.DateCreated.strftime('%Y-%m-%d'),
-                "Postotak": row.Postotak
+                "Postotak": row.Postotak,
+                "Bruto": row.Bruto,
             })
             #print(row.JobCode, row.DateCreated, row.Postotak)
         result_dicts = [obj.__dict__ for obj in result]
@@ -565,6 +569,7 @@ def planiranjePripravnegaDela():
 
 @app.route('/planiranjePripravnegaDelaLoad', methods=['GET'])
 def planiranjePripravnegaDelaLoad():
+    import datetime
     if not is_authenticated():
         return redirect(url_for("login"))
 
@@ -580,13 +585,96 @@ def planiranjePripravnegaDelaLoad():
             return jsonify({'error': 'No data found in the TPRO_PLAN table.'}), 404
 
         # Convert rows to a list of lists for JSON serialization
-        data = [[getattr(row, column) for column in column_names] for row in rows]
+        data = []
+        for row in rows:
+            formatted_row = []
+            for column in column_names:
+                value = getattr(row, column)
+                if isinstance(value, datetime.date):
+                    # Format datetime objects to dd.mm.yyyy
+                    value = value.strftime('%d.%m.%Y')
+                formatted_row.append(value)
+            data.append(formatted_row)
 
         # Return the JSON response
         return jsonify({'headers': column_names, 'data': data})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Route to handle submitting updated data
+def parse_date(date_str):
+    parts = date_str.split('/')
+    if len(parts) == 3:
+        month, day, year = map(int, parts)
+        # Validate day against the number of days in the month
+        max_days = calendar.monthrange(year, month)[1]
+        if 1 <= day <= max_days:
+            # Adjust month by subtracting 1 for zero-based indexing
+            return datetime.datetime(year, month, day)
+        else:
+            # Handle invalid day value
+            return None
+    else:
+        # Handle invalid date format
+        return None
+
+def get_next_valid_date(start_date, add_days):
+    # Define a list of weekend days (Saturday and Sunday)
+    weekend_days = [5, 6]  # Saturday is 5, Sunday is 6
+
+    # Initialize the next day
+    next_day = start_date + timedelta(days=-1)
+    next_day += timedelta(days=add_days)
+    print("Next day:", next_day.weekday())
+    print("Next day:", next_day)
+
+    # Keep iterating until we find a valid date (not a weekend day)
+    while next_day.weekday() in weekend_days or next_day in slo_holidays:
+        next_day += timedelta(days=1)
+        print(next_day)
+
+    print(date(2024, 4, 1) in slo_holidays)
+    return next_day
+@app.route('/planiranjePripravnegaDelaUpdate', methods=['POST'])
+def update_planiranje_pripravnega_Dela():
+    updated_data = request.json
+    # Here you can process the updated data
+    id_rn = updated_data['data'][0]
+    # print("Received updated data:", updated_data)
+    # print("IDRN:", id_rn)
+    # Find the record to update
+    record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
+    # print("Record:", record)
+    # print("Record.SOD:", record.SOD)
+    # print("Record.SDO:", record.SDO)
+    # print("Record.SDAN:", record.SDAN)
+    # print("Record.VOD:", record.VOD)
+    # print("Record.VDO:", record.VDO)
+    # print("Record.VDAN:", record.VDAN)
+    # print("++++++++++++++++++++++")
+    if record:
+        # Update the record with the new data
+        record.SOD = parse_date(updated_data['data'][1])
+        record.SDAN = int(updated_data['data'][3])
+        record.SDO = get_next_valid_date(record.SOD, record.SDAN)  # Calculate SDO from SOD and SDAN
+
+        # Set VOD to one day after SDO (avoiding weekends)
+        record.VOD = get_next_valid_date(record.SDO, 2)
+        parse_date(updated_data['data'][4])
+        if record.VOD != parse_date(updated_data['data'][4]):
+            record.VOD = parse_date(updated_data['data'][4])
+        record.VDAN = int(updated_data['data'][6])
+        record.VDO = get_next_valid_date(record.VOD, record.VDAN)  # Calculate VDO from VOD and VDAN
+        db.session.commit()
+    record1 = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
+    # print("Record1:", record1)
+    # print("Record1.SOD:", record1.SOD)
+    # print("Record1.SDO:", record1.SDO)
+    # print("Record1.SDAN:", record1.SDAN)
+    # print("Record1.VOD:", record1.VOD)
+    # print("Record1.VDO:", record1.VDO)
+    # print("Record1.VDAN:", record1.VDAN)
+    return jsonify({"message": "Data updated successfully"})
 
 @app.route('/evidencaUr/download', methods=['GET'])
 def download_evidencaUr():

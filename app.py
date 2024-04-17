@@ -295,7 +295,9 @@ def potrosnja_materiala_grafi():
         column_sum = df['Bruto'].sum()
         df.insert(len(df.columns), 'Udio', df['Bruto'] / column_sum * 100)
         df.insert(len(df.columns), 'Postotak*udio', df['Postotak']/100 * df['Udio']/100)
-        column_sum1 = df['Postotak*udio'].sum().round(2).astype(str) + "%"
+        column_sum1 = df['Postotak*udio'].sum()
+        column_sum1 = (column_sum1 * 100).round(2)
+        postotakXudio = column_sum1.astype(str) + "%"
         df['Postotak'] = df['Postotak'].astype(str) + "%"  # Add '%' to the 'Postotak' column
         df['Bruto'] = df['Bruto'].astype(str) + ""  # Round to 3 decimals
         df['Udio'] = df['Udio'].round(2).astype(str) + "%"
@@ -306,7 +308,7 @@ def potrosnja_materiala_grafi():
         new_df = df[
             ['JobCode', 'DateCreated', 'Postotak', 'Bruto', 'Neto', 'Udio', 'Postotak*udio']]
         new_df['DateCreated'] = new_df['DateCreated'].apply(format_date)
-        new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [column_sum1]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
+        new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
 
         # Append the new row to the DataFrame
         new_df = pd.concat([new_df, new_row], ignore_index=True)

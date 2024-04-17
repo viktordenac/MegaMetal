@@ -137,17 +137,18 @@ def login():
         form_username = request.form["username"]
         form_password = request.form["password"]
         user = TBA_RAD.query.filter_by(Username=form_username).first()
-        if user.Datexp != None and user.Datexp != '':
-            if user.Datexp < date.today():
-                return render_template("login.html", error="Invalid username or password.")
+        if user:
+            if user.Datexp != None and user.Datexp != '':
+                if user.Datexp < date.today():
+                    return render_template("login.html", error="Invalid username or password.")
 
-        if user and form_password == str(user.Password):
-            # Authentication successful
-            login_user(User(user.Kartica, user.Username, user.Ime, user.Mjesto))
-            session["username"] = user.Username
-            session["role"] = user.Mjesto
-            session["name"] = user.Ime
-            return redirect(url_for('index'))
+            if user and form_password == str(user.Password):
+                # Authentication successful
+                login_user(User(user.Kartica, user.Username, user.Ime, user.Mjesto))
+                session["username"] = user.Username
+                session["role"] = user.Mjesto
+                session["name"] = user.Ime
+                return redirect(url_for('index'))
         else:
             # Authentication failed
             return render_template("login.html", error="Invalid username or password.")
@@ -238,6 +239,7 @@ def delete_nalog():
 def add_aktivni_nalog():
     # Get data from the form submission
     id_rn = request.form.get('id_rn')
+    status = request.form.get('status')
     aktivan = request.form.get('aktivan')
 
     # Check if a user with the same username already exists
@@ -247,7 +249,7 @@ def add_aktivni_nalog():
         return jsonify({'prompt': True, 'username': id_rn})
 
     # User does not exist, proceed with adding the user
-    new_nalog = TRN_RN(Id_rn=id_rn, Aktivan=aktivan)
+    new_nalog = TRN_RN(Id_rn=id_rn,Status=status, Aktivan=aktivan)
     db.session.add(new_nalog)
     db.session.commit()
 

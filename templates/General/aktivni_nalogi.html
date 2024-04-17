@@ -185,7 +185,7 @@
         <h2>Edit Nalog</h2>
         <form action="/edit_aktivni_nalogi" method="post" id="editForm">
             <label for="editId_rn">Id_rn:</label>
-            <input type="text" id="editId_rn" name="id_rn" required readonly><br>
+            <input type="text" id="editId_rn" name="id_rn" required><br>
             <label for="editStatus">Status:</label>
             <input type="text" id="editStatus" name="status" required><br>
             <label for="editAktivan">Aktivan:</label>
@@ -202,6 +202,7 @@
 <script>
     function editNalog(Id_rn, Status, Aktivan) {
         document.getElementById("editId_rn").value = Id_rn; // Clear previous values if any
+        document.getElementById("editStatus").value = Status;
         document.getElementById("editAktivan").value = Aktivan;
     }
 

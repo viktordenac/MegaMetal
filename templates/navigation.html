@@ -47,6 +47,10 @@
     <a href="{{ url_for('verzugsLista') }}">Verzug lista</a>
     {% endif %}
 
+    {% if 'evidenca_ur' in stranice_list %}
+    <a href="{{ url_for('tev_evid') }}">Evidenca ur</a>
+    {% endif %}
+
     <!-- Planiranje proizvodnje section -->
     {% if 'upravljanje_uporabnikov' in stranice_list or 'aktivni_nalogi' in stranice_list or 'neaktivni_nalogi' in stranice_list %}
     <div class="administrativna-dela">

@@ -50,9 +50,9 @@
                     const input = document.createElement('input');
                     if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
                         // Parse string back to date object
-                        var dateParts = cellData.split(".");
+                        const dateParts = cellData.split(".");
                         console.log(dateParts)
-                        var formattedDate = dateParts[2] + '-' + (dateParts[1].length < 2 ? '0' : '') + dateParts[1] + '-' + (dateParts[0].length < 2 ? '0' : '') + dateParts[0];
+                        const formattedDate = dateParts[2] + '-' + (dateParts[1].length < 2 ? '0' : '') + dateParts[1] + '-' + (dateParts[0].length < 2 ? '0' : '') + dateParts[0];
                         console.log(formattedDate)
 
                         // Create input field for dates

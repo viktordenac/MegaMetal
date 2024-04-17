@@ -150,7 +150,7 @@
         <h1>Upravljanje uporabnikov</h1>
 
     <h2>Uporabniki</h2>
-    <input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Search for usernames.." autocomplete="off">
+        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Search for usernames.." autocomplete="off">
     <div class="table-container">
         <table id="myTable">
             <thead>
@@ -223,7 +223,7 @@
     // Function to handle form submission
     document.querySelector('form').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent form submission
-        var formData = new FormData(this);
+        const formData = new FormData(this);
 
         fetch('/add_or_edit_user', {
             method: 'POST',
@@ -231,9 +231,10 @@
         })
         .then(response => response.json())
         .then(data => {
+            console.log(data)
             if (data.exists) {
                 // User already exists, prompt the user
-                var confirmEdit = confirm("User already exists. Do you want to edit the selected user?");
+                const confirmEdit = confirm("User already exists. Do you want to edit the selected user?");
                 if (confirmEdit) {
                     // Proceed with updating the user
                     formData.append('edit_existing', true);
@@ -344,7 +345,7 @@
     });
 
     function filterTable() {
-        var input, filter, table, tr, td, i, txtValue;
+        let input, filter, table, tr, td, i, txtValue;
         input = document.getElementById("inputID_rn");
         filter = input.value.toUpperCase();
         table = document.getElementById("myTable");

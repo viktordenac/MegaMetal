@@ -1,2 +1,0 @@
-- ko greš preko grafa naj izpiše tudi kilograme ->                          (pusti, bomo se že pogovorili)
-- ko klikneš na graf naj se odpre izbira, naj odpre pdf ali excel ->        (pusti, bomo se že pogovorili)

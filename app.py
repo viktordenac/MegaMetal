@@ -404,9 +404,11 @@ def add_or_edit_user():
     # Check if a user with the provided Kartica already exists
     existing_user = TBA_RAD.query.filter_by(Kartica=kartica).first()
     if existing_user:
+        # print(existing_user.Username)
         # User already exists, return a JSON response indicating the existence and providing the username
         return jsonify({'exists': True, 'username': existing_user.Username})
     else:
+        # print("User does not exist.")
         # User does not exist, proceed with adding the user
         return jsonify({'exists': False})
 
@@ -451,6 +453,7 @@ def edit_user():
     user = TBA_RAD.query.filter_by(Kartica=kartica).first()
     if user:
         user.Ime = request.form.get('name')
+        user.Username = request.form.get('username')
         user.Kartica = request.form.get('kartica')
         user.Mjesto = request.form.get('mjesto')
         user.Password = request.form.get('password')
@@ -603,6 +606,7 @@ def planiranjePripravnegaDelaLoad():
 
 # Route to handle submitting updated data
 def parse_date(date_str):
+    import datetime
     parts = date_str.split('/')
     if len(parts) == 3:
         month, day, year = map(int, parts)
@@ -625,18 +629,19 @@ def get_next_valid_date(start_date, add_days):
     # Initialize the next day
     next_day = start_date + timedelta(days=-1)
     next_day += timedelta(days=add_days)
-    print("Next day:", next_day.weekday())
-    print("Next day:", next_day)
+    # print("Next day:", next_day.weekday())
+    # print("Next day:", next_day)
 
     # Keep iterating until we find a valid date (not a weekend day)
     while next_day.weekday() in weekend_days or next_day in slo_holidays:
         next_day += timedelta(days=1)
-        print(next_day)
+        # print(next_day)
 
-    print(date(2024, 4, 1) in slo_holidays)
+    # print(date(2024, 4, 1) in slo_holidays)
     return next_day
 @app.route('/planiranjePripravnegaDelaUpdate', methods=['POST'])
 def update_planiranje_pripravnega_Dela():
+    import datetime
     updated_data = request.json
     # Here you can process the updated data
     id_rn = updated_data['data'][0]

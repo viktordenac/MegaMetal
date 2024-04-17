@@ -16,6 +16,7 @@
 
 </header>
 <body>
+
     <!-- Include the navigation bar -->
     {% include 'navigation.html' %}
 
@@ -24,6 +25,9 @@
         <h1>Welcome, <span id="username">{{ current_user.username }}!</span></h1>
         <hr>
         <h2>Today is <span id="todayDate"></span></h2>
+        <div class="content-image">
+            <img src="../static/style/MEGA-METAL-background-logotip.jpg" alt="Forest Bridge">
+        </div>
     </div>
 
     <script>

@@ -106,6 +106,11 @@ def submit_evidenca_ur():
         db.session.add(new_entry)
         db.session.commit()
         return "Data inserted successfully!"
+    if not id_rn and vrijeme and faza:
+        new_entry = TEV_EVID(Datum=datum, Izmena=izmena, Faza=faza, Opombe=opombe, Vrijeme=vrijeme, Kartica=kartica, Id_rn="999")
+        db.session.add(new_entry)
+        db.session.commit()
+        return "Data inserted successfully!"
     else:
         return jsonify({"error": "Please select a valid activity"}), 400  # Return a 400 Bad Request status code along with the error message
 

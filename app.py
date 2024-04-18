@@ -54,6 +54,7 @@ class TBA_RAD(db.Model):
     __tablename__ = 'TBA_RAD'
     Ime = db.Column(db.String(100))
     Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
+    Kartica_value = db.Column(db.Numeric(25, 0))
     Mjesto = db.Column(db.CHAR(15))
     Username = db.Column(db.CHAR(15))
     Password = db.Column(db.CHAR(10))
@@ -423,6 +424,7 @@ def add_user():
     name = request.form.get('name')
     username = request.form.get('username')
     kartica = request.form.get('kartica')
+    novaKartica = request.form.get('novaKartica')
     mjesto = request.form.get('mjesto')
     password = request.form.get('password')
 
@@ -438,7 +440,7 @@ def add_user():
         return jsonify({'success': False, 'error': 'User already exists.'})
 
     # User does not exist, proceed with adding the user
-    new_user = TBA_RAD(Ime=name, Kartica=kartica, Mjesto=mjesto, Username=username, Password=password, Datexp=datexp)
+    new_user = TBA_RAD(Ime=name, Kartica=kartica, Kartica_value=novaKartica, Mjesto=mjesto, Username=username, Password=password, Datexp=datexp)
     try:
         db.session.add(new_user)
         db.session.commit()
@@ -459,6 +461,7 @@ def edit_user():
         user.Ime = request.form.get('name')
         user.Username = request.form.get('username')
         user.Kartica = request.form.get('kartica')
+        user.Kartica_value = request.form.get('novaKartica')
         user.Mjesto = request.form.get('mjesto')
         user.Password = request.form.get('password')
         if (request.form.get('datexp') != ''):

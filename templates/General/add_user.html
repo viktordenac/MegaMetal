@@ -174,7 +174,7 @@
                     <td>{{ user.Mjesto }}</td>
                     <td>{{ user.Password }}</td>
                     <td>{{ user.Datexp }}</td>
-                    <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}', '{{ user.Mjesto }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
+                    <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}','{{ user.Kartica_value }}', '{{ user.Mjesto }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
                     <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}', '{{ user.Kartica }}')">Delete</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
@@ -182,7 +182,7 @@
             </tbody>
         </table>
     </div>
-    <button id="add-user-button" onclick="showEditForm('','','','','','')">Add user</button>
+    <button id="add-user-button" onclick="showEditForm('','','','','','','')">Add user</button>
 <!-- Edit form container -->
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
@@ -194,6 +194,8 @@
             <input type="text" id="editUsername" name="username" required><br>
             <label for="editKartica">Kartica:</label>
             <input type="text" id="editKartica" name="kartica" required><br>
+            <label for="editNovaKartica">NOVA KARTICA:</label>
+            <input type="text" id="editNovaKartica" name="novaKartica" required><br>
             <label for="editMjesto">Vloga:</label>
             <input type="text" id="editMjesto" name="mjesto" required><br>
             <label for="editPassword">Geslo:</label>
@@ -212,10 +214,11 @@
 
 
 <script>
-    function editUser(name, username, kartica, mjesto, password, datexp) {
+    function editUser(name, username, kartica, novaKartica, mjesto, password, datexp) {
         document.getElementById("editName").value = name; // Clear previous values if any
         document.getElementById("editUsername").value = username;
         document.getElementById("editKartica").value = kartica;
+        document.getElementById("editNovaKartica").value = novaKartica;
         document.getElementById("editMjesto").value = mjesto; // Replace with actual value
         document.getElementById("editPassword").value = password;
         document.getElementById("editDatexp").value = datexp;
@@ -319,11 +322,12 @@
 
 
     // Function to show edit form and populate fields
-    function showEditForm(name, username, kartica, mjesto, password, datexp) {
+    function showEditForm(name, username, kartica, novaKartica, mjesto, password, datexp) {
         // Populate form fields
         document.getElementById("editName").value = name;
         document.getElementById("editUsername").value = username;
         document.getElementById("editKartica").value = kartica;
+        document.getElementById("editNovaKartica").value = novaKartica;
         document.getElementById("editMjesto").value = mjesto;
         document.getElementById("editPassword").value = password;
         document.getElementById("editDatexp").value = datexp;

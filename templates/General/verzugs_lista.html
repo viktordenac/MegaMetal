@@ -11,6 +11,23 @@
             max-height: 700px;
             overflow: auto;
         }
+        /* Add CSS for status colors */
+        .green {
+            background-color: green;
+        }
+
+        .yellow {
+            background-color: yellow;
+        }
+
+        .red {
+            background-color: red;
+        }
+
+        .gray {
+            background-color: gray;
+        }
+
     </style>
 </head>
 <body>
@@ -22,7 +39,7 @@
     </div>
 
     <script>
-        fetch('/verzugsListaLoad')
+    fetch('/verzugsListaLoad')
         .then(response => response.json())
         .then(data => {
             const sheetNames = data.sheet_names;
@@ -48,8 +65,14 @@
                     const tbody = table.createTBody();
                     sheetData.slice(1).forEach(rowData => {
                         const row = tbody.insertRow();
-                        rowData.forEach(cellData => {
+                        rowData.forEach((cellData, index) => {
                             const cell = row.insertCell();
+                            if (sheetData[0][index] === 'Status') {
+                                const statusClass = getStatusColorClass(cellData);
+                                if (statusClass) {
+                                    cell.classList.add(statusClass);
+                                }
+                            }
                             cell.textContent = cellData;
                         });
                     });
@@ -60,6 +83,21 @@
             });
         })
         .catch(error => console.error('Error:', error));
+
+    function getStatusColorClass(status) {
+        switch (status) {
+            case 'J':
+                return 'green';
+            case 'K':
+                return 'yellow';
+            case 'L':
+                return 'red';
+            case 'I':
+                return 'gray';
+            default:
+                return ''; // Return an empty string if status doesn't match any case
+        }
+    }
     </script>
 </body>
 </html>

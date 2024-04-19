@@ -117,18 +117,36 @@ def submit_evidenca_ur():
 
 @app.route("/get_user_id", methods=["GET"])
 def get_user_id():
-    # # Return the user ID as a JSON response
-    # reader = rdm6300.Reader('/dev/ttyS0')
-    # print("Please insert an RFID card")
-    # while True:
-    #     card = reader.read()
-    #     if card:
-    #         print(f"[{card.value}] read card {card}")
-    #
-    #         return jsonify({"user_id": card.value})
-    #     else:
-    #         print("No card detected")
-    #         continue
+    # Return the user ID as a JSON response
+    """
+    #testing RFID
+    # Ignore all warnings
+    reader = rdm6300.Reader('/dev/ttyS0')
+    print("Please insert an RFID card")
+
+    while True:
+        time.sleep(1)
+        try:
+            card = reader.read()
+            if card:
+                print(card.value)
+                print("Please insert another RFID card")  # Ready for the next card
+        except:
+            reader.close()  # Close the current connection
+            reader = rdm6300.Reader('/dev/ttyS0')  # Reopen the connection
+    #Running RFID
+    reader = rdm6300.Reader('/dev/ttyS0')
+    print("Please insert an RFID card")
+    while True:
+        card = reader.read()
+        if card:
+            print(f"[{card.value}] read card {card}")
+
+            return jsonify({"user_id": card.value})
+        else:
+            print("No card detected")
+            continue
+    """
     return jsonify({"user_id": "219052678526"})
 
 

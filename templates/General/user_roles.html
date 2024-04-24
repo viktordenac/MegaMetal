@@ -100,6 +100,7 @@
                         <th>upravljanje_uporabnikov</th>
                         <th>aktivni_nalogi</th>
                         <th>neaktivni_nalogi</th>
+                        <th>mm2Alat</th>
                         <th>top_user</th>
                         <th>Edit</th>
                     </tr>
@@ -121,6 +122,7 @@
                         <td><label for="upravljanje_uporabnikov"></label><input id="upravljanje_uporabnikov" type="checkbox" {% if 'upravljanje_uporabnikov' in user.Stranice %}checked{% endif %} disabled></td>
                         <td><label for="aktivni_nalogi"></label><input id="aktivni_nalogi" type="checkbox" {% if 'aktivni_nalogi' in user.Stranice %}checked{% endif %} disabled></td>
                         <td><label for="neaktivni_nalogi"></label><input id="neaktivni_nalogi" type="checkbox" {% if 'neaktivni_nalogi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="mm2Alat"></label><input id="mm2Alat" type="checkbox" {% if 'mm2Alat' in user.Stranice %}checked{% endif %} disabled></td>
                         <td><label for="top_user"></label><input id="top_user" type="checkbox" {% if 'top_user' in user.Stranice %}checked{% endif %} disabled></td>
                         <td><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Edit</button></td>
                     </tr>

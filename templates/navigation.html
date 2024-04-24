@@ -70,6 +70,9 @@
         </div>
     </div>
     {% endif %}
+    {% if 'mm2Alat' in stranice_list %}
+    <a href="{{ url_for('MM2Alat') }}">MM2 Alati</a>
+    {% endif %}
     <!-- Add more sections based on user permissions -->
     {% if 'top_user' in stranice_list %}
         <div class="potrosnja-materiala">
@@ -104,6 +107,7 @@
             <a href="{{ url_for('aktivni_nalogi', status='0') }}"><div class="dItem">NeAktivni nalogi</div></a>
         </div>
     </div>
+    <a href="{{ url_for('MM2Alat') }}">MM2 Alati</a>
     {% endif %}
 
     <div class="logout-button">

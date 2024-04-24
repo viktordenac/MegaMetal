@@ -84,12 +84,6 @@
         var values = Object.values(groupedData);
         var colors = ['red', 'yellow', 'green'];
 
-        // Calculate total count
-        var totalCount = values.reduce((a, b) => a + b, 0);
-
-        // Calculate percentages
-        var percentages = values.map(value => ((value / totalCount) * 100).toFixed(2));
-
         // Destroy the existing chart instance if it exists
         if (myChart) {
             myChart.destroy();
@@ -102,7 +96,7 @@
                 labels: labels,
                 datasets: [{
                     label: 'Postotak',
-                    data: percentages, // Use percentages instead of values
+                    data: values, // Use the values as they represent the sums
                     backgroundColor: colors, // Set colors
                     borderWidth: 1
                 }]
@@ -112,23 +106,36 @@
 
     function groupData(data) {
         var groupedData = {
-            '0-49': 0,
-            '50-74': 0,
-            '75-': 0
+            '0-49': { count: 0, sum: 0 },
+            '50-70': { count: 0, sum: 0 },
+            '71-': { count: 0, sum: 0 }
         };
 
         data.forEach(function(row) {
             if (row.Postotak >= 0 && row.Postotak < 50) {
-                groupedData['0-49']++;
-            } else if (row.Postotak >= 50 && row.Postotak < 75) {
-                groupedData['50-74']++;
-            } else if (row.Postotak >= 75) {
-                groupedData['75-']++;
+                groupedData['0-49'].count++;
+                groupedData['0-49'].sum += row.Bruto;
+            } else if (row.Postotak >= 50 && row.Postotak < 70) {
+                groupedData['50-70'].count++;
+                groupedData['50-70'].sum += row.Bruto;
+            } else if (row.Postotak >= 71) {
+                groupedData['71-'].count++;
+                groupedData['71-'].sum += row.Bruto;
             }
         });
 
+        // Calculate averages
+        for (var key in groupedData) {
+            if (groupedData.hasOwnProperty(key)) {
+                if (groupedData[key].count !== 0) {
+                    groupedData[key] = groupedData[key].sum / groupedData[key].count;
+                }
+            }
+        }
+
         return groupedData;
     }
+
 
 </script>
 </body>

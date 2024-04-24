@@ -122,6 +122,11 @@ class TBA_KOS(db.Model):
     Bruto_tez = db.Column(db.REAL)
     PK = db.Column(db.INT(), primary_key=True)
 
+class TBA_ALAT(db.Model):
+    __tablename__ = 'TBA_ALAT'
+    ALAT = db.Column(db.INT(), primary_key=True)
+    KOLICINA = db.Column(db.CHAR(50))
+
 @login_manager.user_loader
 def load_user(kartica):
     employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
@@ -839,6 +844,96 @@ def edit_user_role():
     if not is_authenticated():
         return redirect(url_for("login"))
 
+@app.route('/MM2Alat', methods=['GET'])
+def MM2Alat():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+        # Query all data
+    data = TBA_ALAT.query.all()
+
+    unique_values = {}
+    for column in TBA_ALAT.__table__.columns:
+        column_name = column.name
+        unique_values[column_name] = [getattr(row, column_name) for row in data if
+                                      getattr(row, column_name) is not None]
+        # Filter out duplicates and sort
+        unique_values[column_name] = sorted(set(unique_values[column_name]))
+    return render_template('MM2_alat.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
+
+@app.route('/add_or_edit_alat', methods=['POST'])
+def add_or_edit_alat():
+    # Get data from the form submission
+    alat = request.form.get('alat')
+
+    # Check if a user with the provided Kartica already exists
+    existing_alat = TBA_ALAT.query.filter_by(ALAT=alat).first()
+    if existing_alat:
+        # print(existing_user.Username)
+        # User already exists, return a JSON response indicating the existence and providing the username
+        return jsonify({'exists': True, 'username': existing_alat.ALAT})
+    else:
+        # print("User does not exist.")
+        # User does not exist, proceed with adding the user
+        return jsonify({'exists': False})
+
+@app.route('/add_alat', methods=['POST'])
+def add_alat():
+    # Get data from the form submission
+    alat = request.form.get('alat')
+    kolicina = request.form.get('kolicina')
+
+    # Check if a user with the same Kartica already exists
+    existing_alat = TBA_ALAT.query.filter_by(ALAT=alat).first()
+    if existing_alat:
+        # User already exists, return an error response
+        return jsonify({'success': False, 'error': 'User already exists.'})
+
+    # User does not exist, proceed with adding the user
+    new_alat = TBA_ALAT(ALAT=alat, KOLICINA=kolicina)
+    try:
+        db.session.add(new_alat)
+        db.session.commit()
+        return jsonify({'success': True})
+    except IntegrityError:
+        # Handle any integrity errors that occur during user creation
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to add user.'}), 500
+
+@app.route('/edit_alat', methods=['POST'])
+def edit_alat():
+    # Get data from the form submission
+    alat = request.form.get('alat')
+    # Retrieve other form data as needed
+
+    alat = TBA_ALAT.query.filter_by(ALAT=alat).first()
+    if alat:
+        alat.KOLICINA = request.form.get('kolicina')
+        db.session.commit()
+        return jsonify({'success': True})
+    else:
+        return jsonify({'success': False, 'error': 'User not found.'}), 404
+
+
+@app.route('/delete_alat', methods=['POST'])
+def delete_alat():
+    if request.method == 'POST':
+        # Get the kartica to delete from the request
+        alat = request.json.get('alat')
+
+        # Check if the user exists
+        alat = TBA_ALAT.query.filter_by(ALAT=alat).first()
+        if alat:
+            try:
+                # Delete the user from the database
+                db.session.delete(alat)
+                db.session.commit()
+                return jsonify({'success': True})
+            except Exception as e:
+                # Handle any errors that occur during deletion
+                return jsonify({'success': False, 'error': 'Failed to delete user.'}), 500
+        else:
+            # Return a message indicating that the user does not exist
+            return jsonify({'success': False, 'error': 'User not found.'}), 404
 
 def replace_nan(data):
     return [[cell if not pd.isna(cell) else None for cell in row] for row in data]

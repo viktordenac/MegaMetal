@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgb(220, 220, 220);
+        }
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .table-container {
+            max-height: 400px; /* Adjust as needed */
+            overflow-y: auto;
+            margin-left: 14%;
+            width: 86%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            table-layout: fixed;
+            background-color: #f8f9fa; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+            white-space: nowrap;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .details-button {
+            cursor: pointer;
+            background-color: darkorange;
+            color: black;
+        }
+        #myModal {
+            display: none;
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            width: 80%;
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .modal-content {
+            background-color: #fff;
+            padding: 0 20px 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-size: 20px;
+            color: #aaa;
+        }
+        #inputID_rn {
+            background-image: url('https://www.w3schools.com/css/searchicon.png'); /* Add a search icon to input */
+            background-position: 10px 12px; /* Position the search icon */
+            background-repeat: no-repeat; /* Do not repeat the icon image */
+            width: 20%; /* Full-width */
+            font-size: 16px; /* Increase font-size */
+            padding: 12px 20px 12px 40px; /* Add some padding */
+            border: 1px solid #ddd; /* Add a grey border */
+            margin-bottom: 12px; /* Add some space below the input */
+            margin-left: 15%;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <div>
+        <h1>Fix plan</h1>
+        <h2>fix plan</h2>
+        <input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Enter wanted value...">
+        <div class="table-container">
+        <!-- Table to display user data -->
+            <table id="myTable">
+                <thead>
+                    <tr>
+                        <!-- Dynamically generate table headers based on keys of the first item -->
+                        {% for key in data[0].keys() %}
+                            <th>{{ key }}</th>
+                        {% endfor %}
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in data %}
+                        <tr>
+                            <!-- Dynamically generate table cells based on key-value pairs of each item -->
+                            {% for key, value in item.items() %}
+                                <td>{{ value }}</td>
+                            {% endfor %}
+                            <!-- Add details button -->
+                            <td>
+                                <button class="details-button" onclick="fetchDataAndShowModal(this)">Details</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal Popup -->
+        <div id="myModal" class="modal">
+          <div class="modal-content">
+            <span class="close">&times;</span>
+            <table id="popupTable">
+              <!-- Table content will be dynamically generated here -->
+            </table>
+          </div>
+        </div>
+    </div>
+</body>
+<script>
+     // Function to display modal popup
+    function showModal(data) {
+        // Check if data array is empty or undefined
+        if (!data || data.length === 0) {
+            console.log("Data array is empty or undefined");
+            return;
+        }
+
+        // Log the received data to the console
+        console.log("Data received:", data);
+
+        // Get the first item in the data array
+        var firstItem = data[0];
+
+        // Check if the first item is empty or undefined
+        if (!firstItem) {
+            console.log("First item in data array is empty or undefined");
+            return;
+        }
+
+        // Log the first item to the console
+        console.log("First item:", firstItem);
+
+        // Get the modal element
+        var modal = document.getElementById("myModal");
+        // Ensure the modal element exists
+        if (!modal) {
+            console.log("Modal element not found");
+            return;
+        }
+
+        // Set modal display to block to show it
+        modal.style.display = "block";
+
+        // Get the table element
+        var table = document.getElementById("popupTable");
+        // Ensure the table element exists
+        if (!table) {
+            console.log("Table element not found");
+            return;
+        }
+
+        // Clear existing table content
+        table.innerHTML = "";
+
+        // Create table header row
+        var thead = document.createElement("thead");
+        var headerRow = document.createElement("tr");
+        for (var key in firstItem) {
+            var th = document.createElement("th");
+            th.textContent = key;
+            headerRow.appendChild(th);
+        }
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create table body
+        var tbody = document.createElement("tbody");
+        data.forEach(function(rowData) {
+            var row = document.createElement("tr");
+            for (var key in rowData) {
+                var cell = document.createElement("td");
+                cell.textContent = rowData[key];
+                row.appendChild(cell);
+            }
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+    }
+
+    // Close the modal popup when the user clicks on the close button
+    document.querySelector(".close").addEventListener("click", function() {
+        var modal = document.getElementById("myModal");
+        modal.style.display = "none";
+    });
+
+    // Close the modal popup when the user clicks outside of it
+    window.addEventListener("click", function(event) {
+        var modal = document.getElementById("myModal");
+        if (event.target === modal) {
+            modal.style.display = "none";
+        }
+    });
+
+    // Fetch data from backend and display modal popup
+    function fetchDataAndShowModal(button) {
+        var xhr = new XMLHttpRequest();
+        var row = button.closest('tr');
+        var monthValue = row.cells[0].textContent.trim();
+        var status = row.closest('table').querySelector('thead tr').firstElementChild.textContent.trim();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    console.log("Data fetched:", data);
+                    showModal(data);
+                } else {
+                    console.error("Request failed with status:", xhr.status);
+                }
+            }
+        };
+        xhr.onerror = function() {
+            console.error("An error occurred while fetching data");
+        };
+        xhr.open("GET", "/fix-plan-data?month=" + monthValue + "&status=" + status, true);
+        xhr.send();
+    }
+
+    function filterTable() {
+        var input, filter, table, tr, td, i, j, txtValue;
+        input = document.getElementById("inputID_rn");
+        filter = input.value.toUpperCase();
+        table = document.getElementById("myTable");
+        tr = table.getElementsByTagName("tr");
+
+        // Loop through all table rows
+        for (i = 0; i < tr.length; i++) {
+            // Skip the <thead> row
+            if (tr[i].parentNode.nodeName == "THEAD") continue;
+
+            var displayRow = false;
+            // Loop through all table columns for the current row
+            for (j = 0; j < tr[i].cells.length; j++) {
+                td = tr[i].cells[j];
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    // Check if the column value matches the filter
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        displayRow = true;
+                        break; // No need to check other columns if a match is found
+                    }
+                }
+            }
+            // Display or hide the row based on whether it matches the filter
+            tr[i].style.display = displayRow ? "" : "none";
+        }
+    }
+</script>
+</html>

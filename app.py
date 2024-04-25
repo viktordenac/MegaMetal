@@ -1,7 +1,11 @@
+import io
+import re
 from datetime import datetime, date, timedelta
 import calendar
 
 import holidays
+import msoffcrypto
+
 slo_holidays = holidays.SI()  # this is a dict
 
 import pandas as pd
@@ -934,6 +938,124 @@ def delete_alat():
         else:
             # Return a message indicating that the user does not exist
             return jsonify({'success': False, 'error': 'User not found.'}), 404
+
+
+@app.route('/fix-plan')
+def fix_plan():
+    if not is_authenticated():
+        return redirect(url_for("login"))  # Redirect to login page if not authenticated
+
+    # Get the status parameter from the request
+    status = request.args.get('status', default='1')  # Default value is '1' if parameter is not provided
+
+    try:
+        decrypted_workbook = io.BytesIO()
+        with open('//192.168.100.216/Users/ivan.tonkic/Desktop/Share/Verzugs_liste/Updated_Orders_Invoices_analize_v5.xlsx', 'rb') as file:
+            office_file = msoffcrypto.OfficeFile(file)
+            office_file.load_key(password='mega')
+            office_file.decrypt(decrypted_workbook)
+
+        shipping_data = pd.read_excel(decrypted_workbook, sheet_name='Orders', dtype={'BT': str}, skiprows=[1, 2, 3])
+
+        columns_to_extract = ['Unnamed: 7', 'Unnamed: 95', 'Unnamed: 42', 'Unnamed: 11', 'Unnamed: 13']
+        extracted_df = shipping_data[columns_to_extract].copy()
+
+        filtered_df = extracted_df[pd.to_datetime(extracted_df['Unnamed: 95'], errors='coerce', format='%Y-%m-%d').notnull() &
+                                   ~extracted_df['Unnamed: 7'].str.contains('STORNO', na=False) &
+                                   ~extracted_df['Unnamed: 7'].str.contains('PRENOS', na=False)]
+
+        rows_with_zeros = filtered_df[filtered_df['Unnamed: 42'] == '00:00:00']
+        filtered_df.loc[:, 'Unnamed: 42'] = pd.to_datetime(filtered_df['Unnamed: 42'])
+        filtered_df = filtered_df[filtered_df['Unnamed: 42'] >= pd.to_datetime('2024-01-01')]
+
+        # Format date
+        grouped_df = ""
+        filtered_df.loc[:, 'Unnamed: 7'] = filtered_df['Unnamed: 7'].apply(lambda x: '-'.join(str(x).split('-')) if re.match(r'^\d+-\d+-\d+$', str(x)) else str(x))
+        if status == 'Mjesec':
+            filtered_df.loc[:, 'Unnamed: 42'] = pd.to_datetime(filtered_df['Unnamed: 42'])
+            filtered_df['Month'] = filtered_df['Unnamed: 42'].dt.month
+            filtered_df['Value'] = filtered_df['Unnamed: 11']
+            filtered_df.loc[:, 'Unnamed: 7'] = pd.to_datetime(filtered_df['Unnamed: 7'], errors='coerce',
+                                                              format='mixed').dt.strftime('%d.%m.%Y')
+            grouped_df = filtered_df.groupby('Month')['Value'].sum().reset_index()  # po mjesecu
+        elif status == 'KW':
+            filtered_df['KW'] = filtered_df['Unnamed: 13']
+            filtered_df['Value'] = filtered_df['Unnamed: 11']
+            grouped_df = filtered_df.groupby('KW')['Value'].sum().reset_index()  # po KW
+        data_str = grouped_df.to_dict(orient='records')
+
+        # Assuming session["stranice"] is defined elsewhere
+        stranice_list = session["stranice"]
+
+        return render_template("fix_plan.html", data=data_str, stranice_list=stranice_list)
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
+@app.route('/fix-plan-data')
+def fix_plan_data():
+    value = request.args.get('month')
+    status = request.args.get('status')
+    try:
+        decrypted_workbook = io.BytesIO()
+        with open(
+                '//192.168.100.216/Users/ivan.tonkic/Desktop/Share/Verzugs_liste/Updated_Orders_Invoices_analize_v5.xlsx',
+                'rb') as file:
+            office_file = msoffcrypto.OfficeFile(file)
+            office_file.load_key(password='mega')
+            office_file.decrypt(decrypted_workbook)
+
+        shipping_data = pd.read_excel(decrypted_workbook, sheet_name='Orders', dtype={'BT': str}, skiprows=[1, 2, 3])
+
+        columns_to_extract = ['Unnamed: 7', 'Unnamed: 95', 'Unnamed: 42', 'Unnamed: 11', 'Unnamed: 13']
+        extracted_df = shipping_data[columns_to_extract].copy()
+
+        filtered_df = extracted_df[
+            pd.to_datetime(extracted_df['Unnamed: 95'], errors='coerce', format='%Y-%m-%d').notnull() &
+            ~extracted_df['Unnamed: 7'].str.contains('STORNO', na=False) &
+            ~extracted_df['Unnamed: 7'].str.contains('PRENOS', na=False)]
+
+        rows_with_zeros = filtered_df[filtered_df['Unnamed: 42'] == '00:00:00']
+        filtered_df.loc[:, 'Unnamed: 42'] = pd.to_datetime(filtered_df['Unnamed: 42'])
+        filtered_df = filtered_df[filtered_df['Unnamed: 42'] >= pd.to_datetime('2024-01-01')]
+
+        # Format date
+        grouped_df = ""
+        filtered_df.loc[:, 'Unnamed: 7'] = filtered_df['Unnamed: 7'].apply(
+            lambda x: '-'.join(str(x).split('-')) if re.match(r'^\d+-\d+-\d+$', str(x)) else str(x))
+        if status == 'Month':
+            filtered_df['Month'] = filtered_df['Unnamed: 42'].dt.month.astype(str)
+            print(filtered_df['Month'])
+            print(value)
+            filtered_df_id = filtered_df.loc[filtered_df['Month'] == str(value), 'Unnamed: 7']
+            filtered_df['ID'] = filtered_df_id
+            filtered_df_value = filtered_df.loc[filtered_df['Month'] == str(value), 'Unnamed: 11']
+            filtered_df['Value'] = filtered_df_value
+            filtered_df.loc[:, 'Unnamed: 7'] = pd.to_datetime(filtered_df['Unnamed: 7'], errors='coerce',
+                                                              format='mixed').dt.strftime('%d.%m.%Y')
+            grouped_df = pd.DataFrame({
+                'ID': filtered_df_id.values,
+                'Value': filtered_df_value.values
+            })
+            print(grouped_df)
+        elif status == 'KW':
+            filtered_df_id = filtered_df.loc[filtered_df['Unnamed: 13'] == value, 'Unnamed: 7']
+            filtered_df['ID'] = filtered_df_id
+            # Filter 'Value' column
+            filtered_df_value = filtered_df.loc[filtered_df['Unnamed: 13'] == value, 'Unnamed: 11']
+            filtered_df['Value'] = filtered_df_value
+            # Assigning only 'KW' and 'Value' columns to grouped_df
+            grouped_df = pd.DataFrame({
+                'ID': filtered_df_id.values,
+                'Value': filtered_df_value.values
+            })
+        data_str = grouped_df.to_dict(orient='records')
+
+        json_data = json.dumps(data_str)
+        print("DONE")
+        return json_data
+    except Exception as e:
+        return f"An error occurred: {str(e)}"
+
 
 def replace_nan(data):
     return [[cell if not pd.isna(cell) else None for cell in row] for row in data]

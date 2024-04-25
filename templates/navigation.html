@@ -108,6 +108,14 @@
         </div>
     </div>
     <a href="{{ url_for('MM2Alat') }}">MM2 Alati</a>
+    <div class="fix-plan">
+        Fix Plan &rarr;
+        <!-- Inside Dropdown -->
+        <div class="dropdown-fix-plan">
+            <a href="{{ url_for('fix_plan', status='Mjesec') }}"><div class="dItem">Mjesec</div></a>
+            <a href="{{ url_for('fix_plan', status='KW') }}"><div class="dItem">KW</div></a>
+        </div>
+    </div>
     {% endif %}
 
     <div class="logout-button">

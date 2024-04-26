@@ -63,7 +63,8 @@
         }
         input[type="text"],
         input[type="password"],
-        input[type="date"] {
+        input[type="date"],
+        input[type="number"]{
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
@@ -150,13 +151,18 @@
         <h1>Upravljanje Alata</h1>
 
     <h2>Alati</h2>
-        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Search for usernames.." autocomplete="off">
+        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Iskanje alata po imenu.." autocomplete="off">
     <div class="table-container">
         <table id="myTable">
             <thead>
                 <tr>
                     <th>Alat</th>
-                    <th>Količina</th>
+                    <th>Identifikacija</th>
+                    <th>Lokacija</th>
+                    <th>Številka certifikata</th>
+                    <th>Posebnosti</th>
+                    <th>Rok trajanja</th>
+                    <th>Rok trajanja - mesec</th>
                     <th>Edit</th>
                     <th>Delete</th>
                 </tr>
@@ -165,25 +171,41 @@
                 {% for data in data %}
                 <tr>
                     <td>{{ data.ALAT }}</td>
-                    <td>{{ data.KOLICINA }}</td>
-                    <td><button id="edit-button" onclick="showEditForm(); editUser('{{ data.ALAT }}','{{ data.KOLICINA }}')">Edit</button></td> <!-- Add Edit button -->
-                    <td><button id="delete-button" onclick="deleteUser('{{ data.ALAT }}')">Delete</button></td>
+                    <td>{{ data.IDENTIFIKACIJA }}</td>
+                    <td>{{ data.LOKACIJA }}</td>
+                    <td>{{ data.CERTNR }}</td>
+                    <td>{{ data.POSEBNOSTI }}</td>
+                    <td>{{ data.DATUMEXP }}</td>
+                    <td>{{ data.DATUMPEXP }}</td>
+                    <td><button id="edit-button" onclick="showEditForm(); editAlat('{{ data.PK }}', '{{ data.ALAT }}', '{{ data.IDENTIFIKACIJA }}','{{ data.LOKACIJA }}','{{ data.CERTNR }}','{{ data.POSEBNOSTI }}', '{{ data.DATUMEXP }}', '{{ data.DATUMPEXP }}')">Edit</button></td> <!-- Add Edit button -->
+                    <td><button id="delete-button" onclick="deleteAlat('{{ data.PK }}', '{{ data.ALAT }}')">Delete</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <button id="add-user-button" onclick="showEditForm('','')">Add alat</button>
+    <button id="add-user-button" onclick="showEditForm('','','','','','','','')">Add alat</button>
 <!-- Edit form container -->
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
         <h2>Edit User</h2>
         <form action="/add_or_edit_alat" method="post" id="editForm">
+            <input type="hidden" name="PK" id="editPK" value="" readonly>
             <label for="editAlat">Alat ID:</label>
-            <input type="text" id="editAlat" name="alat" required><br>
-            <label for="editKolicina">Količina:</label>
-            <input type="text" id="editKolicina" name="kolicina" required><br>
+            <input type="text" id="editAlat" name="alat" placeholder="Vnesi naziv" autocomplete="off" required><br>
+            <label for="editIdentifikacija">Identifikacija:</label>
+            <input type="text" id="editIdentifikacija" name="identifikacija" placeholder="Vnesi identifikacijo" autocomplete="off" required><br>
+            <label for="editLokacija">Lokacija:</label>
+            <input type="text" id="editLokacija" name="lokacija" placeholder="Vnesi lokacijo" autocomplete="off" required><br>
+            <label for="editCertnr">Številka certifikata:</label>
+            <input type="text" id="editCertnr" name="certnr" placeholder="Vnesi številko certifikata" autocomplete="off" required><br>
+            <label for="editPosebnosti">Posebnosti:</label>
+            <input type="text" id="editPosebnosti" name="posebnosti" placeholder="Vnesi posebnosti" autocomplete="off"><br>
+            <label for="editDatumExp">Rok trajanja:</label>
+            <input type="date" id="editDatumExp" name="datumExp" required><br>
+            <label for="editDatumPExp">Rok trajanja - mesec:</label>
+            <input type="date" id="editDatumPExp" name="datumPExp" readonly required><br>
             <!-- Add more input fields for other user attributes -->
 
             <input type="submit" value="Add or Edit Alat">
@@ -196,9 +218,20 @@
 
 
 <script>
-    function editUser(alatID, kolicina) {
-        document.getElementById("editAlat").value = alatID; // Clear previous values if any
-        document.getElementById("editKolicina").value = kolicina;
+    function editAlat(PK, alatID, identifikacija, lokacija, certnr, posebnosti, datumExp) {
+        // Populate the form fields with the selected user's data
+        document.getElementById("editPK").value = PK;
+        document.getElementById("editAlat").value = alatID;
+        document.getElementById("editIdentifikacija").value = identifikacija;
+        document.getElementById("editLokacija").value = lokacija;
+        document.getElementById("editCertnr").value = certnr;
+        document.getElementById("editPosebnosti").value = posebnosti;
+        document.getElementById("editDatumExp").value = datumExp;
+        // Calculate datumPExp based on datumExp - 1 month
+        var date = new Date(datumExp);
+        date.setMonth(date.getMonth() - 1); // Subtract 1 month
+        var formattedDate = date.toISOString().slice(0, 10); // Format to yyyy-mm-dd
+        document.getElementById("editDatumPExp").value = formattedDate;
     }
     // Function to handle form submission
     document.querySelector('form').addEventListener('submit', function(event) {
@@ -265,15 +298,15 @@
         });
     });
 
-    function deleteUser(IDAlat) {
-        if (confirm("Are you sure you want to delete alat with ID: '" + IDAlat + "'?")) {
+    function deleteAlat(PK, alat) {
+        if (confirm("Are you sure you want to delete alat: '" + alat + "' , with ID: '" + PK + "'?")) {
             // Proceed with deletion
             fetch('/delete_alat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ alat: IDAlat }) // Send only the 'kartica' to the backend
+                body: JSON.stringify({ PK: PK }) // Send only the 'kartica' to the backend
             })
             .then(response => response.json())
             .then(data => {
@@ -299,12 +332,27 @@
 
 
     // Function to show edit form and populate fields
-    function showEditForm(alat, kolicina) {
+    function showEditForm(PK, alatID, identifikacija, lokacija, certnr, posebnosti, datumExp, datumPExp){
         // Populate form fields
-        document.getElementById("editAlat").value = alat;
-        document.getElementById("editKolicina").value = kolicina;
-        // Show the edit form container
-        document.getElementById("editFormContainer").style.display = "block";
+    document.getElementById("editPK").value = PK;
+    document.getElementById("editAlat").value = alatID;
+    document.getElementById("editIdentifikacija").value = identifikacija;
+    document.getElementById("editLokacija").value = lokacija;
+    document.getElementById("editCertnr").value = certnr;
+    document.getElementById("editPosebnosti").value = posebnosti;
+    document.getElementById("editDatumExp").value = datumExp;
+    document.getElementById("editDatumPExp").value = datumPExp;
+
+    // Show the edit form container
+    document.getElementById("editFormContainer").style.display = "block";
+
+    // Listen for changes in the "Rok trajanja" input field
+    document.getElementById("editDatumExp").addEventListener("change", function() {
+        var dateExp = new Date(this.value);
+        dateExp.setMonth(dateExp.getMonth() - 1); // Subtract 1 month
+        var formattedDatePExp = dateExp.toISOString().slice(0, 10); // Format to yyyy-mm-dd
+        document.getElementById("editDatumPExp").value = formattedDatePExp;
+    });
     }
 
     // Function to hide edit form

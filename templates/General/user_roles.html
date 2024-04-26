@@ -5,7 +5,66 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Roles</title>
     <link rel="stylesheet" href="../../static/style/user_roles.css">
-    <script>
+</head>
+<body>
+    <div>
+        <h1>Upravljanje uporabnikov</h1>
+
+        <h2>Uporabniki</h2>
+        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Search for usernames.." autocomplete="off">
+        <div class="table-container">
+            <table id="myTable">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>grafi</th>
+                        <th>po_identu</th>
+                        <!-- Add more <th> elements for other privileges -->
+                        <th>torta</th>
+                        <th>planiranje_proizvodnje</th>
+                        <th>normativi</th>
+                        <th>verzug_lista</th>
+                        <th>kapaciteta</th>
+                        <th>izmene</th>
+                        <th>evidenca_ur</th>
+                        <th>upravljanje_uporabnikov</th>
+                        <th>aktivni_nalogi</th>
+                        <th>neaktivni_nalogi</th>
+                        <th>mm2Alat</th>
+                        <th>fix_plan</th>
+                        <th>top_user</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in data %}
+                    <tr>
+                        <td>{{ user.Username }}</td>
+                        <td><label for="grafi"></label><input id="grafi" type="checkbox" {% if 'grafi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="po_identu"></label><input id="po_identu" type="checkbox" {% if 'po_identu' in user.Stranice %}checked{% endif %} disabled></td>
+                        <!-- Add more <td> elements for other privileges -->
+                        <td><label for="torta"></label><input id="torta" type="checkbox" {% if 'torta' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="planiranje_proizvodnje"></label><input id="planiranje_proizvodnje" type="checkbox" {% if 'planiranje_proizvodnje' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="normativi"></label><input id="normativi" type="checkbox" {% if 'normativi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="verzug_lista"></label><input id="verzug_lista" type="checkbox" {% if 'verzug_lista' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="kapaciteta"></label><input id="kapaciteta" type="checkbox" {% if 'kapaciteta' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="izmene"></label><input id="izmene" type="checkbox" {% if 'izmene' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="evidenca_ur"></label><input id="evidenca_ur" type="checkbox" {% if 'evidenca_ur' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="upravljanje_uporabnikov"></label><input id="upravljanje_uporabnikov" type="checkbox" {% if 'upravljanje_uporabnikov' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="aktivni_nalogi"></label><input id="aktivni_nalogi" type="checkbox" {% if 'aktivni_nalogi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="neaktivni_nalogi"></label><input id="neaktivni_nalogi" type="checkbox" {% if 'neaktivni_nalogi' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="mm2Alat"></label><input id="mm2Alat" type="checkbox" {% if 'mm2Alat' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="fix_plan"></label><input id="fix_plan" type="checkbox" {% if 'fix_plan' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><label for="top_user"></label><input id="top_user" type="checkbox" {% if 'top_user' in user.Stranice %}checked{% endif %} disabled></td>
+                        <td><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Edit</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+<script>
         function toggleEditMode(row) {
             const checkboxes = row.querySelectorAll('input[type="checkbox"]');
             checkboxes.forEach(function(checkbox) {
@@ -75,61 +134,4 @@
             }
         }
     </script>
-</head>
-<body>
-    <div>
-        <h1>Upravljanje uporabnikov</h1>
-
-        <h2>Uporabniki</h2>
-        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Search for usernames.." autocomplete="off">
-        <div class="table-container">
-            <table id="myTable">
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>grafi</th>
-                        <th>po_identu</th>
-                        <!-- Add more <th> elements for other privileges -->
-                        <th>torta</th>
-                        <th>planiranje_proizvodnje</th>
-                        <th>normativi</th>
-                        <th>verzug_lista</th>
-                        <th>kapaciteta</th>
-                        <th>izmene</th>
-                        <th>evidenca_ur</th>
-                        <th>upravljanje_uporabnikov</th>
-                        <th>aktivni_nalogi</th>
-                        <th>neaktivni_nalogi</th>
-                        <th>mm2Alat</th>
-                        <th>top_user</th>
-                        <th>Edit</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in data %}
-                    <tr>
-                        <td>{{ user.Username }}</td>
-                        <td><label for="grafi"></label><input id="grafi" type="checkbox" {% if 'grafi' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="po_identu"></label><input id="po_identu" type="checkbox" {% if 'po_identu' in user.Stranice %}checked{% endif %} disabled></td>
-                        <!-- Add more <td> elements for other privileges -->
-                        <td><label for="torta"></label><input id="torta" type="checkbox" {% if 'torta' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="planiranje_proizvodnje"></label><input id="planiranje_proizvodnje" type="checkbox" {% if 'planiranje_proizvodnje' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="normativi"></label><input id="normativi" type="checkbox" {% if 'normativi' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="verzug_lista"></label><input id="verzug_lista" type="checkbox" {% if 'verzug_lista' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="kapaciteta"></label><input id="kapaciteta" type="checkbox" {% if 'kapaciteta' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="izmene"></label><input id="izmene" type="checkbox" {% if 'izmene' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="evidenca_ur"></label><input id="evidenca_ur" type="checkbox" {% if 'evidenca_ur' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="upravljanje_uporabnikov"></label><input id="upravljanje_uporabnikov" type="checkbox" {% if 'upravljanje_uporabnikov' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="aktivni_nalogi"></label><input id="aktivni_nalogi" type="checkbox" {% if 'aktivni_nalogi' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="neaktivni_nalogi"></label><input id="neaktivni_nalogi" type="checkbox" {% if 'neaktivni_nalogi' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="mm2Alat"></label><input id="mm2Alat" type="checkbox" {% if 'mm2Alat' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><label for="top_user"></label><input id="top_user" type="checkbox" {% if 'top_user' in user.Stranice %}checked{% endif %} disabled></td>
-                        <td><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Edit</button></td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</body>
 </html>

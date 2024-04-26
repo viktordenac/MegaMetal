@@ -5,6 +5,7 @@ import calendar
 
 import holidays
 import msoffcrypto
+from dateutil.relativedelta import relativedelta
 
 slo_holidays = holidays.SI()  # this is a dict
 
@@ -128,8 +129,14 @@ class TBA_KOS(db.Model):
 
 class TBA_ALAT(db.Model):
     __tablename__ = 'TBA_ALAT'
-    ALAT = db.Column(db.INT(), primary_key=True)
-    KOLICINA = db.Column(db.CHAR(50))
+    PK = db.Column(db.INT(), primary_key=True)
+    ALAT = db.Column(db.CHAR(50))
+    IDENTIFIKACIJA = db.Column(db.CHAR(50))
+    LOKACIJA = db.Column(db.CHAR(50))
+    CERTNR = db.Column(db.CHAR(50))
+    POSEBNOSTI = db.Column(db.CHAR(50))
+    DATUMEXP = db.Column(db.Date())
+    DATUMPEXP = db.Column(db.Date())
 
 @login_manager.user_loader
 def load_user(kartica):
@@ -853,7 +860,7 @@ def MM2Alat():
     if not is_authenticated():
         return redirect(url_for("login"))
         # Query all data
-    data = TBA_ALAT.query.all()
+    data = TBA_ALAT.query.order_by(TBA_ALAT.DATUMPEXP).all()
 
     unique_values = {}
     for column in TBA_ALAT.__table__.columns:
@@ -867,33 +874,40 @@ def MM2Alat():
 @app.route('/add_or_edit_alat', methods=['POST'])
 def add_or_edit_alat():
     # Get data from the form submission
-    alat = request.form.get('alat')
+    pk = request.form.get('PK')
 
     # Check if a user with the provided Kartica already exists
-    existing_alat = TBA_ALAT.query.filter_by(ALAT=alat).first()
-    if existing_alat:
-        # print(existing_user.Username)
-        # User already exists, return a JSON response indicating the existence and providing the username
-        return jsonify({'exists': True, 'username': existing_alat.ALAT})
-    else:
-        # print("User does not exist.")
-        # User does not exist, proceed with adding the user
+    try:
+        existing_alat = TBA_ALAT.query.filter_by(PK=pk).first()
+        if existing_alat:
+            return jsonify({'success': False, 'error': 'User already exists.'})
+    except:
         return jsonify({'exists': False})
 
 @app.route('/add_alat', methods=['POST'])
 def add_alat():
     # Get data from the form submission
+    pk = request.form.get('PK')
     alat = request.form.get('alat')
-    kolicina = request.form.get('kolicina')
+    identifikacija = request.form.get('identifikacija')
+    lokacija = request.form.get('lokacija')
+    certnr = request.form.get('certnr')
+    posebnosti = request.form.get('posebnosti')
+    datumExp = request.form.get('datumExp')
+    datumPExp = request.form.get('datumPExp')
+    if (pk == ''):
+        pk = 0
 
     # Check if a user with the same Kartica already exists
-    existing_alat = TBA_ALAT.query.filter_by(ALAT=alat).first()
-    if existing_alat:
-        # User already exists, return an error response
+    try:
+        existing_alat = TBA_ALAT.query.filter_by(PK=pk).first()
+        if existing_alat:
+            return jsonify({'success': False, 'error': 'User already exists.'})
+    except:
         return jsonify({'success': False, 'error': 'User already exists.'})
 
     # User does not exist, proceed with adding the user
-    new_alat = TBA_ALAT(ALAT=alat, KOLICINA=kolicina)
+    new_alat = TBA_ALAT(ALAT=alat, IDENTIFIKACIJA=identifikacija, LOKACIJA=lokacija, CERTNR=certnr, POSEBNOSTI=posebnosti, DATUMEXP=datumExp, DATUMPEXP=datumPExp)
     try:
         db.session.add(new_alat)
         db.session.commit()
@@ -912,6 +926,8 @@ def edit_alat():
     alat = TBA_ALAT.query.filter_by(ALAT=alat).first()
     if alat:
         alat.KOLICINA = request.form.get('kolicina')
+        alat.DATUMEXP = request.form.get('datumExp')
+        alat.DATUMPEXP = request.form.get('datumPExp')
         db.session.commit()
         return jsonify({'success': True})
     else:
@@ -922,22 +938,23 @@ def edit_alat():
 def delete_alat():
     if request.method == 'POST':
         # Get the kartica to delete from the request
-        alat = request.json.get('alat')
+        pk = request.json.get('PK')
 
         # Check if the user exists
-        alat = TBA_ALAT.query.filter_by(ALAT=alat).first()
-        if alat:
-            try:
+        try:
+            alat = TBA_ALAT.query.filter_by(PK=pk).first()
+            if alat:
                 # Delete the user from the database
                 db.session.delete(alat)
                 db.session.commit()
                 return jsonify({'success': True})
-            except Exception as e:
-                # Handle any errors that occur during deletion
-                return jsonify({'success': False, 'error': 'Failed to delete user.'}), 500
-        else:
-            # Return a message indicating that the user does not exist
-            return jsonify({'success': False, 'error': 'User not found.'}), 404
+            else:
+                # Return a message indicating that the user does not exist
+                return jsonify({'success': False, 'error': 'User not found.'}), 404
+        except Exception as e:
+            # Handle any errors that occur during deletion
+            return jsonify({'success': False, 'error': 'Failed to delete user.'}), 500
+
 
 podatkiMesec = 0
 podatkiKW = 0

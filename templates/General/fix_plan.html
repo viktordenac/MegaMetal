@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
+    <title>Verzug lista</title>
+    <link rel="stylesheet" href="../../static/style/vercugsLista.css">
+    <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
+        #container {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-left: 9%; /* Center horizontally */
+            margin-right: auto; /* Center horizontally */
+            margin-top: 20px;
+            min-width: 80vw;
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -92,98 +104,128 @@
     </style>
 </head>
 <body>
-    <!-- Navigation bar -->
     <div>
-        <h1>Fix plan</h1>
-        <h2>fix plan</h2>
-        <input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Enter wanted value...">
-        <div class="table-container">
-        <!-- Table to display user data -->
-            <table id="myTable">
-                <thead>
-                    <tr>
-                        <!-- Dynamically generate table headers based on keys of the first item -->
-                        {% for key in data[0].keys() %}
-                            <th>{{ key }}</th>
-                        {% endfor %}
-                        <th>Details</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in data %}
-                        <tr>
-                            <!-- Dynamically generate table cells based on key-value pairs of each item -->
-                            {% for key, value in item.items() %}
-                                <td>{{ value }}</td>
-                            {% endfor %}
-                            <!-- Add details button -->
-                            <td>
-                                <button class="details-button" onclick="fetchDataAndShowModal(this)">Details</button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Modal Popup -->
-        <div id="myModal" class="modal">
-          <div class="modal-content">
-            <span class="close">&times;</span>
-            <table id="popupTable">
-              <!-- Table content will be dynamically generated here -->
-            </table>
-          </div>
+        <div id="container">
+            <h1>Prikaz verzug liste</h1>
+            <div id="sheets">
+                <button class="link-button" onclick="fetchDataAndFillTable('Mesec')">Mesec</button>
+                <button class="link-button" onclick="fetchDataAndFillTable('KW')">KW</button>
+            </div>
+            <label for="inputID_rn"></label><input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Enter wanted value...">
+            <div id="table-container"></div>
+            </div>
+            <!-- Modal Popup -->
+            <div id="myModal" class="modal">
+              <div class="modal-content">
+                <span class="close">&times;</span>
+                <table id="popupTable">
+                  <!-- Table content will be dynamically generated here -->
+                </table>
+              </div>
         </div>
     </div>
+
 </body>
 <script>
-     // Function to display modal popup
+    function fetchDataAndFillTable(status) {
+    const url = '/fix-plan?status=' + status;
+    fetch(url)
+        .then(response => response.json())
+            .then(result => {
+                const data = result.data;
+                console.log(data);
+                const tableContainer = document.getElementById('table-container');
+                const table = document.createElement('table');
+                table.setAttribute('id', 'myTable'); // Set the ID of the table to "myTable"
+                const thead = table.createTHead();
+                const headerRow = thead.insertRow();
+                // Dynamically generate table headers based on keys of the first item
+                Object.keys(data[0]).forEach(key => {
+                    const th = document.createElement('th');
+                    th.textContent = key;
+                    headerRow.appendChild(th);
+                });
+                // Add "Details" header cell
+                const detailsHeaderCell = document.createElement('th');
+                detailsHeaderCell.textContent = 'Details';
+                headerRow.appendChild(detailsHeaderCell);
+                // Create table body and rows
+                const tbody = document.createElement('tbody');
+                data.forEach(item => {
+                    const row = tbody.insertRow();
+                    // Dynamically generate table cells based on key-value pairs of each item
+                    Object.values(item).forEach(value => {
+                        const cell = row.insertCell();
+                        cell.textContent = value;
+                    });
+                    // Add "Details" button to each row
+                    const detailsCell = row.insertCell();
+                    const detailsButton = document.createElement('button');
+                    detailsButton.textContent = 'Details';
+                    detailsButton.classList.add('details-button');
+                    detailsButton.onclick = function() {
+                        fetchDataAndShowModal(this);
+                    };
+                    detailsCell.appendChild(detailsButton);
+                });
+                table.appendChild(thead);
+                table.appendChild(tbody);
+                tableContainer.innerHTML = '';
+                tableContainer.appendChild(table);
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+    function fetchDataAndShowModal(button) {
+        var xhr = new XMLHttpRequest();
+        var row = button.closest('tr');
+        var monthValue = row.cells[0].textContent.trim();
+        var status = row.closest('table').querySelector('thead tr').firstElementChild.textContent.trim();
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    console.log("Data fetched:", data);
+                    showModal(data);
+                } else {
+                    console.error("Request failed with status:", xhr.status);
+                }
+            }
+        };
+        xhr.onerror = function() {
+            console.error("An error occurred while fetching data");
+        };
+        xhr.open("GET", "/fix-plan-data?month=" + monthValue + "&status=" + status, true);
+        xhr.send();
+    }
+
     function showModal(data) {
-        // Check if data array is empty or undefined
         if (!data || data.length === 0) {
             console.log("Data array is empty or undefined");
             return;
         }
-
-        // Log the received data to the console
         console.log("Data received:", data);
-
-        // Get the first item in the data array
         var firstItem = data[0];
 
-        // Check if the first item is empty or undefined
         if (!firstItem) {
             console.log("First item in data array is empty or undefined");
             return;
         }
-
-        // Log the first item to the console
         console.log("First item:", firstItem);
 
-        // Get the modal element
         var modal = document.getElementById("myModal");
-        // Ensure the modal element exists
         if (!modal) {
             console.log("Modal element not found");
             return;
         }
 
-        // Set modal display to block to show it
         modal.style.display = "block";
-
-        // Get the table element
         var table = document.getElementById("popupTable");
-        // Ensure the table element exists
         if (!table) {
             console.log("Table element not found");
             return;
         }
-
-        // Clear existing table content
         table.innerHTML = "";
-
-        // Create table header row
         var thead = document.createElement("thead");
         var headerRow = document.createElement("tr");
         for (var key in firstItem) {
@@ -207,7 +249,6 @@
         });
         table.appendChild(tbody);
     }
-
     // Close the modal popup when the user clicks on the close button
     document.querySelector(".close").addEventListener("click", function() {
         var modal = document.getElementById("myModal");
@@ -221,30 +262,12 @@
             modal.style.display = "none";
         }
     });
-
-    // Fetch data from backend and display modal popup
-    function fetchDataAndShowModal(button) {
-        var xhr = new XMLHttpRequest();
-        var row = button.closest('tr');
-        var monthValue = row.cells[0].textContent.trim();
-        var status = row.closest('table').querySelector('thead tr').firstElementChild.textContent.trim();
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200) {
-                    var data = JSON.parse(xhr.responseText);
-                    console.log("Data fetched:", data);
-                    showModal(data);
-                } else {
-                    console.error("Request failed with status:", xhr.status);
-                }
-            }
-        };
-        xhr.onerror = function() {
-            console.error("An error occurred while fetching data");
-        };
-        xhr.open("GET", "/fix-plan-data?month=" + monthValue + "&status=" + status, true);
-        xhr.send();
-    }
+    window.addEventListener("keydown", function(event) {
+        var modal = document.getElementById("myModal");
+        if (event.key === "Escape") {
+            modal.style.display = "none";
+        }
+    });
 
     function filterTable() {
         var input, filter, table, tr, td, i, j, txtValue;

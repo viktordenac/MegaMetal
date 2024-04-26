@@ -939,14 +939,14 @@ def delete_alat():
             # Return a message indicating that the user does not exist
             return jsonify({'success': False, 'error': 'User not found.'}), 404
 
+podatkiMesec = 0
+podatkiKW = 0
 
-@app.route('/fix-plan')
-def fix_plan():
+@app.route('/fix-plan-navigation')
+def fix_plan_navigation():
+    global podatkiMesec, podatkiKW
     if not is_authenticated():
-        return redirect(url_for("login"))  # Redirect to login page if not authenticated
-
-    # Get the status parameter from the request
-    status = request.args.get('status', default='1')  # Default value is '1' if parameter is not provided
+        return redirect(url_for("login"))
 
     try:
         decrypted_workbook = io.BytesIO()
@@ -968,28 +968,47 @@ def fix_plan():
         filtered_df.loc[:, 'Unnamed: 42'] = pd.to_datetime(filtered_df['Unnamed: 42'])
         filtered_df = filtered_df[filtered_df['Unnamed: 42'] >= pd.to_datetime('2024-01-01')]
 
-        # Format date
-        grouped_df = ""
         filtered_df.loc[:, 'Unnamed: 7'] = filtered_df['Unnamed: 7'].apply(lambda x: '-'.join(str(x).split('-')) if re.match(r'^\d+-\d+-\d+$', str(x)) else str(x))
-        if status == 'Mjesec':
-            filtered_df.loc[:, 'Unnamed: 42'] = pd.to_datetime(filtered_df['Unnamed: 42'])
-            filtered_df['Month'] = filtered_df['Unnamed: 42'].dt.month
-            filtered_df['Value'] = filtered_df['Unnamed: 11']
-            filtered_df.loc[:, 'Unnamed: 7'] = pd.to_datetime(filtered_df['Unnamed: 7'], errors='coerce',
-                                                              format='mixed').dt.strftime('%d.%m.%Y')
-            grouped_df = filtered_df.groupby('Month')['Value'].sum().reset_index()  # po mjesecu
-        elif status == 'KW':
-            filtered_df['KW'] = filtered_df['Unnamed: 13']
-            filtered_df['Value'] = filtered_df['Unnamed: 11']
-            grouped_df = filtered_df.groupby('KW')['Value'].sum().reset_index()  # po KW
-        data_str = grouped_df.to_dict(orient='records')
-
-        # Assuming session["stranice"] is defined elsewhere
-        stranice_list = session["stranice"]
-
-        return render_template("fix_plan.html", data=data_str, stranice_list=stranice_list)
+        #MESEC
+        filtered_df.loc[:, 'Unnamed: 42'] = pd.to_datetime(filtered_df['Unnamed: 42'])
+        filtered_df['Month'] = filtered_df['Unnamed: 42'].dt.month
+        filtered_df['Value'] = filtered_df['Unnamed: 11']
+        filtered_df.loc[:, 'Unnamed: 7'] = pd.to_datetime(filtered_df['Unnamed: 7'], errors='coerce',
+                                                          format='mixed').dt.strftime('%d.%m.%Y')
+        podatkiMesec = filtered_df.groupby('Month')['Value'].sum().reset_index()  # po mjesecu
+        podatkiMesec = podatkiMesec.to_dict(orient='records')
+        print(podatkiMesec)
+        #KW
+        filtered_df['KW'] = filtered_df['Unnamed: 13']
+        filtered_df['Value'] = filtered_df['Unnamed: 11']
+        podatkiKW = filtered_df.groupby('KW')['Value'].sum().reset_index()  # po KW
+        podatkiKW = podatkiKW.to_dict(orient='records')
+        print(podatkiKW)
     except Exception as e:
         return f"An error occurred: {str(e)}"
+    return render_template('fix_plan.html', stranice_list=session["stranice"])
+
+
+@app.route('/fix-plan')
+def fix_plan():
+    global podatkiMesec, podatkiKW
+
+    if not is_authenticated():
+        return jsonify({'error': 'Not authenticated'}), 401
+
+    # Get the status parameter from the request
+    status = request.args.get('status', default='Mesec')  # Default value is '1' if parameter is not provided
+
+    try:
+        data_str = ""
+        if status == 'Mesec':
+            data_str = podatkiMesec
+        elif status == 'KW':
+            data_str = podatkiKW
+
+        return jsonify({'data': data_str})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/fix-plan-data')
 def fix_plan_data():
@@ -1024,8 +1043,6 @@ def fix_plan_data():
             lambda x: '-'.join(str(x).split('-')) if re.match(r'^\d+-\d+-\d+$', str(x)) else str(x))
         if status == 'Month':
             filtered_df['Month'] = filtered_df['Unnamed: 42'].dt.month.astype(str)
-            print(filtered_df['Month'])
-            print(value)
             filtered_df_id = filtered_df.loc[filtered_df['Month'] == str(value), 'Unnamed: 7']
             filtered_df['ID'] = filtered_df_id
             filtered_df_value = filtered_df.loc[filtered_df['Month'] == str(value), 'Unnamed: 11']
@@ -1036,7 +1053,6 @@ def fix_plan_data():
                 'ID': filtered_df_id.values,
                 'Value': filtered_df_value.values
             })
-            print(grouped_df)
         elif status == 'KW':
             filtered_df_id = filtered_df.loc[filtered_df['Unnamed: 13'] == value, 'Unnamed: 7']
             filtered_df['ID'] = filtered_df_id

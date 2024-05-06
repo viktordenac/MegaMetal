@@ -112,13 +112,13 @@ class TBA_PRAVA(db.Model):
 
 class TPRO_PLAN(db.Model):
     __tablename__ = 'TPRO_PLAN'
-    IDRN = db.Column(db.CHAR(50), primary_key=True)
-    SOD = db.Column(db.Date())
-    SDO = db.Column(db.Date())
-    SDAN = db.Column(db.INT())
-    VOD = db.Column(db.Date())
-    VDO = db.Column(db.Date())
-    VDAN = db.Column(db.INT())
+    KUPEC = db.Column(db.CHAR(100))
+    Stari_DN = db.Column(db.CHAR(50))
+    OPOMBE = db.Column(db.CHAR(100))
+    IDENT_NR = db.Column(db.CHAR(15))
+    KLJUCAVNICAR = db.Column(db.CHAR(50))
+    KOS = db.Column(db.INT())
+    IDRN = db.Column(db.CHAR(20), primary_key=True)
 
 class TBA_KOS(db.Model):
     __tablename__ = 'TBA_KOS'
@@ -994,13 +994,11 @@ def fix_plan_navigation():
                                                           format='mixed').dt.strftime('%d.%m.%Y')
         podatkiMesec = filtered_df.groupby('Month')['Value'].sum().reset_index()  # po mjesecu
         podatkiMesec = podatkiMesec.to_dict(orient='records')
-        print(podatkiMesec)
         #KW
         filtered_df['KW'] = filtered_df['Unnamed: 13']
         filtered_df['Value'] = filtered_df['Unnamed: 11']
         podatkiKW = filtered_df.groupby('KW')['Value'].sum().reset_index()  # po KW
         podatkiKW = podatkiKW.to_dict(orient='records')
-        print(podatkiKW)
     except Exception as e:
         return f"An error occurred: {str(e)}"
     return render_template('fix_plan.html', stranice_list=session["stranice"])
@@ -1084,7 +1082,6 @@ def fix_plan_data():
         data_str = grouped_df.to_dict(orient='records')
 
         json_data = json.dumps(data_str)
-        print("DONE")
         return json_data
     except Exception as e:
         return f"An error occurred: {str(e)}"

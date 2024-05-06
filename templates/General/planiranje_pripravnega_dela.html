@@ -10,122 +10,202 @@
             max-height: 600px; /* Adjust as needed */
             overflow-y: auto;
             margin-left: 14%;
-            width: 85%;
+            width: 86%;
         }
     </style>
 </head>
 <body>
+    <div>
+        <h1>Planiranje pripravnega dela</h1>
 
-    <div id="table-container"></div>
+        <h2>Plani</h2>
+            <label for="inputID_rn"></label><input type="text" id="inputID_rn" placeholder="Search for usernames.." hidden="hidden" autocomplete="off">
+        <div id="table-container"></div>
+    </div>
 
-    <script>
-        fetch('/planiranjePripravnegaDelaLoad')
-        .then(response => response.json())
-        .then(data => {
-            const columns = data.headers;
-            const values = data.data;
-
-            const tableContainer = document.getElementById('table-container');
-            const table = document.createElement('table');
-            const thead = document.createElement('thead');
-            const tbody = document.createElement('tbody');
-
-            // Create table headers
-            const headerRow = document.createElement('tr');
-            columns.forEach(columnName => {
-                const th = document.createElement('th');
-                th.textContent = columnName;
-                headerRow.appendChild(th);
-            });
-            // Add a column for the Edit button
-            headerRow.innerHTML += "<th>Edit</th>";
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-
-            // Create table rows
-            values.forEach((rowData, rowIndex) => {
-                const row = document.createElement('tr');
-                rowData.forEach((cellData, colIndex) => {
-                    const cell = document.createElement('td');
-                    const input = document.createElement('input');
-                    if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
-                        // Parse string back to date object
-                        const dateParts = cellData.split(".");
-                        console.log(dateParts)
-                        const formattedDate = dateParts[2] + '-' + (dateParts[1].length < 2 ? '0' : '') + dateParts[1] + '-' + (dateParts[0].length < 2 ? '0' : '') + dateParts[0];
-                        console.log(formattedDate)
-
-                        // Create input field for dates
-                        input.type = 'date';
-                        input.value = formattedDate;
-                    } else {
-                        // Create input field for other data
-                        input.type = 'text';
-                        input.value = cellData;
-                    }
-                    input.disabled = true; // Disable input fields by default
-                    cell.appendChild(input);
-                    row.appendChild(cell);
-                });
-                // Add an Edit button to each row
-                const editCell = document.createElement('td');
-                const editButton = document.createElement('button');
-                editButton.textContent = "Edit";
-                let editDateToggle = false;
-                // Add an event listener to handle edit functionality
-                editButton.addEventListener('click', () => {
-                    if (editDateToggle === false){
-                        row.querySelectorAll('input').forEach(input => {
-                            if (input.type === 'date') {
-                                input.disabled = input.disabled !== true;
-                                editDateToggle = true;
-                            }
-                        });
-                        editButton.textContent = "Submit";
-                    } else {
-                        if (editButton.textContent === "Submit") {
-                            const updatedRowData = [];
-                            row.querySelectorAll('input').forEach(input => {
-                                updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
-                                input.disabled = true;
-                            });
-                            const updatedData = { row: rowIndex, data: updatedRowData };
-                            // Send the updated data to the backend
-                            fetch('/planiranjePripravnegaDelaUpdate', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(updatedData)
-                            })
-                            .then(response => {
-                                if (response.ok) {
-                                    console.log('Data updated successfully');
-                                    // Optionally, you can handle success feedback here
-                                } else {
-                                    console.error('Failed to update data');
-                                    // Optionally, you can handle error feedback here
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                // Optionally, you can handle error feedback here
-                            });
-                            console.log("Updated Data:", updatedData);
-                            // Here you can send the updated data to the backend using fetch or any other method
-                        }
-                        editButton.textContent = "Edit";
-                        editDateToggle = false;
-                    }
-                });
-                editCell.appendChild(editButton);
-                row.appendChild(editCell);
-                tbody.appendChild(row);
-            });
-            table.appendChild(tbody);
-            tableContainer.appendChild(table);
-        })
-        .catch(error => console.error('Error:', error));
-    </script>
 </body>
+<script>
+    fetch('/planiranjePripravnegaDelaLoad')
+    .then(response => response.json())
+    .then(data => {
+        const columns = data.headers;
+        const values = data.data;
+
+        const tableContainer = document.getElementById('table-container');
+        const table = document.createElement('table');
+        table.id = 'myTable';
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+
+        // Create table headers
+        const headerRow = document.createElement('tr');
+        headerRow.addEventListener('keyup', function(event) {
+            const target = event.target;
+            if (target.tagName.toLowerCase() === 'input') {
+                const columnName = target.dataset.columnName; // Extract the column name from the dataset
+                filterTable(columnName)
+            }
+        });
+        columns.forEach(columnName => {
+            const th = document.createElement('th');
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.id = 'filter' + columnName;
+            input.placeholder = columnName;
+            input.dataset.columnName = columnName; // Store the column name in a data attribute
+
+            // Append the input to the table header
+            th.appendChild(input);
+
+            // Append the th to the header row
+            headerRow.appendChild(th);
+        });
+
+
+        // Add a column for the Edit button
+        headerRow.innerHTML += "<th>Edit</th>";
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+
+        // Create table rows
+        values.forEach((rowData, rowIndex) => {
+            const row = document.createElement('tr');
+            rowData.forEach((cellData, colIndex) => {
+                const cell = document.createElement('td');
+                const input = document.createElement('input');
+                if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
+                    // Parse string back to date object
+                    const dateParts = cellData.split(".");
+                    console.log(dateParts)
+                    const formattedDate = dateParts[2] + '-' + (dateParts[1].length < 2 ? '0' : '') + dateParts[1] + '-' + (dateParts[0].length < 2 ? '0' : '') + dateParts[0];
+                    console.log(formattedDate)
+
+                    // Create input field for dates
+                    input.type = 'date';
+                    input.value = formattedDate;
+                } else {
+                    // Create input field for other data
+                    input.type = 'text';
+                    input.value = cellData;
+                }
+                input.disabled = true; // Disable input fields by default
+                cell.appendChild(input);
+                row.appendChild(cell);
+            });
+            // Add an Edit button to each row
+            const editCell = document.createElement('td');
+            const editButton = document.createElement('button');
+            editButton.textContent = "Edit";
+            let editDateToggle = false;
+            // Add an event listener to handle edit functionality
+            editButton.addEventListener('click', () => {
+                if (editDateToggle === false){
+                    row.querySelectorAll('input').forEach(input => {
+                        if (input.type === 'date') {
+                            input.disabled = input.disabled !== true;
+                            editDateToggle = true;
+                        }
+                    });
+                    editButton.textContent = "Submit";
+                } else {
+                    if (editButton.textContent === "Submit") {
+                        const updatedRowData = [];
+                        row.querySelectorAll('input').forEach(input => {
+                            updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
+                            input.disabled = true;
+                        });
+                        const updatedData = { row: rowIndex, data: updatedRowData };
+                        // Send the updated data to the backend
+                        fetch('/planiranjePripravnegaDelaUpdate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(updatedData)
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                console.log('Data updated successfully');
+                                // Optionally, you can handle success feedback here
+                            } else {
+                                console.error('Failed to update data');
+                                // Optionally, you can handle error feedback here
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            // Optionally, you can handle error feedback here
+                        });
+                        console.log("Updated Data:", updatedData);
+                        // Here you can send the updated data to the backend using fetch or any other method
+                    }
+                    editButton.textContent = "Edit";
+                    editDateToggle = false;
+                }
+            });
+            editCell.appendChild(editButton);
+            row.appendChild(editCell);
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+    })
+    .catch(error => console.error('Error:', error));
+
+    // Function to filter the table based on input values
+    function filterTable() {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const filterInputs = document.querySelectorAll("thead input[type='text']");
+        const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
+
+        for (const row of tbody.rows) {
+            let rowVisible = true;
+
+            for (let i = 0; i < row.cells.length; i++) {
+                const cell = row.cells[i];
+                const filter = filters[i];
+
+                let cellValue = '';
+
+                // Check if the cell contains an input element
+                const input = cell.querySelector('input[type="text"]');
+                if (input) {
+                    cellValue = input.value.trim().toUpperCase();
+                } else {
+                    cellValue = cell.textContent.trim().toUpperCase();
+                }
+
+                if (filter && cellValue.indexOf(filter) === -1) {
+                    rowVisible = false;
+                    break;
+                }
+            }
+
+            row.style.display = rowVisible ? "" : "none";
+        }
+    }
+
+
+
+    function getColumnIndexFromInput(input) {
+    const columnName = input.dataset.columnName;
+    const table = document.getElementById("myTable");
+    const headers = table.querySelectorAll('th input[data-column-name]');
+
+    // Loop through each header
+    for (let i = 0; i < headers.length; i++) {
+        // Check if the data-column-name attribute matches the columnName
+        if (headers[i].dataset.columnName === columnName) {
+            // Return the index of the header
+            return i;
+        }
+    }
+    return -1; // Column not found
+}
+
+
+
+
+</script>
 </html>

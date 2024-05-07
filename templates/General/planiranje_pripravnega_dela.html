@@ -4,13 +4,69 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dates Data</title>
-    <link rel="stylesheet" href="../../static/style/user_roles.css">
     <style>
         #table-container {
             max-height: 600px; /* Adjust as needed */
             overflow-y: auto;
             margin-left: 14%;
             width: 86%;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+        th, td {
+            padding: 10px;
+            border: 0.5px solid #ddd;
+            text-align: center;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgb(220, 220, 220);
+        }
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="date"] {
+            width: 7vw;
+            padding: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+         /* CSS to make the "Edit" column fixed */
+        .edit-column {
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            right: 0;
+            z-index: 0; /* Ensure it's above other cells */
+        }
+
+        /* Optionally, you can style the "Edit" header cell */
+        #edit {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
         }
     </style>
 </head>
@@ -22,20 +78,23 @@
             <label for="inputID_rn"></label><input type="text" id="inputID_rn" placeholder="Search for usernames.." hidden="hidden" autocomplete="off">
         <div id="table-container"></div>
     </div>
-
 </body>
 <script>
     fetch('/planiranjePripravnegaDelaLoad')
     .then(response => response.json())
     .then(data => {
-        const columns = data.headers;
+        const columnGroups = data.column_groups; // Change variable name to columnGroups for clarity
         const values = data.data;
 
         const tableContainer = document.getElementById('table-container');
         const table = document.createElement('table');
+        table.style.margin = 'auto'; // Center the table horizontally
         table.id = 'myTable';
         const thead = document.createElement('thead');
         const tbody = document.createElement('tbody');
+
+        const titleRow = document.createElement('tr');
+        titleRow.style.textAlign = 'center'; // Apply center alignment using CSS
 
         // Create table headers
         const headerRow = document.createElement('tr');
@@ -43,27 +102,39 @@
             const target = event.target;
             if (target.tagName.toLowerCase() === 'input') {
                 const columnName = target.dataset.columnName; // Extract the column name from the dataset
-                filterTable(columnName)
+                filterTable(columnName);
             }
         });
-        columns.forEach(columnName => {
+
+        // Iterate over column groups
+        columnGroups.forEach(group => {
             const th = document.createElement('th');
-            const input = document.createElement('input');
-            input.type = 'text';
-            input.id = 'filter' + columnName;
-            input.placeholder = columnName;
-            input.dataset.columnName = columnName; // Store the column name in a data attribute
+            const colspan = group.columns.length; // Get the size of the column group
+            th.colSpan = colspan; // Set colspan attribute
+            th.textContent = group.prefix; // Set the column group name as the text content
+            titleRow.appendChild(th); // Append the th to the title row
 
-            // Append the input to the table header
-            th.appendChild(input);
-
-            // Append the th to the header row
-            headerRow.appendChild(th);
+            // Add individual column names as th elements with colspan 1
+            group.columns.forEach(columnName => {
+                const subTh = document.createElement('th');
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.id = 'filter' + columnName;
+                input.placeholder = columnName;
+                input.dataset.columnName = columnName; // Store the column name in a data attribute
+                subTh.appendChild(input); // Append the input to the sub-header
+                headerRow.appendChild(subTh); // Append the sub-th to the header row
+            });
         });
 
-
         // Add a column for the Edit button
-        headerRow.innerHTML += "<th>Edit</th>";
+        const editHeaderCell = document.createElement('th');
+        editHeaderCell.id = 'edit';
+        editHeaderCell.textContent = "Edit";
+
+        // Append the "Edit" header cell to the header row
+        headerRow.appendChild(editHeaderCell);
+        thead.appendChild(titleRow);
         thead.appendChild(headerRow);
         table.appendChild(thead);
 
@@ -76,9 +147,7 @@
                 if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
                     // Parse string back to date object
                     const dateParts = cellData.split(".");
-                    console.log(dateParts)
                     const formattedDate = dateParts[2] + '-' + (dateParts[1].length < 2 ? '0' : '') + dateParts[1] + '-' + (dateParts[0].length < 2 ? '0' : '') + dateParts[0];
-                    console.log(formattedDate)
 
                     // Create input field for dates
                     input.type = 'date';
@@ -94,9 +163,19 @@
             });
             // Add an Edit button to each row
             const editCell = document.createElement('td');
+            editCell.classList.add('edit-column'); // Add a class to the cell for styling purposes
             const editButton = document.createElement('button');
             editButton.textContent = "Edit";
             let editDateToggle = false;
+            document.addEventListener('keydown', function(event) {
+                if (editButton.textContent === "Submit" && event.key === "Escape") {
+                    row.querySelectorAll('input').forEach(input => {
+                        input.disabled = true;
+                    });
+                    editButton.textContent = "Edit";
+                    editDateToggle = false;
+                }
+            });
             // Add an event listener to handle edit functionality
             editButton.addEventListener('click', () => {
                 if (editDateToggle === false){
@@ -151,6 +230,7 @@
         tableContainer.appendChild(table);
     })
     .catch(error => console.error('Error:', error));
+
 
     // Function to filter the table based on input values
     function filterTable() {

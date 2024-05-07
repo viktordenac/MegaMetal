@@ -1,5 +1,6 @@
 import io
 import re
+from collections import defaultdict
 from datetime import datetime, date, timedelta
 import calendar
 
@@ -119,7 +120,52 @@ class TPRO_PLAN(db.Model):
     KLJUCAVNICAR = db.Column(db.CHAR(50))
     KOS = db.Column(db.INT())
     IDRN = db.Column(db.CHAR(20), primary_key=True)
-
+    INDEX = db.Column(db.CHAR(25))
+    BARVA = db.Column(db.CHAR(50))
+    KONSTRUKCIJA_OD = db.Column(db.DATE())
+    KONSTRUKCIJA_DO = db.Column(db.DATE())
+    KONSTRUKCIJA_DANI = db.Column(db.INT())
+    KONSTRUKCIJA_STATUS = db.Column(db.CHAR(15))
+    RAZREZ_OD = db.Column(db.DATE())
+    RAZREZ_DO = db.Column(db.DATE())
+    RAZREZ_DANI = db.Column(db.INT())
+    RAZREZ_STATUS = db.Column(db.CHAR(15))
+    MPO_OD = db.Column(db.DATE())
+    MPO_DO = db.Column(db.DATE())
+    MPO_DANI = db.Column(db.INT())
+    MPO_STATUS = db.Column(db.CHAR(15))
+    ZBIRANJE_OD = db.Column(db.DATE())
+    ZBIRANJE_DO = db.Column(db.DATE())
+    ZBIRANJE_DANI = db.Column(db.INT())
+    ZBIRANJE_STATUS = db.Column(db.CHAR(15))
+    SESTAVLJANJE_OD = db.Column(db.DATE())
+    SESTAVLJANJE_DO = db.Column(db.DATE())
+    SESTAVLJANJE_DANI = db.Column(db.INT())
+    SESTAVLJANJE_STATUS = db.Column(db.CHAR(15))
+    VARENJE_OD = db.Column(db.DATE())
+    VARENJE_DO = db.Column(db.DATE())
+    VARENJE_DANI = db.Column(db.INT())
+    VARENJE_STATUS = db.Column(db.CHAR(15))
+    ZARENJE_OD = db.Column(db.DATE())
+    ZARENJE_DO = db.Column(db.DATE())
+    ZARENJE_DANI = db.Column(db.INT())
+    ZARENJE_STATUS = db.Column(db.CHAR(15))
+    BRUSENJE_OD = db.Column(db.DATE())
+    BRUSENJE_DO = db.Column(db.DATE())
+    BRUSENJE_DANI = db.Column(db.INT())
+    BRUSENJE_STATUS = db.Column(db.CHAR(15))
+    KONTR_I_LAK_OD = db.Column(db.DATE())
+    KONTR_I_LAK_DO = db.Column(db.DATE())
+    KONTR_I_LAK_DANI = db.Column(db.INT())
+    KONTR_I_LAK_STATUS = db.Column(db.CHAR(15))
+    PESK_I_BARV_OD = db.Column(db.DATE())
+    PESK_I_BARV_DO = db.Column(db.DATE())
+    PESK_I_BARV_DANI = db.Column(db.INT())
+    PESK_I_BARV_STATUS = db.Column(db.CHAR(15))
+    MEHANSKA_OBDELAVA_OD = db.Column(db.DATE())
+    MEHANSKA_OBDELAVA_DO = db.Column(db.DATE())
+    MEHANSKA_OBDELAVA_DANI = db.Column(db.INT())
+    MEHANSKA_OBDELAVA_STATUS = db.Column(db.CHAR(15))
 class TBA_KOS(db.Model):
     __tablename__ = 'TBA_KOS'
     Polizdelek = db.Column(db.CHAR(15))
@@ -593,6 +639,12 @@ def planiranjePripravnegaDela():
         return redirect(url_for("login"))
     return render_template('planiranje_pripravnega_dela.html', stranice_list=session["stranice"])
 
+
+from collections import defaultdict
+
+
+from collections import defaultdict
+
 @app.route('/planiranjePripravnegaDelaLoad', methods=['GET'])
 def planiranjePripravnegaDelaLoad():
     import datetime
@@ -602,6 +654,25 @@ def planiranjePripravnegaDelaLoad():
     try:
         # Fetch column names from the TPRO_PLAN table
         column_names = TPRO_PLAN.__table__.columns.keys()
+
+        # Group columns by their common prefix
+        column_groups = []
+
+        for column in column_names:
+            prefix = column.split("_")[0]  # Extract the prefix
+            found = False
+            # Check if the prefix already exists in column_groups
+            for group in column_groups:
+                if group['prefix'] == prefix:
+                    group['columns'].append(column)
+                    found = True
+                    break
+            # If the prefix doesn't exist, create a new group
+            if not found:
+                column_groups.append({'prefix': prefix, 'columns': [column]})
+
+        for group in column_groups:
+            print(group['prefix'], group['columns'])
 
         # Fetch rows from the TPRO_PLAN table
         rows = TPRO_PLAN.query.all()
@@ -622,10 +693,12 @@ def planiranjePripravnegaDelaLoad():
                 formatted_row.append(value)
             data.append(formatted_row)
 
-        # Return the JSON response
-        return jsonify({'headers': column_names, 'data': data})
+        # Return the JSON response with column groups
+        return jsonify({'column_groups': column_groups, 'data': data})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
 
 # Route to handle submitting updated data
 def parse_date(date_str):
@@ -667,9 +740,9 @@ def update_planiranje_pripravnega_Dela():
     import datetime
     updated_data = request.json
     # Here you can process the updated data
-    id_rn = updated_data['data'][0]
-    # print("Received updated data:", updated_data)
-    # print("IDRN:", id_rn)
+    id_rn = updated_data['data'][6]
+    print("Received updated data:", updated_data)
+    print("IDRN:", id_rn)
     # Find the record to update
     record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
     # print("Record:", record)
@@ -680,6 +753,51 @@ def update_planiranje_pripravnega_Dela():
     # print("Record.VDO:", record.VDO)
     # print("Record.VDAN:", record.VDAN)
     # print("++++++++++++++++++++++")
+    KONSOD = updated_data['data'][9]
+    KONSDO = updated_data['data'][10]
+    KONSDAN = updated_data['data'][11]
+
+    KONTOD = updated_data['data'][13]
+    KONTDO = updated_data['data'][14]
+    KONTDAN = updated_data['data'][15]
+    #TODO CHECK THIS BELOW!
+    MEHOD = updated_data['data'][21]
+    MEHDO = updated_data['data'][22]
+    MEHDAN = updated_data['data'][19]
+
+    MPOOD = updated_data['data'][25]
+    MPODO = updated_data['data'][26]
+    MPODAN = updated_data['data'][23]
+
+    PESKOD = updated_data['data'][14]
+    PESKDO = updated_data['data'][15]
+    PESKDAN = updated_data['data'][17]
+
+    VARENJEOD = updated_data['data'][18]
+    VARENJEDO = updated_data['data'][19]
+    VARENJEDAN = updated_data['data'][21]
+
+    ZARENJEOD = updated_data['data'][22]
+    ZARENJEDO = updated_data['data'][23]
+    ZARENJEDAN = updated_data['data'][25]
+
+    BRUSENJEOD = updated_data['data'][26]
+    BRUSENJEDO = updated_data['data'][27]
+    BRUSENJEDAN = updated_data['data'][29]
+
+    KONTR_I_LAKOD = updated_data['data'][30]
+    KONTR_I_LAKDO = updated_data['data'][31]
+    KONTR_I_LAKDAN = updated_data['data'][33]
+
+    SESTAVLJANJEOD = updated_data['data'][34]
+    SESTAVLJANJEDO = updated_data['data'][35]
+    SESTAVLJANJEDAN = updated_data['data'][37]
+
+    ZBIRANJEOD = updated_data['data'][38]
+    ZBIRANJEDO = updated_data['data'][39]
+    ZBIRANJEDAN = updated_data['data'][41]
+
+    # Update the record with the new data
     if record:
         # Update the record with the new data
         record.SOD = parse_date(updated_data['data'][1])

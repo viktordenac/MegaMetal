@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Data</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .graph-canvas {
+            margin-left: 15%; /* Adjust this value based on your menu height */
+            margin-right: 5px;
+            display: block;
+        }
+        #form-container {
+            margin-left: 15%; /* Adjust this value based on your menu height */
+        }
+
+        #refresh-container {
+            float: right;
+            margin-right: 10%; /* Adjust this value based on your menu height */
+        }
+
+        #refresh-button {
+            margin-right: 0px;
+        }
+
+    </style>
+</head>
+<body>
+
+    {% include 'navigation.html' %}
+
+    <div id="form-container">
+        <form id="weekRangeForm">
+            <label for="startWeek">Starting Week:</label>
+            <input type="number" id="startWeek" name="startWeek" min="1" max="52">
+
+            <label for="endWeek">Ending Week:</label>
+            <input type="number" id="endWeek" name="endWeek" min="1" max="52">
+
+            <button type="submit">Apply</button>
+        </form>
+    </div>
+    <div id="refresh-container">
+        <button id="refresh-button" type="submit">Refresh</button>
+    </div>
+
+    <canvas id="comparisonChart" class="graph-canvas"></canvas>
+    <canvas id="comparisonChart2" class="graph-canvas"></canvas>
+
+<script>
+
+    document.getElementById("refresh-button").addEventListener("click", function() {
+        fetch('/refresh_fix_plan', {
+            method: 'GET'
+        })
+        .then(response => {
+            if(response.ok) {
+                setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
+    function updateSecondChart(data) {
+        comparisonChart2.data.labels = data.labels;
+        comparisonChart2.data.datasets[0].data = data.plTezinaValues;
+        comparisonChart2.data.datasets[1].data = data.realTezinaValues;
+        comparisonChart2.update();
+    }
+
+    function filterAndRefreshChart(startWeek, endWeek) {
+        var formData = new FormData();
+        formData.append('startWeek', startWeek);
+        formData.append('endWeek', endWeek);
+
+        fetch('/filter_data', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            comparisonChart.data.labels = data.labels;
+            comparisonChart.data.datasets[0].data = data.plIznosValues;
+            comparisonChart.data.datasets[1].data = data.realIznosValues;
+            comparisonChart.update();
+
+            updateSecondChart(data);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    var plKwValues = {{ pl_kw_values|tojson }};
+    var plIznosValues = {{ pl_iznos_values|tojson }};
+    var plTezinaValues = {{ pl_tezina_values|tojson }};
+
+    var realKwValues = {{ real_kw_values|tojson }};
+    var realIznosValues = {{ real_iznos_values|tojson }};
+    var realTezinaValues = {{ real_tezina_values|tojson }};
+
+    var ctx = document.getElementById('comparisonChart').getContext('2d');
+    var comparisonChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: plKwValues,
+            datasets: [{
+                label: 'PLANIRANI IZNOS',
+                data: plIznosValues,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }, {
+                label: 'REALIZIRANI IZNOS',
+                data: realIznosValues,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            // Customize chart options as needed
+        }
+    });
+
+    var ctx2 = document.getElementById('comparisonChart2').getContext('2d');
+    var comparisonChart2 = new Chart(ctx2, {
+        type: 'bar',
+        data: {
+            labels: plKwValues,
+            datasets: [{
+                label: 'PLANIRANA TEZINA',
+                data: plTezinaValues,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }, {
+                label: 'REALIZIRANA TEZINA',
+                data: realTezinaValues,
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            // Customize chart options as needed
+        }
+    });
+
+    document.getElementById("weekRangeForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+        var startWeek = document.getElementById("startWeek").value;
+        var endWeek = document.getElementById("endWeek").value;
+        filterAndRefreshChart(startWeek, endWeek);
+    });
+
+</script>
+
+</body>
+</html>

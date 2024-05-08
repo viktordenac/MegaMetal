@@ -19,6 +19,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
 from io import BytesIO
 from sqlalchemy.exc import IntegrityError
+from realizirano import Realizirano
 
 #python -m pip install flask_sqlalchemy
 
@@ -183,6 +184,28 @@ class TBA_ALAT(db.Model):
     POSEBNOSTI = db.Column(db.CHAR(50))
     DATUMEXP = db.Column(db.Date())
     DATUMPEXP = db.Column(db.Date())
+
+
+class TBA_FIX_PL(db.Model):
+    __tablename__ = 'TBA_FIX_PL'
+    PK = db.Column(db.Integer, primary_key=True)
+    GOD = db.Column(db.Numeric)
+    KEY = db.Column(db.String)
+    MJESEC = db.Column(db.Numeric)
+    KW = db.Column(db.Numeric)
+    IZNOS = db.Column(db.Float)
+    TEZINA = db.Column(db.Float)
+
+
+class TBA_FIX_REAL(db.Model):
+    __tablename__ = 'TBA_FIX_REAL'
+    PK = db.Column(db.Integer, primary_key=True)
+    GOD = db.Column(db.Numeric)
+    KEY = db.Column(db.String)
+    MJESEC = db.Column(db.Numeric)
+    KW = db.Column(db.Numeric)
+    IZNOS = db.Column(db.Float)
+    TEZINA = db.Column(db.Float)
 
 @login_manager.user_loader
 def load_user(kartica):
@@ -718,109 +741,112 @@ def parse_date(date_str):
         # Handle invalid date format
         return None
 
-def get_next_valid_date(start_date, add_days):
-    # Define a list of weekend days (Saturday and Sunday)
+
+def get_next_valid_date(start_date, add_days=None):
     weekend_days = [5, 6]  # Saturday is 5, Sunday is 6
 
-    # Initialize the next day
-    next_day = start_date + timedelta(days=-1)
-    next_day += timedelta(days=add_days)
-    # print("Next day:", next_day.weekday())
-    # print("Next day:", next_day)
-
-    # Keep iterating until we find a valid date (not a weekend day)
-    while next_day.weekday() in weekend_days or next_day in slo_holidays:
+    next_day = start_date
+    if add_days is None:
         next_day += timedelta(days=1)
-        # print(next_day)
-
-    # print(date(2024, 4, 1) in slo_holidays)
+        while next_day.weekday() in weekend_days or next_day in slo_holidays:
+            next_day += timedelta(days=1)
+    else:
+        # Iterate over each day to be added
+        next_day += timedelta(days=-1)
+        for _ in range(add_days):
+            # Add a day and check if it's a weekend or holiday
+            next_day += timedelta(days=1)
+            while next_day.weekday() in weekend_days or next_day in slo_holidays:
+                next_day += timedelta(days=1)
     return next_day
+
+
 @app.route('/planiranjePripravnegaDelaUpdate', methods=['POST'])
 def update_planiranje_pripravnega_Dela():
     import datetime
     updated_data = request.json
     # Here you can process the updated data
+    podatki_stranice = updated_data['data']
     id_rn = updated_data['data'][6]
-    print("Received updated data:", updated_data)
-    print("IDRN:", id_rn)
+    # print("Received updated data:", updated_data)
+    # print("IDRN:", id_rn)
     # Find the record to update
     record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
-    # print("Record:", record)
-    # print("Record.SOD:", record.SOD)
-    # print("Record.SDO:", record.SDO)
-    # print("Record.SDAN:", record.SDAN)
-    # print("Record.VOD:", record.VOD)
-    # print("Record.VDO:", record.VDO)
-    # print("Record.VDAN:", record.VDAN)
-    # print("++++++++++++++++++++++")
-    KONSOD = updated_data['data'][9]
-    KONSDO = updated_data['data'][10]
-    KONSDAN = updated_data['data'][11]
+    record_list = []
 
-    KONTOD = updated_data['data'][13]
-    KONTDO = updated_data['data'][14]
-    KONTDAN = updated_data['data'][15]
-    #TODO CHECK THIS BELOW!
-    MEHOD = updated_data['data'][21]
-    MEHDO = updated_data['data'][22]
-    MEHDAN = updated_data['data'][19]
+    # Iterate through all the columns dynamically
+    for column in record.__table__.columns:
+        record_list.append(getattr(record, column.name))
 
-    MPOOD = updated_data['data'][25]
-    MPODO = updated_data['data'][26]
-    MPODAN = updated_data['data'][23]
+    record_titles = []
 
-    PESKOD = updated_data['data'][14]
-    PESKDO = updated_data['data'][15]
-    PESKDAN = updated_data['data'][17]
+    # Iterate through all the columns dynamically
+    for column in record.__table__.columns:
+        record_titles.append(column.name)
+    different_columns = []
+    indexss = 0
+    changed_starting_date = 0
 
-    VARENJEOD = updated_data['data'][18]
-    VARENJEDO = updated_data['data'][19]
-    VARENJEDAN = updated_data['data'][21]
+    for index, value in enumerate(record_list):
+        if "/" in str(podatki_stranice[index]):
+            try:
+                datetime.datetime.strptime(podatki_stranice[index], "%m/%d/%Y")  # Adjust format as per your date format
+                # If parsing succeeds, it's a date
+                different_value = str(parse_date(podatki_stranice[index])).replace(" 00:00:00", "")
+            except ValueError:
+                # If parsing fails, it's not a date
+                different_value = podatki_stranice[index]
+        else:
+            different_value = podatki_stranice[index]
 
-    ZARENJEOD = updated_data['data'][22]
-    ZARENJEDO = updated_data['data'][23]
-    ZARENJEDAN = updated_data['data'][25]
+        if str(value) != different_value:
+            if str(value) != "None" and str(different_value) != "":
+                different_columns.append(index)
+                indexss = index
 
-    BRUSENJEOD = updated_data['data'][26]
-    BRUSENJEDO = updated_data['data'][27]
-    BRUSENJEDAN = updated_data['data'][29]
-
-    KONTR_I_LAKOD = updated_data['data'][30]
-    KONTR_I_LAKDO = updated_data['data'][31]
-    KONTR_I_LAKDAN = updated_data['data'][33]
-
-    SESTAVLJANJEOD = updated_data['data'][34]
-    SESTAVLJANJEDO = updated_data['data'][35]
-    SESTAVLJANJEDAN = updated_data['data'][37]
-
-    ZBIRANJEOD = updated_data['data'][38]
-    ZBIRANJEDO = updated_data['data'][39]
-    ZBIRANJEDAN = updated_data['data'][41]
+    wow = record_list
+    day_before = 0
+    for index, value in enumerate(wow):
+        if index == indexss:
+            wow[index] = parse_date(podatki_stranice[index])
+        elif index > indexss:
+            if "/" in str(podatki_stranice[index]):
+                try:
+                    probaj = podatki_stranice[index]
+                    datetime.datetime.strptime(probaj,
+                                               "%m/%d/%Y")  # Adjust format as per your date format
+                    # If parsing succeeds, it's a date
+                    if index % 2 == 1:
+                        wow[index] = get_next_valid_date(day_before)
+                    else:
+                        dani = int(wow[index + 1])
+                        dan_prej = wow[index - 1]
+                        wow[index] = get_next_valid_date(dan_prej, dani)
+                        day_before = wow[index]
+                    print("Printed wow row: " + str(wow[index]))
+                except ValueError:
+                    # If parsing fails, it's not a date
+                    wow[index] = podatki_stranice[index]
+            else:
+                wow[index] = podatki_stranice[index]
 
     # Update the record with the new data
     if record:
-        # Update the record with the new data
-        record.SOD = parse_date(updated_data['data'][1])
-        record.SDAN = int(updated_data['data'][3])
-        record.SDO = get_next_valid_date(record.SOD, record.SDAN)  # Calculate SDO from SOD and SDAN
+        # for attr, value in vars(record).items():
+        #     print("OLD: " + f"{attr}: {value}")
+        try:
+            # Dynamically assign values from the list to model attributes
+            for attr, value in zip(TPRO_PLAN.__table__.columns.keys(), wow):
+                setattr(record, attr, value)
 
-        # Set VOD to one day after SDO (avoiding weekends)
-        record.VOD = get_next_valid_date(record.SDO, 2)
-        parse_date(updated_data['data'][4])
-        if record.VOD != parse_date(updated_data['data'][4]):
-            record.VOD = parse_date(updated_data['data'][4])
-        record.VDAN = int(updated_data['data'][6])
-        record.VDO = get_next_valid_date(record.VOD, record.VDAN)  # Calculate VDO from VOD and VDAN
-        db.session.commit()
-    record1 = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
-    # print("Record1:", record1)
-    # print("Record1.SOD:", record1.SOD)
-    # print("Record1.SDO:", record1.SDO)
-    # print("Record1.SDAN:", record1.SDAN)
-    # print("Record1.VOD:", record1.VOD)
-    # print("Record1.VDO:", record1.VDO)
-    # print("Record1.VDAN:", record1.VDAN)
+            for attr, value in record.__dict__.items():
+                print(f"{attr}: {value}")
+
+            db.session.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
     return jsonify({"message": "Data updated successfully"})
+
 
 @app.route('/evidencaUr/download', methods=['GET'])
 def download_evidencaUr():
@@ -1203,6 +1229,178 @@ def fix_plan_data():
         return json_data
     except Exception as e:
         return f"An error occurred: {str(e)}"
+
+
+"""--------------------------------------------------------------------"""
+@app.route("/compare_data_mj")
+def compare_data_mj():
+    # Get the current year and month
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+
+    # Calculate the start and end weeks of the current month
+    start_week = datetime(current_year, current_month, 1).isocalendar()[1]
+    end_week = datetime(current_year, current_month, 1).replace(day=28).isocalendar()[1]
+
+    # Query data from TBA_FIX_PL where MJESEC is null and KW is between start_week and end_week
+    pl_data = db.session.query(TBA_FIX_PL.MJESEC, TBA_FIX_PL.IZNOS, TBA_FIX_PL.TEZINA).filter(
+        TBA_FIX_PL.KW.is_(None)
+    ).all()
+
+    # Query data from TBA_FIX_REAL where MJESEC is null and KW is between start_week and end_week
+    real_data = db.session.query(TBA_FIX_REAL.MJESEC, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
+        TBA_FIX_REAL.KW.is_(None)
+    ).all()
+
+    # Sort data by KW values
+    pl_data.sort(key=lambda x: x[0])
+    real_data.sort(key=lambda x: x[0])
+
+    # Extract KW, IZNOS, and TEZINA values from both tables
+    pl_kw_values = [item[0] for item in pl_data]
+    pl_iznos_values = [item[1] for item in pl_data]
+    pl_tezina_values = [item[2] for item in pl_data]
+
+    real_kw_values = [item[0] for item in real_data]
+    real_iznos_values = [item[1] for item in real_data]
+    real_tezina_values = [item[2] for item in real_data]
+
+    stranice_list = session["stranice"]
+    return render_template("General/compare_data_mj.html", pl_kw_values=pl_kw_values, pl_iznos_values=pl_iznos_values,
+                           pl_tezina_values=pl_tezina_values, real_kw_values=real_kw_values,
+                           real_iznos_values=real_iznos_values, real_tezina_values=real_tezina_values,
+                           stranice_list=stranice_list)
+
+
+@app.route("/filter_data_mj", methods=["POST"])
+def filter_data_mj():
+    start_week = request.form.get("startWeek")
+    end_week = request.form.get("endWeek")
+
+    # Query data from TBA_FIX_PL where KW is between start_week and end_week
+    pl_data = db.session.query(TBA_FIX_PL.MJESEC, TBA_FIX_PL.IZNOS, TBA_FIX_PL.TEZINA).filter(
+        TBA_FIX_PL.KW.is_(None)    ).all()
+
+    # Query data from TBA_FIX_REAL where KW is between start_week and end_week
+    real_data = db.session.query(TBA_FIX_REAL.MJESEC, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
+        TBA_FIX_REAL.KW.is_(None)    ).all()
+
+    # Sort data by KW values
+    pl_data.sort(key=lambda x: x[0])
+    real_data.sort(key=lambda x: x[0])
+
+    # Extract KW, IZNOS, and TEZINA values from both tables
+    pl_kw_values = [item[0] for item in pl_data]
+    pl_iznos_values = [item[1] for item in pl_data]
+    pl_tezina_values = [item[2] for item in pl_data]
+
+    real_kw_values = [item[0] for item in real_data]
+    real_iznos_values = [item[1] for item in real_data]
+    real_tezina_values = [item[2] for item in real_data]
+
+    # Construct JSON response
+    filtered_data = {
+        "labels": pl_kw_values,  # Use KW values as labels
+        "plIznosValues": pl_iznos_values,
+        "realIznosValues": real_iznos_values,
+        "plTezinaValues": pl_tezina_values,
+        "realTezinaValues": real_tezina_values
+    }
+
+    return jsonify(filtered_data)
+
+
+@app.route("/compare_data")
+def compare_data():
+    # Get the current year and month
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+
+    # Calculate the start and end weeks of the current month
+    start_week = datetime(current_year, current_month, 1).isocalendar()[1]
+    end_week = datetime(current_year, current_month, 1).replace(day=28).isocalendar()[1]
+
+    # Query data from TBA_FIX_PL where MJESEC is null and KW is between start_week and end_week
+    pl_data = db.session.query(TBA_FIX_PL.KW, TBA_FIX_PL.IZNOS, TBA_FIX_PL.TEZINA).filter(
+        TBA_FIX_PL.MJESEC.is_(None),
+        TBA_FIX_PL.KW.between(start_week, end_week)
+    ).all()
+
+    # Query data from TBA_FIX_REAL where MJESEC is null and KW is between start_week and end_week
+    real_data = db.session.query(TBA_FIX_REAL.KW, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
+        TBA_FIX_REAL.MJESEC.is_(None),
+        TBA_FIX_REAL.KW.between(start_week, end_week)
+    ).all()
+
+    # Sort data by KW values
+    pl_data.sort(key=lambda x: x[0])
+    real_data.sort(key=lambda x: x[0])
+
+    # Extract KW, IZNOS, and TEZINA values from both tables
+    pl_kw_values = [item[0] for item in pl_data]
+    pl_iznos_values = [item[1] for item in pl_data]
+    pl_tezina_values = [item[2] for item in pl_data]
+
+    real_kw_values = [item[0] for item in real_data]
+    real_iznos_values = [item[1] for item in real_data]
+    real_tezina_values = [item[2] for item in real_data]
+
+    stranice_list = session["stranice"]
+    return render_template("General/compare_data.html", pl_kw_values=pl_kw_values, pl_iznos_values=pl_iznos_values,
+                           pl_tezina_values=pl_tezina_values, real_kw_values=real_kw_values,
+                           real_iznos_values=real_iznos_values, real_tezina_values=real_tezina_values,
+                           stranice_list=stranice_list)
+
+
+@app.route("/filter_data", methods=["POST"])
+def filter_data():
+    start_week = request.form.get("startWeek")
+    end_week = request.form.get("endWeek")
+
+    # Query data from TBA_FIX_PL where KW is between start_week and end_week
+    pl_data = db.session.query(TBA_FIX_PL.KW, TBA_FIX_PL.IZNOS, TBA_FIX_PL.TEZINA).filter(
+        TBA_FIX_PL.MJESEC.is_(None),
+        TBA_FIX_PL.KW.between(start_week, end_week)
+    ).all()
+
+    # Query data from TBA_FIX_REAL where KW is between start_week and end_week
+    real_data = db.session.query(TBA_FIX_REAL.KW, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
+        TBA_FIX_REAL.MJESEC.is_(None),
+        TBA_FIX_REAL.KW.between(start_week, end_week)
+    ).all()
+
+    # Sort data by KW values
+    pl_data.sort(key=lambda x: x[0])
+    real_data.sort(key=lambda x: x[0])
+
+    # Extract KW, IZNOS, and TEZINA values from both tables
+    pl_kw_values = [item[0] for item in pl_data]
+    pl_iznos_values = [item[1] for item in pl_data]
+    pl_tezina_values = [item[2] for item in pl_data]
+
+    real_kw_values = [item[0] for item in real_data]
+    real_iznos_values = [item[1] for item in real_data]
+    real_tezina_values = [item[2] for item in real_data]
+
+    # Construct JSON response
+    filtered_data = {
+        "labels": pl_kw_values,  # Use KW values as labels
+        "plIznosValues": pl_iznos_values,
+        "realIznosValues": real_iznos_values,
+        "plTezinaValues": pl_tezina_values,
+        "realTezinaValues": real_tezina_values
+    }
+
+    return jsonify(filtered_data)
+
+
+@app.route("/refresh_fix_plan")
+def refresh_fix_plan():
+    print("Refreshing data...")
+    Realizirano()
+    return jsonify({'success': True})
+
+"""--------------------------------------------------------------------"""
 
 
 def replace_nan(data):

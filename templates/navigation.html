@@ -112,8 +112,8 @@
         Fix Plan &rarr;
         <!-- Inside Dropdown -->
         <div class="dropdown-fix-plan">
-            <a href="{{ url_for('fix_plan_navigation') }}"><div class="dItem">Realizacija</div></a>
-            <a href="{{ url_for('fix_plan', status='KW') }}"><div class="dItem">KW</div></a>
+            <a href="{{ url_for('compare_data') }}"><div class="dItem">Po tjednu</div></a>
+            <a href="{{ url_for('compare_data_mj') }}"><div class="dItem">Po Mjesecu</div></a>
         </div>
     </div>
     {% endif %}
@@ -123,8 +123,8 @@
             Fix Plan &rarr;
             <!-- Inside Dropdown -->
             <div class="dropdown-fix-plan">
-                <a href="{{ url_for('fix_plan_navigation') }}"><div class="dItem">Realizacija</div></a>
-                <a href="{{ url_for('fix_plan', status='KW') }}"><div class="dItem">KW</div></a>
+                <a href="{{ url_for('compare_data') }}"><div class="dItem">Po tjednu</div></a>
+                 <a href="{{ url_for('compare_data_mj')}}"><div class="dItem">Po Mjesecu</div></a>
             </div>
         </div>
     {% endif %}

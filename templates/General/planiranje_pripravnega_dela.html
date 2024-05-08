@@ -204,6 +204,9 @@
                         })
                         .then(response => {
                             if (response.ok) {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 500);
                                 console.log('Data updated successfully');
                                 // Optionally, you can handle success feedback here
                             } else {

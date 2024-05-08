@@ -671,9 +671,6 @@ def planiranjePripravnegaDelaLoad():
             if not found:
                 column_groups.append({'prefix': prefix, 'columns': [column]})
 
-        for group in column_groups:
-            print(group['prefix'], group['columns'])
-
         # Fetch rows from the TPRO_PLAN table
         rows = TPRO_PLAN.query.all()
 
@@ -718,109 +715,190 @@ def parse_date(date_str):
         # Handle invalid date format
         return None
 
-def get_next_valid_date(start_date, add_days):
-    # Define a list of weekend days (Saturday and Sunday)
+
+def get_next_valid_date(start_date, add_days=None):
     weekend_days = [5, 6]  # Saturday is 5, Sunday is 6
 
-    # Initialize the next day
-    next_day = start_date + timedelta(days=-1)
-    next_day += timedelta(days=add_days)
-    # print("Next day:", next_day.weekday())
-    # print("Next day:", next_day)
-
-    # Keep iterating until we find a valid date (not a weekend day)
-    while next_day.weekday() in weekend_days or next_day in slo_holidays:
+    next_day = start_date
+    if add_days is None:
         next_day += timedelta(days=1)
-        # print(next_day)
-
-    # print(date(2024, 4, 1) in slo_holidays)
+        while next_day.weekday() in weekend_days or next_day in slo_holidays:
+            next_day += timedelta(days=1)
+    else:
+        # Iterate over each day to be added
+        for _ in range(add_days-1):
+            # Add a day and check if it's a weekend or holiday
+            next_day += timedelta(days=1)
+            while next_day.weekday() in weekend_days or next_day in slo_holidays:
+                next_day += timedelta(days=1)
     return next_day
 @app.route('/planiranjePripravnegaDelaUpdate', methods=['POST'])
 def update_planiranje_pripravnega_Dela():
     import datetime
     updated_data = request.json
     # Here you can process the updated data
+    data = updated_data['data']
     id_rn = updated_data['data'][6]
-    print("Received updated data:", updated_data)
-    print("IDRN:", id_rn)
+    print(updated_data)
+    # print("Received updated data:", updated_data)
+    # print("IDRN:", id_rn)
     # Find the record to update
     record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
-    # print("Record:", record)
-    # print("Record.SOD:", record.SOD)
-    # print("Record.SDO:", record.SDO)
-    # print("Record.SDAN:", record.SDAN)
-    # print("Record.VOD:", record.VOD)
-    # print("Record.VDO:", record.VDO)
-    # print("Record.VDAN:", record.VDAN)
-    # print("++++++++++++++++++++++")
+    record_list = []
+
+    # Iterate through all the columns dynamically
+    for column in record.__table__.columns:
+        record_list.append(getattr(record, column.name))
+
+    record_titles = []
+
+    # Iterate through all the columns dynamically
+    for column in record.__table__.columns:
+        record_titles.append(column.name)
+    print(record_titles)
+    print(record_list)
+    different_columns = []
+    indexss = 0
+    changed_starting_date = 0
+
+    for index, value in enumerate(record_list):
+        if "/" in str(data[index]):
+            try:
+                datetime.datetime.strptime(data[index], "%m/%d/%Y")  # Adjust format as per your date format
+                # If parsing succeeds, it's a date
+                podatki_stranice = str(parse_date(data[index])).replace(" 00:00:00", "")
+            except ValueError:
+                # If parsing fails, it's not a date
+                podatki_stranice = data[index]
+        else:
+            podatki_stranice = data[index]
+
+        if str(value) != podatki_stranice:
+            if str(value) != "None" or str(podatki_stranice) != "":
+                print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                print("V" + str(value))
+                print("D" + str(podatki_stranice))
+                different_columns.append(index)
+                print(index)
+                indexss = index
+                print(data[index])
+                if index == 9:
+                    KONSOD = data[index]
+                print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+                changed_starting_date = updated_data['data'][index]
+
+
+
+    # Print the different columns
+    print("Different columns:", different_columns)
+    print(updated_data['data'][indexss])
     KONSOD = updated_data['data'][9]
     KONSDO = updated_data['data'][10]
-    KONSDAN = updated_data['data'][11]
+    KONSDAN = int(updated_data['data'][11])
 
-    KONTOD = updated_data['data'][13]
-    KONTDO = updated_data['data'][14]
-    KONTDAN = updated_data['data'][15]
-    #TODO CHECK THIS BELOW!
-    MEHOD = updated_data['data'][21]
-    MEHDO = updated_data['data'][22]
-    MEHDAN = updated_data['data'][19]
+    RAZOD = updated_data['data'][13]
+    RAZDO = updated_data['data'][14]
+    RAZDAN = int(updated_data['data'][15])
 
-    MPOOD = updated_data['data'][25]
-    MPODO = updated_data['data'][26]
-    MPODAN = updated_data['data'][23]
+    MPOOD = updated_data['data'][17]
+    MPODO = updated_data['data'][18]
+    MPODAN = int(updated_data['data'][19])
 
-    PESKOD = updated_data['data'][14]
-    PESKDO = updated_data['data'][15]
-    PESKDAN = updated_data['data'][17]
+    ZBIRANJEOD = updated_data['data'][21]
+    ZBIRANJEDO = updated_data['data'][22]
+    ZBIRANJEDAN = int(updated_data['data'][23])
 
-    VARENJEOD = updated_data['data'][18]
-    VARENJEDO = updated_data['data'][19]
-    VARENJEDAN = updated_data['data'][21]
+    SESTAVLJANJEOD = updated_data['data'][25]
+    SESTAVLJANJEDO = updated_data['data'][26]
+    SESTAVLJANJEDAN = int(updated_data['data'][27])
 
-    ZARENJEOD = updated_data['data'][22]
-    ZARENJEDO = updated_data['data'][23]
-    ZARENJEDAN = updated_data['data'][25]
+    VARENJEOD = updated_data['data'][29]
+    VARENJEDO = updated_data['data'][30]
+    VARENJEDAN = int(updated_data['data'][31])
 
-    BRUSENJEOD = updated_data['data'][26]
-    BRUSENJEDO = updated_data['data'][27]
-    BRUSENJEDAN = updated_data['data'][29]
+    ZARENJEOD = updated_data['data'][33]
+    ZARENJEDO = updated_data['data'][34]
+    ZARENJEDAN = int(updated_data['data'][35])
 
-    KONTR_I_LAKOD = updated_data['data'][30]
-    KONTR_I_LAKDO = updated_data['data'][31]
-    KONTR_I_LAKDAN = updated_data['data'][33]
+    BRUSENJEOD = updated_data['data'][37]
+    BRUSENJEDO = updated_data['data'][38]
+    BRUSENJEDAN = int(updated_data['data'][39])
 
-    SESTAVLJANJEOD = updated_data['data'][34]
-    SESTAVLJANJEDO = updated_data['data'][35]
-    SESTAVLJANJEDAN = updated_data['data'][37]
+    KONTR_I_LAKOD = updated_data['data'][41]
+    KONTR_I_LAKDO = updated_data['data'][42]
+    KONTR_I_LAKDAN = int(updated_data['data'][43])
 
-    ZBIRANJEOD = updated_data['data'][38]
-    ZBIRANJEDO = updated_data['data'][39]
-    ZBIRANJEDAN = updated_data['data'][41]
+    PESKOD = updated_data['data'][45]
+    PESKDO = updated_data['data'][46]
+    PESKDAN = int(updated_data['data'][47])
+
+    MEHANSKAOD = updated_data['data'][49]
+    MEHANSKADO = updated_data['data'][50]
+    MEHANSKADAN = int(updated_data['data'][51])
 
     # Update the record with the new data
     if record:
-        # Update the record with the new data
-        record.SOD = parse_date(updated_data['data'][1])
-        record.SDAN = int(updated_data['data'][3])
-        record.SDO = get_next_valid_date(record.SOD, record.SDAN)  # Calculate SDO from SOD and SDAN
+        # for attr, value in vars(record).items():
+        #     print("OLD: " + f"{attr}: {value}")
+        try:
+            # Update the record with the new data
+            record.KONSTRUKCIJA_OD = parse_date(KONSOD)
+            record.KONSTRUKCIJA_DO = get_next_valid_date(record.KONSTRUKCIJA_OD, KONSDAN)
+            record.RAZREZ_OD = get_next_valid_date(record.KONSTRUKCIJA_DO)
+            record.RAZREZ_DO = get_next_valid_date(record.RAZREZ_OD, RAZDAN)
+            record.MPO_OD = get_next_valid_date(record.RAZREZ_DO)
+            record.MPO_DO = get_next_valid_date(record.MPO_OD, MPODAN)
+            record.ZBIRANJE_OD = get_next_valid_date(record.MPO_DO)
+            record.ZBIRANJE_DO = get_next_valid_date(record.ZBIRANJE_OD, ZBIRANJEDAN)
+            record.SESTAVLJANJE_OD = get_next_valid_date(record.ZBIRANJE_DO)
+            record.SESTAVLJANJE_DO = get_next_valid_date(record.SESTAVLJANJE_OD, SESTAVLJANJEDAN)
+            record.VARENJE_OD = get_next_valid_date(record.SESTAVLJANJE_DO)
+            record.VARENJE_DO = get_next_valid_date(record.VARENJE_OD, VARENJEDAN)
+            record.ZARENJE_OD = get_next_valid_date(record.VARENJE_DO)
+            record.ZARENJE_DO = get_next_valid_date(record.ZARENJE_OD, ZARENJEDAN)
+            record.BRUSENJE_OD = get_next_valid_date(record.ZARENJE_DO)
+            record.BRUSENJE_DO = get_next_valid_date(record.BRUSENJE_OD, BRUSENJEDAN)
+            record.KONTR_I_LAK_OD = get_next_valid_date(record.BRUSENJE_DO)
+            record.KONTR_I_LAK_DO = get_next_valid_date(record.KONTR_I_LAK_OD, KONTR_I_LAKDAN)
+            record.PESK_I_BARV_OD = get_next_valid_date(record.KONTR_I_LAK_DO)
+            record.PESK_I_BARV_DO = get_next_valid_date(record.PESK_I_BARV_OD, PESKDAN)
+            record.MEHANSKA_OBDELAVA_OD = get_next_valid_date(record.PESK_I_BARV_DO)
+            record.MEHANSKA_OBDELAVA_DO = get_next_valid_date(record.MEHANSKA_OBDELAVA_OD, MEHANSKADAN)
+            # print("NEW: " + f"KONSTRUKCIJA_OD: {record.KONSTRUKCIJA_OD}")
+            # print("NEW: " + f"KONSTRUKCIJA_DO: {record.KONSTRUKCIJA_DO}")
+            # print("NEW: " + f"RAZREZ_OD: {record.RAZREZ_OD}")
+            # print("NEW: " + f"RAZREZ_DO: {record.RAZREZ_DO}")
+            # print("NEW: " + f"MPO_OD: {record.MPO_OD}")
+            # print("NEW: " + f"MPO_DO: {record.MPO_DO}")
+            # print("NEW: " + f"ZBIRANJE_OD: {record.ZBIRANJE_OD}")
+            # print("NEW: " + f"ZBIRANJE_DO: {record.ZBIRANJE_DO}")
+            # print("NEW: " + f"SESTAVLJANJE_OD: {record.SESTAVLJANJE_OD}")
+            # print("NEW: " + f"SESTAVLJANJE_DO: {record.SESTAVLJANJE_DO}")
+            # print("NEW: " + f"VARENJE_OD: {record.VARENJE_OD}")
+            # print("NEW: " + f"VARENJE_DO: {record.VARENJE_DO}")
+            # print("NEW: " + f"ZARENJE_OD: {record.ZARENJE_OD}")
+            # print("NEW: " + f"ZARENJE_DO: {record.ZARENJE_DO}")
+            # print("NEW: " + f"BRUSENJE_OD: {record.BRUSENJE_OD}")
+            # print("NEW: " + f"BRUSENJE_DO: {record.BRUSENJE_DO}")
+            # print("NEW: " + f"KONTR_I_LAK_OD: {record.KONTR_I_LAK_OD}")
+            # print("NEW: " + f"KONTR_I_LAK_DO: {record.KONTR_I_LAK_DO}")
+            # print("NEW: " + f"PESK_I_BARV_OD: {record.PESK_I_BARV_OD}")
+            # print("NEW: " + f"PESK_I_BARV_DO: {record.PESK_I_BARV_DO}")
+            # print("NEW: " + f"MEHANSKA_OBDELAVA_OD: {record.MEHANSKA_OBDELAVA_OD}")
+            # print("NEW: " + f"MEHANSKA_OBDELAVA_DO: {record.MEHANSKA_OBDELAVA_DO}")
 
-        # Set VOD to one day after SDO (avoiding weekends)
-        record.VOD = get_next_valid_date(record.SDO, 2)
-        parse_date(updated_data['data'][4])
-        if record.VOD != parse_date(updated_data['data'][4]):
-            record.VOD = parse_date(updated_data['data'][4])
-        record.VDAN = int(updated_data['data'][6])
-        record.VDO = get_next_valid_date(record.VOD, record.VDAN)  # Calculate VDO from VOD and VDAN
-        db.session.commit()
-    record1 = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
-    # print("Record1:", record1)
-    # print("Record1.SOD:", record1.SOD)
-    # print("Record1.SDO:", record1.SDO)
-    # print("Record1.SDAN:", record1.SDAN)
-    # print("Record1.VOD:", record1.VOD)
-    # print("Record1.VDO:", record1.VDO)
-    # print("Record1.VDAN:", record1.VDAN)
+            db.session.commit()
+        except Exception as e:
+            return jsonify({'success': False, 'error': str(e)}), 500
     return jsonify({"message": "Data updated successfully"})
+        # # Set VOD to one day after SDO (avoiding weekends)
+        # record.VOD = get_next_valid_date(record.SDO, 2)
+        # parse_date(updated_data['data'][4])
+        # if record.VOD != parse_date(updated_data['data'][4]):
+        #     record.VOD = parse_date(updated_data['data'][4])
+        # record.VDAN = int(updated_data['data'][6])
+        # record.VDO = get_next_valid_date(record.VOD, record.VDAN)  # Calculate VDO from VOD and VDAN
+
 
 @app.route('/evidencaUr/download', methods=['GET'])
 def download_evidencaUr():

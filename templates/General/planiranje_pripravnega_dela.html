@@ -118,11 +118,29 @@
             group.columns.forEach(columnName => {
                 const subTh = document.createElement('th');
                 const input = document.createElement('input');
+                const headerRowSortBtn = document.createElement('button');
+                headerRowSortBtn.textContent = 'Sort';
+                headerRowSortBtn.style.backgroundColor = 'lightblue';
+                headerRowSortBtn.style.borderRadius = '5px';
+                headerRowSortBtn.id = 'sortBtn'
+                headerRowSortBtn.addEventListener('click', function(event) {
+                    const target = event.target;
+                    const input = target.parentNode.querySelector('input'); // Find the nearest input element
+                    if (input) {
+                        const columnIndex = getColumnIndexFromInput(input);
+                        if (columnIndex !== -1) {
+                            const dataType = getColumnType(columnIndex);
+                            console.log("Column Index:", columnIndex, "Data Type:", dataType);
+                            sortTable(columnIndex, dataType);
+                        }
+                    }
+                });
                 input.type = 'text';
                 input.id = 'filter_' + group.prefix + '_' + columnName;
                 input.placeholder = columnName;
                 input.dataset.columnName = columnName; // Store the column name in a data attribute
                 subTh.appendChild(input); // Append the input to the sub-header
+                subTh.appendChild(headerRowSortBtn); // Append the sort button to the sub-header
                 headerRow.appendChild(subTh); // Append the sub-th to the header row
             });
         });
@@ -323,23 +341,78 @@
         }
     }
 
-
-
-    function getColumnIndexFromInput(input) {
-    const columnName = input.dataset.columnName;
-    const table = document.getElementById("myTable");
-    const headers = table.querySelectorAll('th input[data-column-name]');
-
-    // Loop through each header
-    for (let i = 0; i < headers.length; i++) {
-        // Check if the data-column-name attribute matches the columnName
-        if (headers[i].dataset.columnName === columnName) {
-            // Return the index of the header
-            return i;
+    // Function to get the data type of column
+    function getColumnType(columnIndex) {
+        if ([3, 5, 6, 11].includes(columnIndex)) {
+            return 'integer';
+        } else if ([9, 10].includes(columnIndex)) {
+            return 'date';
+        } else {
+            // Default to string if not explicitly defined
+            return 'string';
         }
     }
-    return -1; // Column not found
-}
+
+    // Function to sort the table
+    function sortTable(columnIndex, dataType) {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.rows);
+        const sortMultiplier = dataType === 'date' ? 1 : -1; // For dates, sort in ascending order
+
+        rows.sort((a, b) => {
+            const aValue = getDataValue(a.cells[columnIndex], dataType);
+            const bValue = getDataValue(b.cells[columnIndex], dataType);
+
+            if (dataType === 'date') {
+                return new Date(aValue) - new Date(bValue);
+            } else {
+                // For other types, compare directly
+                return aValue.localeCompare(bValue);
+            }
+        });
+
+        // Re-append sorted rows to tbody
+        tbody.innerHTML = '';
+        rows.forEach(row => tbody.appendChild(row));
+    }
+
+    // Function to get the value of a cell considering input type
+    function getDataValue(cell, dataType) {
+        const input = cell.querySelector('input[type="text"]');
+        if (input) {
+            return input.value.trim();
+        } else {
+            const input = cell.querySelector('input[type="date"]');
+            const value = input.value.trim();
+            if (dataType === 'date') {
+                // Convert date string to a JavaScript Date object
+                const dateParts = value.split("-");
+                const year = parseInt(dateParts[2], 10);
+                const month = parseInt(dateParts[1], 10) - 1; // Months are 0-based in JavaScript Date object
+                const day = parseInt(dateParts[0], 10);
+                return new Date(year, month, day);
+            } else {
+                return value;
+            }
+        }
+    }
+
+    function getColumnIndexFromInput(input) {
+        const columnName = input.dataset.columnName;
+        const table = document.getElementById("myTable");
+        const headers = table.querySelectorAll('th input[data-column-name]');
+
+        // Loop through each header
+        for (let i = 0; i < headers.length; i++) {
+            // Check if the data-column-name attribute matches the columnName
+            if (headers[i].dataset.columnName === columnName) {
+                // Return the index of the header
+                return i;
+            }
+        }
+        return -1; // Column not found
+    }
 
 
 

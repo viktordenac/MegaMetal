@@ -85,7 +85,7 @@
     .then(data => {
         const columnGroups = data.column_groups; // Change variable name to columnGroups for clarity
         const values = data.data;
-
+        console.log(data)
         const tableContainer = document.getElementById('table-container');
         const table = document.createElement('table');
         table.style.margin = 'auto'; // Center the table horizontally
@@ -119,7 +119,7 @@
                 const subTh = document.createElement('th');
                 const input = document.createElement('input');
                 input.type = 'text';
-                input.id = 'filter' + columnName;
+                input.id = 'filter_' + group.prefix + '_' + columnName;
                 input.placeholder = columnName;
                 input.dataset.columnName = columnName; // Store the column name in a data attribute
                 subTh.appendChild(input); // Append the input to the sub-header
@@ -152,13 +152,52 @@
                     // Create input field for dates
                     input.type = 'date';
                     input.value = formattedDate;
+                    input.disabled = true; // Disable input fields by default
+                    cell.appendChild(input);
                 } else {
-                    // Create input field for other data
-                    input.type = 'text';
-                    input.value = cellData;
+                    if (cellData === "I" || cellData === "J" || cellData === "K") {
+                        const select = document.createElement('select');
+                        select.style.width = '5vw';
+
+                        // Define options for colors and letters
+                        const options = [
+                            { value: 'I', label: 'I', color: 'gray' },
+                            { value: 'J', label: 'J', color: 'green' },
+                            { value: 'K', label: 'K', color: 'yellow' }
+                        ];
+
+                        // Create option elements and add them to the select element
+                        options.forEach(optionData  => {
+                            const option = document.createElement('option');
+                            option.value = optionData.value;
+                            option.textContent = optionData.label;
+                            option.dataset.color = optionData.color;
+                            select.appendChild(option);
+                        });
+
+                        // Set initial background color based on cellData
+                        const selectedOption = options.find(option => option.value === cellData);
+                        select.style.backgroundColor = selectedOption.color;
+                        select.value = cellData;
+
+                        // Event listener to update background color on selection change
+                        select.addEventListener('change', () => {
+                            select.style.backgroundColor = select.options[select.selectedIndex].dataset.color;
+                        });
+
+                        // Append the select element to the cell
+                        select.disabled = true; // Disable input fields by default
+                        cell.appendChild(select);
+                    } else {
+                        // Create input field for other data
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = cellData;
+                        input.disabled = true; // Disable input fields by default
+                        cell.appendChild(input);
+                    }
                 }
                 input.disabled = true; // Disable input fields by default
-                cell.appendChild(input);
                 row.appendChild(cell);
             });
             // Add an Edit button to each row
@@ -172,27 +211,42 @@
                     row.querySelectorAll('input').forEach(input => {
                         input.disabled = true;
                     });
+                    row.querySelectorAll('select').forEach(input => {
+                        input.disabled = true;
+                    });
                     editButton.textContent = "Edit";
                     editDateToggle = false;
                 }
             });
             // Add an event listener to handle edit functionality
             editButton.addEventListener('click', () => {
-                if (editDateToggle === false){
+                if (editDateToggle === false ){
                     row.querySelectorAll('input').forEach(input => {
                         if (input.type === 'date') {
                             input.disabled = input.disabled !== true;
                             editDateToggle = true;
                         }
                     });
+                    row.querySelectorAll('select').forEach(input => {
+                        input.disabled = input.disabled !== true;
+                    });
                     editButton.textContent = "Submit";
                 } else {
                     if (editButton.textContent === "Submit") {
                         const updatedRowData = [];
-                        row.querySelectorAll('input').forEach(input => {
-                            updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
+                        row.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+                            if (input.tagName === 'SELECT') { // Check if the element is a select element
+                                // Get the selected option value
+                                const selectedValue = input.options[input.selectedIndex].value;
+                                // Push the selected value into the updatedRowData array
+                                updatedRowData.push(selectedValue);
+                            } else { // For other input types (text and date)
+                                updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
+                            }
+                            // Disable the input element
                             input.disabled = true;
                         });
+                        console.log("Updated Row Data:", updatedRowData);
                         const updatedData = { row: rowIndex, data: updatedRowData };
                         // Send the updated data to the backend
                         fetch('/planiranjePripravnegaDelaUpdate', {

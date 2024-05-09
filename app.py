@@ -167,6 +167,10 @@ class TPRO_PLAN(db.Model):
     MEHANSKA_OBDELAVA_DO = db.Column(db.DATE())
     MEHANSKA_OBDELAVA_DANI = db.Column(db.INT())
     MEHANSKA_OBDELAVA_STATUS = db.Column(db.CHAR(15))
+    DAT_ISPO = db.Column(db.DATE())
+    ISPO_STATUS = db.Column(db.CHAR(15))
+    STVARNA_ISPORUKA = db.Column(db.DATE())
+    DOG_ISPO = db.Column(db.DATE())
 class TBA_KOS(db.Model):
     __tablename__ = 'TBA_KOS'
     Polizdelek = db.Column(db.CHAR(15))
@@ -687,12 +691,18 @@ def planiranjePripravnegaDelaLoad():
             # Check if the prefix already exists in column_groups
             for group in column_groups:
                 if group['prefix'] == prefix:
-                    group['columns'].append(column)
+                    surfix = column.rsplit("_", 1)[1]
+                    group['columns'].append(surfix)
                     found = True
                     break
             # If the prefix doesn't exist, create a new group
             if not found:
-                column_groups.append({'prefix': prefix, 'columns': [column]})
+                parts = column.split("_")
+                if len(parts) > 1:
+                    surfix = "_".join(parts[1:])
+                else:
+                    surfix = parts[0]
+                column_groups.append({'prefix': prefix, 'columns': [surfix]})
 
         for group in column_groups:
             print(group['prefix'], group['columns'])
@@ -793,23 +803,37 @@ def update_planiranje_pripravnega_Dela():
                 datetime.datetime.strptime(podatki_stranice[index], "%m/%d/%Y")  # Adjust format as per your date format
                 # If parsing succeeds, it's a date
                 different_value = str(parse_date(podatki_stranice[index])).replace(" 00:00:00", "")
+                if str(value) != different_value:
+                    if str(value) != "None" and str(different_value) != "":
+                        different_columns.append(index)
+                        indexss = index
             except ValueError:
                 # If parsing fails, it's not a date
                 different_value = podatki_stranice[index]
         else:
             different_value = podatki_stranice[index]
 
-        if str(value) != different_value:
-            if str(value) != "None" and str(different_value) != "":
-                different_columns.append(index)
-                indexss = index
-
+    print("Different columns:", different_columns)
     wow = record_list
     day_before = 0
+    max_date = None
     for index, value in enumerate(wow):
         if index == indexss:
-            wow[index] = parse_date(podatki_stranice[index])
-        elif index > indexss:
+            if index < 53:
+                wow[index] = parse_date(podatki_stranice[index])
+            else:
+                wow[index] = wow[index]
+        elif record_titles[index] == "DAT_ISPO":
+            for indexx, value in enumerate(wow):
+                if isinstance(value, datetime.datetime):
+                    if max_date is None or value > max_date:
+                        max_date = value
+            if max_date is None:
+                max_date = wow[index]
+            wow[index] = max_date
+            print("wow max:", wow[index])
+            print("Max date is:", max_date, index)
+        elif 53 > index > indexss:
             if "/" in str(podatki_stranice[index]):
                 try:
                     probaj = podatki_stranice[index]
@@ -829,6 +853,11 @@ def update_planiranje_pripravnega_Dela():
                     wow[index] = podatki_stranice[index]
             else:
                 wow[index] = podatki_stranice[index]
+        elif index == 54:
+            wow[index] = podatki_stranice[index]
+            print("Printed ISPORUKASTATUS row: " + str(wow[index]))
+        elif index > 55:
+            wow[index] = wow[index]
 
     # Update the record with the new data
     if record:

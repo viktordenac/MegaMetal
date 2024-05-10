@@ -11,9 +11,6 @@
             margin-left: 14%;
             width: 86%;
         }
-        tbody tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -48,7 +45,6 @@
         input[type="text"], input[type="date"] {
             width: 7vw;
             padding: 5px;
-            margin-bottom: 10px;
             box-sizing: border-box;
         }
          /* CSS to make the "Edit" column fixed */
@@ -105,7 +101,8 @@
                 filterTable(columnName);
             }
         });
-
+        const widthTheadValues = [15,7,8,6,10,3,6,3,7]
+        let colIndex = 0
         // Iterate over column groups
         columnGroups.forEach(group => {
             const th = document.createElement('th');
@@ -113,16 +110,15 @@
             th.colSpan = colspan; // Set colspan attribute
             th.textContent = group.prefix; // Set the column group name as the text content
             titleRow.appendChild(th); // Append the th to the title row
-
             // Add individual column names as th elements with colspan 1
             group.columns.forEach(columnName => {
                 const subTh = document.createElement('th');
                 const input = document.createElement('input');
+                const br = document.createElement('br');
                 const headerRowSortBtn = document.createElement('button');
                 headerRowSortBtn.textContent = 'Sort';
                 headerRowSortBtn.style.backgroundColor = 'lightblue';
                 headerRowSortBtn.style.borderRadius = '5px';
-                headerRowSortBtn.id = 'sortBtn'
                 headerRowSortBtn.addEventListener('click', function(event) {
                     const target = event.target;
                     const input = target.parentNode.querySelector('input'); // Find the nearest input element
@@ -130,7 +126,6 @@
                         const columnIndex = getColumnIndexFromInput(input);
                         if (columnIndex !== -1) {
                             const dataType = getColumnType(columnIndex);
-                            console.log("Column Index:", columnIndex, "Data Type:", dataType);
                             sortTable(columnIndex, dataType);
                         }
                     }
@@ -138,8 +133,20 @@
                 input.type = 'text';
                 input.id = 'filter_' + group.prefix + '_' + columnName;
                 input.placeholder = columnName;
+                if (colIndex < 9) {
+                    input.style.width = widthTheadValues[colIndex] + 'vw';
+                } else {
+                    if ((colIndex - 10) % 4 === 1 || (colIndex - 10) % 4 === 2) { // Check if colIndex is 10, 11, 14, 15, etc.
+                        input.style.width = '4vw';
+                        console.log("INDEX:", colIndex)
+                    } else {
+                        input.style.width = '2vw';
+                    }
+                }
+                colIndex++
                 input.dataset.columnName = columnName; // Store the column name in a data attribute
                 subTh.appendChild(input); // Append the input to the sub-header
+                subTh.appendChild(br); // Append a line break to the sub-header
                 subTh.appendChild(headerRowSortBtn); // Append the sort button to the sub-header
                 headerRow.appendChild(subTh); // Append the sub-th to the header row
             });
@@ -155,12 +162,14 @@
         thead.appendChild(titleRow);
         thead.appendChild(headerRow);
         table.appendChild(thead);
+        const widthTbodyValues = [15,7,8,6,10,2,6,3,7]
 
         // Create table rows
         values.forEach((rowData, rowIndex) => {
             const row = document.createElement('tr');
             rowData.forEach((cellData, colIndex) => {
                 const cell = document.createElement('td');
+                cell.style.border = '1px solid black'; // Add border style to each cell
                 const input = document.createElement('input');
                 if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
                     // Parse string back to date object
@@ -170,12 +179,13 @@
                     // Create input field for dates
                     input.type = 'date';
                     input.value = formattedDate;
+                    input.style.width = '6vw';
                     input.disabled = true; // Disable input fields by default
                     cell.appendChild(input);
                 } else {
                     if (cellData === "I" || cellData === "J" || cellData === "K") {
                         const select = document.createElement('select');
-                        select.style.width = '5vw';
+                        select.style.width = '4vw';
 
                         // Define options for colors and letters
                         const options = [
@@ -190,9 +200,9 @@
                             option.value = optionData.value;
                             option.textContent = optionData.label;
                             option.dataset.color = optionData.color;
+                            option.style.backgroundColor = optionData.color;
                             select.appendChild(option);
                         });
-
                         // Set initial background color based on cellData
                         const selectedOption = options.find(option => option.value === cellData);
                         select.style.backgroundColor = selectedOption.color;
@@ -212,6 +222,11 @@
                         input.type = 'text';
                         input.value = cellData;
                         input.disabled = true; // Disable input fields by default
+                        if (colIndex < 9) {
+                            input.style.width = widthTbodyValues[colIndex] + 'vw';
+                        } else {
+                            input.style.width = '2vw';
+                        }
                         cell.appendChild(input);
                     }
                 }

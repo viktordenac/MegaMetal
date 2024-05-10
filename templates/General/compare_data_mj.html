@@ -11,17 +11,43 @@
             margin-right: 5px;
             display: block;
         }
+        #refresh-container {
+            float: right;
+            margin-right: 10%; /* Adjust this value based on your menu height */
+        }
+
+        #refresh-button {
+            margin-right: 0px;
+        }
     </style>
 </head>
 <body>
 
 {% include 'navigation.html' %}
-
+<div id="refresh-container">
+        <button id="refresh-button" type="submit">Refresh</button>
+    </div>
 
 <canvas id="comparisonChart" class="graph-canvas"></canvas>
 <canvas id="comparisonChart2" class="graph-canvas"></canvas>
 
 <script>
+    document.getElementById("refresh-button").addEventListener("click", function() {
+        fetch('/refresh_fix_plan', {
+            method: 'GET'
+        })
+        .then(response => {
+            if(response.ok) {
+                setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+
     function updateSecondChart(data) {
         comparisonChart2.data.labels = data.labels;
         comparisonChart2.data.datasets[0].data = data.plTezinaValues;

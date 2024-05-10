@@ -1,4 +1,5 @@
 import io
+import os
 import re
 from collections import defaultdict
 from datetime import datetime, date, timedelta
@@ -1426,7 +1427,7 @@ def filter_data():
 @app.route("/refresh_fix_plan")
 def refresh_fix_plan():
     print("Refreshing data...")
-    Realizirano()
+    os.system(r"C:\Users\ivan.tonkic\Desktop\Mega_metal\fix_plan\Fix_plan.bat")
     return jsonify({'success': True})
 
 """--------------------------------------------------------------------"""

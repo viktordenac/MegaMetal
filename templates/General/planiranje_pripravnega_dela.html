@@ -64,6 +64,13 @@
             top: 0;
             z-index: 1; /* Ensure the floating header stays on top of the table */
         }
+        .hidePlans {
+            margin-left: 14%;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: lightblue;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -71,7 +78,9 @@
         <h1>Planiranje pripravnega dela</h1>
 
         <h2>Plani</h2>
-            <label for="inputID_rn"></label><input type="text" id="inputID_rn" placeholder="Search for usernames.." hidden="hidden" autocomplete="off">
+        <nav id="navigacijaPlaniranja">
+            <button id="hideCompletedButton" class="hidePlans" onclick="hideCompletedPlans()">Hide completed plans</button>
+        </nav>
         <div id="table-container"></div>
     </div>
 </body>
@@ -379,6 +388,9 @@
             return 'integer';
         } else if ([9, 10].includes(columnIndex)) {
             return 'date';
+        } else if ([12].includes(columnIndex)){
+            console.log("STATUS")
+            return 'status';
         } else {
             // Default to string if not explicitly defined
             return 'string';
@@ -398,6 +410,18 @@
 
             if (dataType === 'date') {
                 return new Date(aValue) - new Date(bValue);
+            } else if (dataType === 'status' && columnIndex === 12) {
+                const aAllColumnsJ = isAllColumnsJ(a, dataType);
+                const bAllColumnsJ = isAllColumnsJ(b, dataType);
+                console.log(aAllColumnsJ, bAllColumnsJ)
+                if (aAllColumnsJ && !bAllColumnsJ) {
+                    return 1;
+                } else if (!aAllColumnsJ && bAllColumnsJ) {
+                    return -1;
+                } else {
+                    // If both or neither contain 'J', sort normally
+                    return aValue.localeCompare(bValue);
+                }
             } else {
                 // For other types, compare directly
                 return aValue.localeCompare(bValue);
@@ -408,12 +432,74 @@
         tbody.innerHTML = '';
         rows.forEach(row => tbody.appendChild(row));
     }
+    // Function to hide completed plans (where all columns contain 'J')
+    function hideCompletedPlans() {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.rows);
+
+        rows.forEach(row => {
+            const isCompleted = isAllColumnsJ(row, 'status');
+            if (isCompleted) {
+                row.style.display = 'none';
+            }
+        });
+
+        // Change button text to "Unhide completed plans"
+        const hideCompletedButton = document.querySelector("#hideCompletedButton");
+        hideCompletedButton.textContent = "Unhide completed plans";
+        hideCompletedButton.removeEventListener("click", hideCompletedPlans);
+        hideCompletedButton.addEventListener("click", unhideCompletedPlans);
+    }
+
+    // Function to unhide completed plans
+    function unhideCompletedPlans() {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.rows);
+
+        rows.forEach(row => {
+            row.style.display = ''; // Reset display property to show the row
+        });
+
+        // Change button text back to "Hide completed plans"
+        const hideCompletedButton = document.querySelector("#hideCompletedButton");
+        hideCompletedButton.textContent = "Hide completed plans";
+        hideCompletedButton.removeEventListener("click", unhideCompletedPlans);
+        hideCompletedButton.addEventListener("click", hideCompletedPlans);
+    }
+
+    // Button click event to hide completed plans
+    const hideCompletedButton = document.querySelector("#hideCompletedButton");
+    hideCompletedButton.addEventListener("click", hideCompletedPlans);
+
+
+    // Function to check if all columns in a row have value 'J'
+    function isAllColumnsJ(row, dataType) {
+        let allColumnsJ = true;
+        for (let i = 0; i < row.cells.length - 2; i++) {
+            const cell = row.cells[i];
+            const cellValue = getDataValue(cell, dataType);
+            if (i % 4 === 0 && i >= 12 && cellValue !== 'J') {
+                allColumnsJ = false;
+                console.log("Index inside:", i, "Value:", cellValue)
+                break;
+            }
+        }
+        return allColumnsJ;
+    }
+
+
 
     // Function to get the value of a cell considering input type
     function getDataValue(cell, dataType) {
         const input = cell.querySelector('input[type="text"]');
+        const inputStatus = cell.querySelector('select');
         if (input) {
             return input.value.trim();
+        } else if (inputStatus){
+            const selectedOption = inputStatus.selectedOptions[0];
+            return selectedOption.value.trim();
         } else {
             const input = cell.querySelector('input[type="date"]');
             const value = input.value.trim();

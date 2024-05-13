@@ -17,7 +17,7 @@ import json
 from flask import Flask, render_template, redirect, url_for, send_file, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func
+from sqlalchemy import func, select, exists, text
 from io import BytesIO
 from sqlalchemy.exc import IntegrityError
 from realizirano import Realizirano
@@ -995,8 +995,50 @@ def verzugsListaLoad():
 def user_roles():
     if not is_authenticated():
         return redirect(url_for("login"))
-    # Query all data
-    data = TBA_PRAVA.query.all()
+
+    unique_values = {}
+
+    sql_query = """
+                    SELECT DISTINCT "Username" 
+                    FROM "TBA_RAD" 
+                    WHERE "Username" NOT IN (SELECT "Username" FROM "TBA_PRAVA" WHERE "Username" IS NOT NULL)
+                    """
+    result = db.session.execute(text(sql_query))
+    new_usernames = [row[0] for row in result]
+
+    sql_query = """
+                        SELECT DISTINCT "Username" 
+                        FROM "TBA_PRAVA" 
+                        WHERE "Username" NOT IN (SELECT "Username" FROM "TBA_RAD" WHERE "Username" IS NOT NULL)
+                        """
+    result = db.session.execute(text(sql_query))
+    old_usernames = [row[0] for row in result]
+
+    # If there are new usernames, you may need to insert them into TBA_RAD
+
+    # Log to verify the new usernames
+    print("Old Usernames:", old_usernames)
+    print("New Usernames:", new_usernames)
+    for username in new_usernames:
+        new_entry = TBA_PRAVA(Username=username)
+        db.session.add(new_entry)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # Handle if the username already exists (optional)
+            db.session.rollback()
+
+    for username in old_usernames:
+        user = TBA_PRAVA.query.filter_by(Username=username).first()
+        if user:
+            db.session.delete(user)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            # Handle if the username already exists (optional)
+            db.session.rollback()
+
+    data = TBA_PRAVA.query.filter(TBA_PRAVA.Username != "None").all()
 
     unique_values = {}
     for column in TBA_PRAVA.__table__.columns:

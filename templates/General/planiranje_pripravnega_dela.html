@@ -138,9 +138,8 @@
                 } else {
                     if ((colIndex - 10) % 4 === 1 || (colIndex - 10) % 4 === 2) { // Check if colIndex is 10, 11, 14, 15, etc.
                         input.style.width = '4vw';
-                        console.log("INDEX:", colIndex)
                     } else {
-                        input.style.width = '2vw';
+                        input.style.width = '5vw';
                     }
                 }
                 colIndex++
@@ -337,13 +336,31 @@
                 const filter = filters[i];
 
                 let cellValue = '';
+                console.log("FILTER:", filter)
 
                 // Check if the cell contains an input element
                 const input = cell.querySelector('input[type="text"]');
+                const dateInput = cell.querySelector('input[type="date"]');
+                const statusInput = cell.querySelector('select');
                 if (input) {
                     cellValue = input.value.trim().toUpperCase();
-                } else {
-                    cellValue = cell.textContent.trim().toUpperCase();
+                    console.log("CELL:", cellValue)
+                } else if (dateInput) {
+                    cellValue = dateInput.value.trim().toUpperCase();
+                    var dateString = cellValue;
+                    // Parse the date string into a Date object
+                    var date = new Date(dateString);
+                    // Extract day, month, and year
+                    var day = date.getDate().toString().padStart(2, '0');
+                    var month = (date.getMonth() + 1).toString().padStart(2, '0'); // Note: January is 0!
+                    var year = date.getFullYear();
+
+                    // Create the formatted date string
+                    cellValue = day + '/' + month + '/' + year;
+                    console.log("DATE:", cellValue)
+                } else if (statusInput){
+                    cellValue = statusInput.value.trim().toUpperCase();
+                    console.log("STATUS:", cellValue)
                 }
 
                 if (filter && cellValue.indexOf(filter) === -1) {

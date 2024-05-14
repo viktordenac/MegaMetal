@@ -775,105 +775,143 @@ def get_next_valid_date(start_date, add_days=None):
 @app.route('/planiranjePripravnegaDelaUpdate', methods=['POST'])
 def update_planiranje_pripravnega_Dela():
     import datetime
+    print(session["name"])
     updated_data = request.json
-    # Here you can process the updated data
     podatki_stranice = updated_data['data']
     id_rn = updated_data['data'][6]
-    # print("Received updated data:", updated_data)
-    # print("IDRN:", id_rn)
-    # Find the record to update
     record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
     record_list = []
-
-    # Iterate through all the columns dynamically
     for column in record.__table__.columns:
         record_list.append(getattr(record, column.name))
-
-    record_titles = []
-
-    # Iterate through all the columns dynamically
-    for column in record.__table__.columns:
-        record_titles.append(column.name)
-    different_columns = []
-    indexss = 0
-    changed_starting_date = 0
-
-    for index, value in enumerate(record_list):
-        if "/" in str(podatki_stranice[index]):
+    from decimal import Decimal
+    modified_record_list = []
+    for item in record_list:
+        if isinstance(item, Decimal):
+            modified_record_list.append(int(item))  # Convert Decimal to int
+        elif isinstance(item, datetime.date):
             try:
-                datetime.datetime.strptime(podatki_stranice[index], "%m/%d/%Y")  # Adjust format as per your date format
-                # If parsing succeeds, it's a date
-                different_value = str(parse_date(podatki_stranice[index])).replace(" 00:00:00", "")
-                if str(value) != different_value:
-                    if str(value) != "None" and str(different_value) != "":
-                        different_columns.append(index)
-                        indexss = index
-            except ValueError:
-                # If parsing fails, it's not a date
-                different_value = podatki_stranice[index]
+                modified_record_list.append(item.strftime('%d/%m/%Y'))  # Format date
+            except:
+                modified_record_list.append(item.strftime('%m/%d/%Y'))  # Format date
         else:
-            different_value = podatki_stranice[index]
+            modified_record_list.append(item)
+    record_titles = []
+    differences = [i for i, (x, y) in enumerate(zip(podatki_stranice, modified_record_list)) if str(x) != str(y)]
+    print("Indexes with different values:", differences)
+    for index in differences[:]:  # using [:] to create a copy of the list to avoid modifying it while iterating
+        if str(podatki_stranice[index]) == '':
+            differences.remove(index)
+    different_value=podatki_stranice[differences[0]]
+    list_to_change_od=[9,13,17,21,25,29,33,37,41,45,49]
+    list_to_change_do = [10,14,18,22,26,30,34,38,42,46,50]
+    filtered_list_od = [x for x in list_to_change_od if x >= differences[0]]
+    counter=0
+    list_dani=[11,15,19,23,27,31,35,39,43,47,51,53]
+    list_to_change_status = [12,16,20,24,28,32,36,40,44,48,52,54]
+    mjenjan=0
+    indexes = [9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42,45,46,49,50]
+    date_format = "%d/%m/%Y"
+    # Ako je izmjenjen STATUS
+    if differences[0] in list_to_change_status:
+        modified_record_list=podatki_stranice
+    # Ako je izmjenjen datum OD
+    if differences[0] in list_to_change_od:
+        for i in filtered_list_od:
+            if modified_record_list[i+2]==0:
+                modified_record_list[i]=modified_record_list[i-3]
+                modified_record_list[i+1]=modified_record_list[i-3]
+                modified_record_list[i + 3]='J'
+                continue
+            if counter==0:
 
-    print("Different columns:", different_columns)
-    wow = record_list
-    day_before = 0
-    max_date = None
-    for index, value in enumerate(wow):
-        if index == indexss:
-            if index < 53:
-                wow[index] = parse_date(podatki_stranice[index])
+                new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], date_format)+ timedelta(modified_record_list[i+2]-1)
+                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                    new_date_object_do += timedelta(days=1)
+                modified_record_list[i]=podatki_stranice[i]
+                modified_record_list[i+1]=new_date_object_do
+                counter+=1
             else:
-                wow[index] = wow[index]
-        elif record_titles[index] == "DAT_ISPO":
-            for indexx, value in enumerate(wow):
-                if isinstance(value, datetime.datetime):
-                    if max_date is None or value > max_date:
-                        max_date = value
-            if max_date is None:
-                max_date = wow[index]
-            wow[index] = max_date
-            print("wow max:", wow[index])
-            print("Max date is:", max_date, index)
-        elif 53 > index > indexss:
-            if "/" in str(podatki_stranice[index]):
-                try:
-                    probaj = podatki_stranice[index]
-                    datetime.datetime.strptime(probaj,
-                                               "%m/%d/%Y")  # Adjust format as per your date format
-                    # If parsing succeeds, it's a date
-                    if index % 2 == 1:
-                        wow[index] = get_next_valid_date(day_before)
-                    else:
-                        dani = int(wow[index + 1])
-                        dan_prej = wow[index - 1]
-                        wow[index] = get_next_valid_date(dan_prej, dani)
-                        day_before = wow[index]
-                    print("Printed wow row: " + str(wow[index]))
-                except ValueError:
-                    # If parsing fails, it's not a date
-                    wow[index] = podatki_stranice[index]
+                new_date_object_od=(modified_record_list[i-3])+ timedelta(days=1)#  + timedelta(modified_record_list[i+2]-1)
+                while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
+                    new_date_object_od += timedelta(days=1)
+                new_date_object_do=new_date_object_od+ timedelta(modified_record_list[i+2]-1)
+                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                    new_date_object_do += timedelta(days=1)
+                modified_record_list[i]=new_date_object_od
+                modified_record_list[i+1]=new_date_object_do
+                counter+=1
+    # Ako je izmjenjen datum DO
+    if differences[0] in list_to_change_do:
+        for i in list_to_change_do:
+            if modified_record_list[i+1]==0:
+                modified_record_list[i]=modified_record_list[i-4]
+                modified_record_list[i-1]=modified_record_list[i-4]
+                modified_record_list[i + 2]='J'
+                continue
+            if counter==0:
+                date_format = "%d/%m/%Y"
+                new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], date_format)
+                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                    new_date_object_do += timedelta(days=1)
+                modified_record_list[i]=new_date_object_do
+                counter+=1
             else:
-                wow[index] = podatki_stranice[index]
-        elif index == 54:
-            wow[index] = podatki_stranice[index]
-            print("Printed ISPORUKASTATUS row: " + str(wow[index]))
-        elif index > 55:
-            wow[index] = wow[index]
+                new_date_object_od=(modified_record_list[i-4])+ timedelta(days=1)
+                while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
+                    new_date_object_od += timedelta(days=1)
+                new_date_object_do=new_date_object_od+ timedelta(modified_record_list[i+1]-1)
+                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                    new_date_object_do += timedelta(days=1)
+                modified_record_list[i-1]=new_date_object_od
+                modified_record_list[i]=new_date_object_do
+                counter+=1
+    # Ako je izmjenjen datum DOSTAVE
+    if differences[0]==53:
+        mjenjan=1
+        modified_record_list[53]=podatki_stranice[53]
+        for i in reversed(indexes):
+            if i % 2 == 0:
+                new_date_object_do=datetime.datetime.strptime(podatki_stranice[i+3], date_format)-timedelta(days=1)
+                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                    new_date_object_do -= timedelta(days=1)
+                modified_record_list[i] =new_date_object_do
+            if i % 2 == 1:
+                new_date_object_od=modified_record_list[i+1] - timedelta(modified_record_list[i+2]-1)
+                while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
+                    new_date_object_od -= timedelta(days=1)
+                modified_record_list[i] = new_date_object_od
 
-    # Update the record with the new data
-    if record:
-        # for attr, value in vars(record).items():
-        #     print("OLD: " + f"{attr}: {value}")
+    zeros_positions = []
+
+    # Ako je dan=0 vrati datume na None
+    for i in list_dani:
+        if modified_record_list[i] == 0:
+            zeros_positions.append(i)
+            if i > 0:
+                modified_record_list[i - 1] = None
+                modified_record_list[i - 2] = None
+    filtered_indexes = [x for x in indexes if x >= differences[0]]
+
+    # update datum isporuke
+    if mjenjan==0:
+        for idx in indexes:
+            try:
+                modified_record_list[idx] = datetime.datetime.strptime(modified_record_list[idx], '%d/%m/%Y')
+            except:
+                print("")
+        selected_dates = [modified_record_list[i] for i in filtered_indexes if isinstance(modified_record_list[i], datetime.datetime)]
+        # Find the maximum date
+        max_date = max(selected_dates)
+        modified_record_list[53]=max_date+timedelta(days=1)
+
+    if 1==1:
         try:
             # Dynamically assign values from the list to model attributes
-            for attr, value in zip(TPRO_PLAN.__table__.columns.keys(), wow):
+            for attr, value in zip(TPRO_PLAN.__table__.columns.keys(), modified_record_list):
                 setattr(record, attr, value)
-
-            for attr, value in record.__dict__.items():
-                print(f"{attr}: {value}")
-
             db.session.commit()
         except Exception as e:
+            print(e)
             return jsonify({'success': False, 'error': str(e)}), 500
     return jsonify({"message": "Data updated successfully"})
 

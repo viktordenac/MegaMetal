@@ -71,6 +71,9 @@
             background-color: lightblue;
             border-radius: 5px;
         }
+        .checked {
+            background-color: deeppink;
+        }
     </style>
 </head>
 <body>
@@ -90,6 +93,7 @@
     .then(data => {
         const columnGroups = data.column_groups; // Change variable name to columnGroups for clarity
         const values = data.data;
+        const pravice = data.role;
         console.log(data)
         const tableContainer = document.getElementById('table-container');
         const table = document.createElement('table');
@@ -125,6 +129,16 @@
                 const input = document.createElement('input');
                 const br = document.createElement('br');
                 const headerRowSortBtn = document.createElement('button');
+                const selectContainer = document.createElement('div');
+                const select = document.createElement('select');
+                select.multiple = true; // Allow multiple selection
+                select.style.width = '10vw'; // Adjust width as needed
+                selectContainer.classList.add('dropdown-container');
+                const options = [
+                    { value: 'I', label: 'I', color: 'gray' },
+                    { value: 'J', label: 'J', color: 'green' },
+                    { value: 'K', label: 'K', color: 'yellow' }
+                ]; // Array containing options with value, label, and color
                 headerRowSortBtn.textContent = 'Sort';
                 headerRowSortBtn.style.backgroundColor = 'lightblue';
                 headerRowSortBtn.style.borderRadius = '5px';
@@ -139,6 +153,7 @@
                         }
                     }
                 });
+
                 input.type = 'text';
                 input.id = 'filter_' + group.prefix + '_' + columnName;
                 input.placeholder = columnName;
@@ -146,7 +161,33 @@
                     input.style.width = widthTheadValues[colIndex] + 'vw';
                 } else {
                     if ((colIndex - 10) % 4 === 1 || (colIndex - 10) % 4 === 2) { // Check if colIndex is 10, 11, 14, 15, etc.
-                        input.style.width = '4vw';
+                        if ((colIndex) % 4 === 0) {
+                            options.forEach(optionData => {
+                                const optionElement = document.createElement('option');
+                                optionElement.value = optionData.value;
+                                optionElement.textContent = optionData.label;
+                                optionElement.style.backgroundColor = optionData.color; // Set background color
+                                optionElement.addEventListener('mousedown', function(event) {
+                                    const option = event.target;
+                                    if (option.classList.contains('checked')) {
+                                        option.style.backgroundColor = optionData.color; // Reset background color
+                                        option.classList.remove('checked'); // Remove the checked class
+                                        option.selected = false; // Uncheck the option if already checked
+                                    } else {
+                                        option.style.backgroundColor = 'deeppink'; // Change background color
+                                        option.classList.add('checked'); // Add the checked class
+                                        option.selected = true; // Check the option if not checked
+                                    }
+                                    const columnName = option.dataset.columnName; // Extract the column name from the dataset
+                                    filterTable(columnName);
+                                    event.preventDefault(); // Prevent default behavior of select element
+                                });
+                                select.appendChild(optionElement);
+                                selectContainer.appendChild(select);
+                            });
+                        } else {
+                            input.style.width = '4vw';
+                        }
                     } else {
                         input.style.width = '5vw';
                     }
@@ -156,17 +197,18 @@
                 subTh.appendChild(input); // Append the input to the sub-header
                 subTh.appendChild(br); // Append a line break to the sub-header
                 subTh.appendChild(headerRowSortBtn); // Append the sort button to the sub-header
+                subTh.appendChild(selectContainer);
                 headerRow.appendChild(subTh); // Append the sub-th to the header row
             });
         });
-
-        // Add a column for the Edit button
-        const editHeaderCell = document.createElement('th');
-        editHeaderCell.id = 'edit';
-        editHeaderCell.textContent = "Edit";
+        if (pravice === 'Uprava') {
+            const editHeaderCell = document.createElement('th');
+            editHeaderCell.id = 'edit';
+            editHeaderCell.textContent = "Edit";
+            headerRow.appendChild(editHeaderCell);
+        }
 
         // Append the "Edit" header cell to the header row
-        headerRow.appendChild(editHeaderCell);
         thead.appendChild(titleRow);
         thead.appendChild(headerRow);
         table.appendChild(thead);
@@ -241,87 +283,91 @@
                 input.disabled = true; // Disable input fields by default
                 row.appendChild(cell);
             });
-            // Add an Edit button to each row
-            const editCell = document.createElement('td');
-            editCell.classList.add('edit-column'); // Add a class to the cell for styling purposes
-            const editButton = document.createElement('button');
-            editButton.textContent = "Edit";
-            let editDateToggle = false;
-            document.addEventListener('keydown', function(event) {
-                if (editButton.textContent === "Submit" && event.key === "Escape") {
-                    row.querySelectorAll('input').forEach(input => {
-                        input.disabled = true;
-                    });
-                    row.querySelectorAll('select').forEach(input => {
-                        input.disabled = true;
-                    });
-                    editButton.textContent = "Edit";
-                    editDateToggle = false;
-                }
-            });
-            // Add an event listener to handle edit functionality
-            editButton.addEventListener('click', () => {
-                if (editDateToggle === false ){
-                    row.querySelectorAll('input').forEach(input => {
-                        if (input.type === 'date') {
-                            input.disabled = input.disabled !== true;
-                            editDateToggle = true;
-                        }
-                    });
-                    row.querySelectorAll('select').forEach(input => {
-                        input.disabled = input.disabled !== true;
-                    });
-                    editButton.textContent = "Submit";
-                } else {
-                    if (editButton.textContent === "Submit") {
-                        const updatedRowData = [];
-                        row.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
-                            if (input.tagName === 'SELECT') { // Check if the element is a select element
-                                // Get the selected option value
-                                const selectedValue = input.options[input.selectedIndex].value;
-                                // Push the selected value into the updatedRowData array
-                                updatedRowData.push(selectedValue);
-                            } else { // For other input types (text and date)
-                                updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
-                            }
-                            // Disable the input element
+            if (pravice === 'Uprava') {
+                // Add an Edit button to each row
+                const editCell = document.createElement('td');
+                editCell.classList.add('edit-column'); // Add a class to the cell for styling purposes
+                const editButton = document.createElement('button');
+                editButton.textContent = "Edit";
+                let editDateToggle = false;
+                document.addEventListener('keydown', function(event) {
+                    if (editButton.textContent === "Submit" && event.key === "Escape") {
+                        row.querySelectorAll('input').forEach(input => {
                             input.disabled = true;
                         });
-                        console.log("Updated Row Data:", updatedRowData);
-                        const updatedData = { row: rowIndex, data: updatedRowData };
-                        // Send the updated data to the backend
-                        fetch('/planiranjePripravnegaDelaUpdate', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(updatedData)
-                        })
-                        .then(response => {
-                            if (response.ok) {
-                                setTimeout(function() {
-                                    location.reload();
-                                }, 500);
-                                console.log('Data updated successfully');
-                                // Optionally, you can handle success feedback here
-                            } else {
-                                console.error('Failed to update data');
-                                // Optionally, you can handle error feedback here
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            // Optionally, you can handle error feedback here
-                        });
-                        console.log("Updated Data:", updatedData);
-                        // Here you can send the updated data to the backend using fetch or any other method
+                        editButton.textContent = "Edit";
+                        editDateToggle = false;
                     }
-                    editButton.textContent = "Edit";
-                    editDateToggle = false;
-                }
+                });
+                editButton.addEventListener('click', () => {
+                    if (editDateToggle === false ){
+                        row.querySelectorAll('input').forEach(input => {
+                            if (input.type === 'date') {
+                                input.disabled = input.disabled !== true;
+                                editDateToggle = true;
+                            }
+                        });
+                        editButton.textContent = "Submit";
+                    } else {
+                        if (editButton.textContent === "Submit") {
+                            const updatedRowData = [];
+                            row.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+                                if (input.tagName === 'SELECT') { // Check if the element is a select element
+                                    // Get the selected option value
+                                    const selectedValue = input.options[input.selectedIndex].value;
+                                    // Push the selected value into the updatedRowData array
+                                    updatedRowData.push(selectedValue);
+                                } else { // For other input types (text and date)
+                                    updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
+                                }
+                                // Disable the input element
+                                input.disabled = true;
+                            });
+                            console.log("Updated Row Data:", updatedRowData);
+                            const updatedData = { row: rowIndex, data: updatedRowData };
+                            // Send the updated data to the backend
+                            fetch('/planiranjePripravnegaDelaUpdate', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(updatedData)
+                            })
+                            .then(response => {
+                                if (response.ok) {
+                                    setTimeout(function() {
+                                        location.reload();
+                                    }, 500);
+                                    console.log('Data updated successfully');
+                                    // Optionally, you can handle success feedback here
+                                } else {
+                                    console.error('Failed to update data');
+                                    // Optionally, you can handle error feedback here
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error:', error);
+                                // Optionally, you can handle error feedback here
+                            });
+                            console.log("Updated Data:", updatedData);
+                            // Here you can send the updated data to the backend using fetch or any other method
+                        }
+                        editButton.textContent = "Edit";
+                        editDateToggle = false;
+                    }
+                });
+                editCell.appendChild(editButton);
+                row.appendChild(editCell);
+            }
+
+            document.addEventListener('keydown', function(event) {
+                row.querySelectorAll('select').forEach(input => {
+                    input.disabled = true;
+                });
+
             });
-            editCell.appendChild(editButton);
-            row.appendChild(editCell);
+            // Add an event listener to handle edit functionality
+
             tbody.appendChild(row);
         });
         table.appendChild(tbody);
@@ -332,55 +378,84 @@
 
     // Function to filter the table based on input values
     function filterTable() {
-        const table = document.getElementById("myTable");
-        const tbody = table.querySelector("tbody");
-        const filterInputs = document.querySelectorAll("thead input[type='text']");
-        const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
+    const table = document.getElementById("myTable");
+    const tbody = table.querySelector("tbody");
+    const filterInputs = document.querySelectorAll("thead input[type='text']");
 
-        for (const row of tbody.rows) {
-            let rowVisible = true;
+    // Get all the select elements within the dropdown-container div
+    const selectElements = document.querySelectorAll('.dropdown-container select');
 
-            for (let i = 0; i < row.cells.length; i++) {
-                const cell = row.cells[i];
-                const filter = filters[i];
+    // Initialize an empty set to store the checked options
+    const checkedOptions = new Set();
 
-                let cellValue = '';
-                console.log("FILTER:", filter)
+    // Iterate over each select element
+    selectElements.forEach(select => {
+        // Get all the options within the select element
+        const options = select.querySelectorAll('option');
+        // Iterate over each option
+        options.forEach(option => {
+            // Check if the option has the class "checked"
+            if (option.classList.contains('checked')) {
+                // If it does, add its value to the checkedOptions set
+                checkedOptions.add(option.value);
+            }
+        });
+    });
 
-                // Check if the cell contains an input element
-                const input = cell.querySelector('input[type="text"]');
-                const dateInput = cell.querySelector('input[type="date"]');
-                const statusInput = cell.querySelector('select');
-                if (input) {
-                    cellValue = input.value.trim().toUpperCase();
-                    console.log("CELL:", cellValue)
-                } else if (dateInput) {
-                    cellValue = dateInput.value.trim().toUpperCase();
-                    var dateString = cellValue;
-                    // Parse the date string into a Date object
-                    var date = new Date(dateString);
-                    // Extract day, month, and year
-                    var day = date.getDate().toString().padStart(2, '0');
-                    var month = (date.getMonth() + 1).toString().padStart(2, '0'); // Note: January is 0!
-                    var year = date.getFullYear();
+    const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
 
-                    // Create the formatted date string
-                    cellValue = day + '/' + month + '/' + year;
-                    console.log("DATE:", cellValue)
-                } else if (statusInput){
-                    cellValue = statusInput.value.trim().toUpperCase();
-                    console.log("STATUS:", cellValue)
-                }
+    for (const row of tbody.rows) {
+        let rowVisible = true;
 
-                if (filter && cellValue.indexOf(filter) === -1) {
-                    rowVisible = false;
-                    break;
-                }
+        for (let i = 0; i < row.cells.length; i++) {
+            const cell = row.cells[i];
+            const filter = filters[i];
+
+            let cellValue = '';
+            let statusOptions = false;
+
+            // Check if the cell contains an input element
+            const input = cell.querySelector('input[type="text"]');
+            const dateInput = cell.querySelector('input[type="date"]');
+            const statusInput = cell.querySelector('select');
+            if (input) {
+                cellValue = input.value.trim().toUpperCase();
+            } else if (dateInput) {
+                cellValue = dateInput.value.trim().toUpperCase();
+                var dateString = cellValue;
+                // Parse the date string into a Date object
+                var date = new Date(dateString);
+                // Extract day, month, and year
+                var day = date.getDate().toString().padStart(2, '0');
+                var month = (date.getMonth() + 1).toString().padStart(2, '0'); // Note: January is 0!
+                var year = date.getFullYear();
+
+                // Create the formatted date string
+                cellValue = day + '/' + month + '/' + year;
+            } else if (statusInput) {
+                cellValue = statusInput.value.trim().toUpperCase();
             }
 
-            row.style.display = rowVisible ? "" : "none";
+            // Check if the cell value matches any of the checked options
+            if (Array.from(checkedOptions).some(option => cellValue === option)) {
+                console.log("NEAKJ")
+                statusOptions = true;
+                continue; // If matched, continue to the next cell
+            }
+            console.log("TUNAJ")
+            // Check if the cell value matches the filter
+            if (filter && cellValue.indexOf(filter) === -1) {
+                console.log("USPEH")
+                rowVisible = false;
+                break;
+            }
         }
+
+        row.style.display = rowVisible ? "" : "none";
     }
+}
+
+
 
     // Function to get the data type of column
     function getColumnType(columnIndex) {

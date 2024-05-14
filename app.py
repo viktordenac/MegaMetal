@@ -17,7 +17,7 @@ import json
 from flask import Flask, render_template, redirect, url_for, send_file, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, select, exists, text
+from sqlalchemy import func, select, exists, text, asc
 from io import BytesIO
 from sqlalchemy.exc import IntegrityError
 from realizirano import Realizirano
@@ -705,12 +705,12 @@ def planiranjePripravnegaDelaLoad():
                     surfix = parts[0]
                 column_groups.append({'prefix': prefix, 'columns': [surfix]})
 
-        for group in column_groups:
-            print(group['prefix'], group['columns'])
+        # for group in column_groups:
+        #     print(group['prefix'], group['columns'])
 
         # Fetch rows from the TPRO_PLAN table
-        rows = TPRO_PLAN.query.all()
-
+        rows = TPRO_PLAN.query.order_by(asc(TPRO_PLAN.IDRN)).all()
+        user_role = session["role"]
         # Check if rows are fetched
         if not rows:
             return jsonify({'error': 'No data found in the TPRO_PLAN table.'}), 404
@@ -728,7 +728,7 @@ def planiranjePripravnegaDelaLoad():
             data.append(formatted_row)
 
         # Return the JSON response with column groups
-        return jsonify({'column_groups': column_groups, 'data': data})
+        return jsonify({'column_groups': column_groups, 'data': data, 'role': user_role})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -823,8 +823,10 @@ def update_planiranje_pripravnega_Dela():
                 modified_record_list[i + 3]='J'
                 continue
             if counter==0:
-
-                new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], date_format)+ timedelta(modified_record_list[i+2]-1)
+                try:
+                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], date_format)+ timedelta(modified_record_list[i+2]-1)
+                except:
+                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], "%m/%d/%Y")+ timedelta(modified_record_list[i+2]-1)
                 while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
                     new_date_object_do += timedelta(days=1)
                 modified_record_list[i]=podatki_stranice[i]
@@ -850,7 +852,10 @@ def update_planiranje_pripravnega_Dela():
                 continue
             if counter==0:
                 date_format = "%d/%m/%Y"
-                new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], date_format)
+                try:
+                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], date_format)
+                except:
+                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], "%m/%d/%Y")
                 while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
                     new_date_object_do += timedelta(days=1)
                 modified_record_list[i]=new_date_object_do
@@ -871,7 +876,10 @@ def update_planiranje_pripravnega_Dela():
         modified_record_list[53]=podatki_stranice[53]
         for i in reversed(indexes):
             if i % 2 == 0:
-                new_date_object_do=datetime.datetime.strptime(podatki_stranice[i+3], date_format)-timedelta(days=1)
+                try:
+                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i+3], date_format)-timedelta(days=1)
+                except:
+                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i+3], "%m/%d/%Y")-timedelta(days=1)
                 while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
                     new_date_object_do -= timedelta(days=1)
                 modified_record_list[i] =new_date_object_do

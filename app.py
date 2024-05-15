@@ -1521,6 +1521,11 @@ def refresh_fix_plan():
 
 """--------------------------------------------------------------------"""
 
+@app.route('/administracija', methods=['GET'])
+def administracija():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    return render_template('administracija.html', stranice_list=session["stranice"])
 
 def replace_nan(data):
     return [[cell if not pd.isna(cell) else None for cell in row] for row in data]

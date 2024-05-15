@@ -53,23 +53,9 @@
 
     <!-- Planiranje proizvodnje section -->
     {% if 'upravljanje_uporabnikov' in stranice_list or 'aktivni_nalogi' in stranice_list or 'neaktivni_nalogi' in stranice_list %}
-    <div class="administrativna-dela">
-        Administrativna dela &rarr;
-        <!-- Inside Dropdown -->
-        <div class="dropdown-administrativna-dela">
-            {% if 'upravljanje_uporabnikov' in stranice_list %}
-            <a href="{{ url_for('user') }}"><div class="dItem">User</div></a>
-            <a href="{{ url_for('user_roles') }}"><div class="dItem">User advanced</div></a>
-            {% endif %}
-            {% if 'aktivni_nalogi' in stranice_list %}
-            <a href="{{ url_for('aktivni_nalogi', status='1') }}"><div class="dItem">Aktivni nalogi</div></a>
-            {% endif %}
-            {% if 'neaktivni_nalogi' in stranice_list %}
-            <a href="{{ url_for('aktivni_nalogi', status='0') }}"><div class="dItem">NeAktivni nalogi</div></a>
-            {% endif %}
-        </div>
-    </div>
+    <a href="{{ url_for('administracija') }}">Administrativna dela &rarr;</a>
     {% endif %}
+
     {% if 'mm2Alat' in stranice_list %}
     <a href="{{ url_for('MM2Alat') }}">MM2 Alati</a>
     {% endif %}
@@ -97,16 +83,7 @@
     <a href="{{ url_for('izmene') }}">Izmene</a>
     <a href="{{ url_for('tev_evid') }}">Evidenca ur</a>
 
-    <div class="administrativna-dela">
-        Administrativna dela &rarr;
-        <!-- Inside Dropdown -->
-        <div class="dropdown-administrativna-dela">
-            <a href="{{ url_for('user') }}"><div class="dItem">User</div></a>
-            <a href="{{ url_for('user_roles') }}"><div class="dItem">User advanced</div></a>
-            <a href="{{ url_for('aktivni_nalogi', status='1') }}"><div class="dItem">Aktivni nalogi</div></a>
-            <a href="{{ url_for('aktivni_nalogi', status='0') }}"><div class="dItem">NeAktivni nalogi</div></a>
-        </div>
-    </div>
+    <a href="{{ url_for('administracija') }}">Administrativna dela &rarr;</a>
     <a href="{{ url_for('MM2Alat') }}">MM2 Alati</a>
     <div class="fix-plan">
         Fix Plan &rarr;

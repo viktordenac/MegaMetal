@@ -343,6 +343,19 @@ function filterTable() {
                 cellValue = input.value.trim().toUpperCase();
             } else if (dateInput) {
                 cellValue = dateInput.value.trim().toUpperCase();
+
+                // Parse the date string into a Date object
+                var date = new Date(cellValue);
+
+                // Check if the parsed date is valid
+                if (!isNaN(date.getTime())) {
+                    // Format the date as dd/mm/yyyy
+                    cellValue = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
+                } else {
+                    // Handle invalid date input
+                    console.log("Invalid date input");
+                }
+                console.log(cellValue)
             } else if (statusInput){
                 cellValue = statusInput.value.trim().toUpperCase();
             }

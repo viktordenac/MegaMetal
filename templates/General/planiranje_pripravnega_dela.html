@@ -64,16 +64,6 @@
             top: 0;
             z-index: 1; /* Ensure the floating header stays on top of the table */
         }
-        .hidePlans {
-            margin-left: 14%;
-            margin-top: 10px;
-            padding: 5px;
-            background-color: lightblue;
-            border-radius: 5px;
-        }
-        .checked {
-            background-color: deeppink;
-        }
     </style>
 </head>
 <body>
@@ -81,9 +71,7 @@
         <h1>Planiranje pripravnega dela</h1>
 
         <h2>Plani</h2>
-        <nav id="navigacijaPlaniranja">
-            <button id="hideCompletedButton" class="hidePlans" onclick="hideCompletedPlans()">Hide completed plans</button>
-        </nav>
+            <label for="inputID_rn"></label><input type="text" id="inputID_rn" placeholder="Search for usernames.." hidden="hidden" autocomplete="off">
         <div id="table-container"></div>
     </div>
 </body>
@@ -122,23 +110,15 @@
             const colspan = group.columns.length; // Get the size of the column group
             th.colSpan = colspan; // Set colspan attribute
             th.textContent = group.prefix; // Set the column group name as the text content
+            th.setAttribute('id', group.prefix);
             titleRow.appendChild(th); // Append the th to the title row
             // Add individual column names as th elements with colspan 1
             group.columns.forEach(columnName => {
                 const subTh = document.createElement('th');
+                subTh.setAttribute('id', columnName);
                 const input = document.createElement('input');
                 const br = document.createElement('br');
                 const headerRowSortBtn = document.createElement('button');
-                const selectContainer = document.createElement('div');
-                const select = document.createElement('select');
-                select.multiple = true; // Allow multiple selection
-                select.style.width = '10vw'; // Adjust width as needed
-                selectContainer.classList.add('dropdown-container');
-                const options = [
-                    { value: 'I', label: 'I', color: 'gray' },
-                    { value: 'J', label: 'J', color: 'green' },
-                    { value: 'K', label: 'K', color: 'yellow' }
-                ]; // Array containing options with value, label, and color
                 headerRowSortBtn.textContent = 'Sort';
                 headerRowSortBtn.style.backgroundColor = 'lightblue';
                 headerRowSortBtn.style.borderRadius = '5px';
@@ -153,41 +133,14 @@
                         }
                     }
                 });
-
                 input.type = 'text';
-                input.id = 'filter_' + group.prefix + '_' + columnName;
+                input.id = 'filter_' + columnName;
                 input.placeholder = columnName;
                 if (colIndex < 9) {
                     input.style.width = widthTheadValues[colIndex] + 'vw';
                 } else {
                     if ((colIndex - 10) % 4 === 1 || (colIndex - 10) % 4 === 2) { // Check if colIndex is 10, 11, 14, 15, etc.
-                        if ((colIndex) % 4 === 0) {
-                            options.forEach(optionData => {
-                                const optionElement = document.createElement('option');
-                                optionElement.value = optionData.value;
-                                optionElement.textContent = optionData.label;
-                                optionElement.style.backgroundColor = optionData.color; // Set background color
-                                optionElement.addEventListener('mousedown', function(event) {
-                                    const option = event.target;
-                                    if (option.classList.contains('checked')) {
-                                        option.style.backgroundColor = optionData.color; // Reset background color
-                                        option.classList.remove('checked'); // Remove the checked class
-                                        option.selected = false; // Uncheck the option if already checked
-                                    } else {
-                                        option.style.backgroundColor = 'deeppink'; // Change background color
-                                        option.classList.add('checked'); // Add the checked class
-                                        option.selected = true; // Check the option if not checked
-                                    }
-                                    const columnName = option.dataset.columnName; // Extract the column name from the dataset
-                                    filterTable(columnName);
-                                    event.preventDefault(); // Prevent default behavior of select element
-                                });
-                                select.appendChild(optionElement);
-                                selectContainer.appendChild(select);
-                            });
-                        } else {
-                            input.style.width = '4vw';
-                        }
+                        input.style.width = '4vw';
                     } else {
                         input.style.width = '5vw';
                     }
@@ -197,18 +150,16 @@
                 subTh.appendChild(input); // Append the input to the sub-header
                 subTh.appendChild(br); // Append a line break to the sub-header
                 subTh.appendChild(headerRowSortBtn); // Append the sort button to the sub-header
-                subTh.appendChild(selectContainer);
                 headerRow.appendChild(subTh); // Append the sub-th to the header row
             });
         });
+
         if (pravice === 'Uprava') {
             const editHeaderCell = document.createElement('th');
             editHeaderCell.id = 'edit';
             editHeaderCell.textContent = "Edit";
             headerRow.appendChild(editHeaderCell);
         }
-
-        // Append the "Edit" header cell to the header row
         thead.appendChild(titleRow);
         thead.appendChild(headerRow);
         table.appendChild(thead);
@@ -283,6 +234,7 @@
                 input.disabled = true; // Disable input fields by default
                 row.appendChild(cell);
             });
+            // Add an Edit button to each row
             if (pravice === 'Uprava') {
                 // Add an Edit button to each row
                 const editCell = document.createElement('td');
@@ -359,15 +311,6 @@
                 editCell.appendChild(editButton);
                 row.appendChild(editCell);
             }
-
-            document.addEventListener('keydown', function(event) {
-                row.querySelectorAll('select').forEach(input => {
-                    input.disabled = true;
-                });
-
-            });
-            // Add an event listener to handle edit functionality
-
             tbody.appendChild(row);
         });
         table.appendChild(tbody);
@@ -377,31 +320,10 @@
 
 
     // Function to filter the table based on input values
-    function filterTable() {
+function filterTable() {
     const table = document.getElementById("myTable");
     const tbody = table.querySelector("tbody");
     const filterInputs = document.querySelectorAll("thead input[type='text']");
-
-    // Get all the select elements within the dropdown-container div
-    const selectElements = document.querySelectorAll('.dropdown-container select');
-
-    // Initialize an empty set to store the checked options
-    const checkedOptions = new Set();
-
-    // Iterate over each select element
-    selectElements.forEach(select => {
-        // Get all the options within the select element
-        const options = select.querySelectorAll('option');
-        // Iterate over each option
-        options.forEach(option => {
-            // Check if the option has the class "checked"
-            if (option.classList.contains('checked')) {
-                // If it does, add its value to the checkedOptions set
-                checkedOptions.add(option.value);
-            }
-        });
-    });
-
     const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
 
     for (const row of tbody.rows) {
@@ -412,7 +334,6 @@
             const filter = filters[i];
 
             let cellValue = '';
-            let statusOptions = false;
 
             // Check if the cell contains an input element
             const input = cell.querySelector('input[type="text"]');
@@ -422,159 +343,75 @@
                 cellValue = input.value.trim().toUpperCase();
             } else if (dateInput) {
                 cellValue = dateInput.value.trim().toUpperCase();
-                var dateString = cellValue;
-                // Parse the date string into a Date object
-                var date = new Date(dateString);
-                // Extract day, month, and year
-                var day = date.getDate().toString().padStart(2, '0');
-                var month = (date.getMonth() + 1).toString().padStart(2, '0'); // Note: January is 0!
-                var year = date.getFullYear();
-
-                // Create the formatted date string
-                cellValue = day + '/' + month + '/' + year;
-            } else if (statusInput) {
+            } else if (statusInput){
                 cellValue = statusInput.value.trim().toUpperCase();
             }
 
-            // Check if the cell value matches any of the checked options
-            if (Array.from(checkedOptions).some(option => cellValue === option)) {
-                console.log("NEAKJ")
-                statusOptions = true;
-                continue; // If matched, continue to the next cell
-            }
-            console.log("TUNAJ")
-            // Check if the cell value matches the filter
-            if (filter && cellValue.indexOf(filter) === -1) {
-                console.log("USPEH")
-                rowVisible = false;
-                break;
+            // Apply filter only if filter input is not empty
+            if (filter) {
+                // Split the filter value by comma to support multiple criteria
+                const filterValues = filter.split(',');
+                // Check if any of the filter values match the cell content
+                const match = filterValues.some(filterValue => cellValue.includes(filterValue.trim()));
+                if (!match) {
+                    rowVisible = false;
+                    break; // Break if no match is found
+                }
             }
         }
 
         row.style.display = rowVisible ? "" : "none";
     }
 }
-
-
-
     // Function to get the data type of column
     function getColumnType(columnIndex) {
         if ([3, 5, 6, 11].includes(columnIndex)) {
             return 'integer';
         } else if ([9, 10].includes(columnIndex)) {
             return 'date';
-        } else if ([12].includes(columnIndex)){
-            console.log("STATUS")
-            return 'status';
         } else {
             // Default to string if not explicitly defined
             return 'string';
         }
     }
 
-    // Function to sort the table
     function sortTable(columnIndex, dataType) {
-        const table = document.getElementById("myTable");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.rows);
-        const sortMultiplier = dataType === 'date' ? 1 : -1; // For dates, sort in ascending order
+    const table = document.getElementById("myTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.rows);
 
-        rows.sort((a, b) => {
-            const aValue = getDataValue(a.cells[columnIndex], dataType);
-            const bValue = getDataValue(b.cells[columnIndex], dataType);
+    // Determine the current sorting order of the column
+    const sortOrder = table.dataset.sortOrder || "asc";
 
-            if (dataType === 'date') {
-                return new Date(aValue) - new Date(bValue);
-            } else if (dataType === 'status' && columnIndex === 12) {
-                const aAllColumnsJ = isAllColumnsJ(a, dataType);
-                const bAllColumnsJ = isAllColumnsJ(b, dataType);
-                console.log(aAllColumnsJ, bAllColumnsJ)
-                if (aAllColumnsJ && !bAllColumnsJ) {
-                    return 1;
-                } else if (!aAllColumnsJ && bAllColumnsJ) {
-                    return -1;
-                } else {
-                    // If both or neither contain 'J', sort normally
-                    return aValue.localeCompare(bValue);
-                }
-            } else {
-                // For other types, compare directly
-                return aValue.localeCompare(bValue);
-            }
-        });
+    rows.sort((a, b) => {
+        const aValue = getDataValue(a.cells[columnIndex], dataType);
+        const bValue = getDataValue(b.cells[columnIndex], dataType);
 
-        // Re-append sorted rows to tbody
-        tbody.innerHTML = '';
-        rows.forEach(row => tbody.appendChild(row));
-    }
-    // Function to hide completed plans (where all columns contain 'J')
-    function hideCompletedPlans() {
-        const table = document.getElementById("myTable");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.rows);
-
-        rows.forEach(row => {
-            const isCompleted = isAllColumnsJ(row, 'status');
-            if (isCompleted) {
-                row.style.display = 'none';
-            }
-        });
-
-        // Change button text to "Unhide completed plans"
-        const hideCompletedButton = document.querySelector("#hideCompletedButton");
-        hideCompletedButton.textContent = "Unhide completed plans";
-        hideCompletedButton.removeEventListener("click", hideCompletedPlans);
-        hideCompletedButton.addEventListener("click", unhideCompletedPlans);
-    }
-
-    // Function to unhide completed plans
-    function unhideCompletedPlans() {
-        const table = document.getElementById("myTable");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.rows);
-
-        rows.forEach(row => {
-            row.style.display = ''; // Reset display property to show the row
-        });
-
-        // Change button text back to "Hide completed plans"
-        const hideCompletedButton = document.querySelector("#hideCompletedButton");
-        hideCompletedButton.textContent = "Hide completed plans";
-        hideCompletedButton.removeEventListener("click", unhideCompletedPlans);
-        hideCompletedButton.addEventListener("click", hideCompletedPlans);
-    }
-
-    // Button click event to hide completed plans
-    const hideCompletedButton = document.querySelector("#hideCompletedButton");
-    hideCompletedButton.addEventListener("click", hideCompletedPlans);
-
-
-    // Function to check if all columns in a row have value 'J'
-    function isAllColumnsJ(row, dataType) {
-        let allColumnsJ = true;
-        for (let i = 0; i < row.cells.length - 2; i++) {
-            const cell = row.cells[i];
-            const cellValue = getDataValue(cell, dataType);
-            if (i % 4 === 0 && i >= 12 && cellValue !== 'J') {
-                allColumnsJ = false;
-                console.log("Index inside:", i, "Value:", cellValue)
-                break;
-            }
+        // Compare the values based on the sorting order
+        let comparison;
+        if (dataType === 'date') {
+            comparison = new Date(aValue) - new Date(bValue);
+        } else {
+            comparison = aValue.localeCompare(bValue);
         }
-        return allColumnsJ;
-    }
 
+        // Reverse the comparison if sorting in descending order
+        return sortOrder === "asc" ? comparison : -comparison;
+    });
 
+    // Toggle the sorting order for the next click
+    table.dataset.sortOrder = sortOrder === "asc" ? "desc" : "asc";
+
+    // Re-append sorted rows to tbody
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+}
 
     // Function to get the value of a cell considering input type
     function getDataValue(cell, dataType) {
         const input = cell.querySelector('input[type="text"]');
-        const inputStatus = cell.querySelector('select');
         if (input) {
             return input.value.trim();
-        } else if (inputStatus){
-            const selectedOption = inputStatus.selectedOptions[0];
-            return selectedOption.value.trim();
         } else {
             const input = cell.querySelector('input[type="date"]');
             const value = input.value.trim();
@@ -612,3 +449,5 @@
 
 </script>
 </html>
+
+

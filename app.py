@@ -172,6 +172,7 @@ class TPRO_PLAN(db.Model):
     ISPO_STATUS = db.Column(db.CHAR(15))
     STVARNA_ISPORUKA = db.Column(db.DATE())
     DOG_ISPO = db.Column(db.DATE())
+    ID_PK = db.Column(db.INT(), primary_key=True)
 class TBA_KOS(db.Model):
     __tablename__ = 'TBA_KOS'
     Polizdelek = db.Column(db.CHAR(15))
@@ -709,7 +710,7 @@ def planiranjePripravnegaDelaLoad():
         #     print(group['prefix'], group['columns'])
 
         # Fetch rows from the TPRO_PLAN table
-        rows = TPRO_PLAN.query.order_by(asc(TPRO_PLAN.IDRN)).all()
+        rows = TPRO_PLAN.query.order_by(asc(TPRO_PLAN.ID_PK)).all()
         user_role = session["role"]
         # Check if rows are fetched
         if not rows:

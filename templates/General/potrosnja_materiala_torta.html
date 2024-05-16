@@ -128,7 +128,7 @@
         for (var key in groupedData) {
             if (groupedData.hasOwnProperty(key)) {
                 if (groupedData[key].count !== 0) {
-                    groupedData[key] = groupedData[key].sum / groupedData[key].count;
+                    groupedData[key] = groupedData[key].sum;
                 }
             }
         }

@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dates Data</title>
+    <style>
+        #table-container {
+            max-height: 600px; /* Adjust as needed */
+            overflow-y: auto;
+            margin-left: 14%;
+            width: 86%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+        th, td {
+            padding: 10px;
+            border: 0.5px solid #ddd;
+            text-align: center;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgb(220, 220, 220);
+        }
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="date"] {
+            width: 7vw;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+         /* CSS to make the "Edit" column fixed */
+        .edit-column {
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            right: 0;
+            z-index: 0; /* Ensure it's above other cells */
+        }
+
+        /* Optionally, you can style the "Edit" header cell */
+        #edit {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+        .hidePlans {
+            margin-left: 14%;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: lightblue;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h2>Plani</h2>
+        <nav id="navigacijaPlaniranja">
+            <button id="hideCompletedButton" class="hidePlans" onclick="hideCompletedPlans()">Hide completed plans</button>
+        </nav>
+        <div id="table-container"></div>
+    </div>
+</body>
+<script>
+    fetch('/planiranjePripravnegaDelaLoad')
+    .then(response => response.json())
+    .then(data => {
+        const columnGroups = data.column_groups; // Change variable name to columnGroups for clarity
+        const values = data.data;
+        const pravice = data.role;
+        console.log(data)
+        const tableContainer = document.getElementById('table-container');
+        const table = document.createElement('table');
+        table.style.margin = 'auto'; // Center the table horizontally
+        table.id = 'myTable';
+        const thead = document.createElement('thead');
+        const tbody = document.createElement('tbody');
+
+        const titleRow = document.createElement('tr');
+        titleRow.style.textAlign = 'center'; // Apply center alignment using CSS
+
+        // Create table headers
+        const headerRow = document.createElement('tr');
+        headerRow.addEventListener('keyup', function(event) {
+            const target = event.target;
+            if (target.tagName.toLowerCase() === 'input') {
+                const columnName = target.dataset.columnName; // Extract the column name from the dataset
+                filterTable(columnName);
+            }
+        });
+        const widthTheadValues = [15,7,8,6,10,3,6,3,7]
+        let colIndex = 0
+        // Iterate over column groups
+        columnGroups.forEach(group => {
+            const th = document.createElement('th');
+            const colspan = group.columns.length; // Get the size of the column group
+            th.colSpan = colspan; // Set colspan attribute
+            th.textContent = group.prefix; // Set the column group name as the text content
+            th.setAttribute('id', group.prefix);
+            titleRow.appendChild(th); // Append the th to the title row
+            // Add individual column names as th elements with colspan 1
+            group.columns.forEach(columnName => {
+                const subTh = document.createElement('th');
+                if (colIndex >= 9){
+                    subTh.setAttribute('id', group.prefix + '_' + columnName);
+                }else{
+                    subTh.setAttribute('id', columnName);
+                }
+                console.log("JAJAJAJJAJ", colIndex)
+                const input = document.createElement('input');
+                const br = document.createElement('br');
+                const headerRowSortBtn = document.createElement('button');
+                headerRowSortBtn.textContent = 'Sort';
+                headerRowSortBtn.style.backgroundColor = 'lightblue';
+                headerRowSortBtn.style.borderRadius = '5px';
+                headerRowSortBtn.addEventListener('click', function(event) {
+                    const target = event.target;
+                    const input = target.parentNode.querySelector('*'); // Find the nearest input element
+                    console.log("BLAAAAAA", input)
+                    if (input) {
+                        const columnIndices = getColumnIndicesFromInput(input);
+                        console.log("AAAAAAAAA", columnIndices)
+                        columnIndices.forEach(columnIndex => {
+                            if (columnIndex !== -1) {
+                                let dataType;
+                                if (input.placeholder === 'STATUS') {
+                                    dataType = 'status';
+                                } else {
+                                    dataType = getColumnType(columnIndex);
+                                }
+                                sortTable(columnIndex, dataType);
+                            }
+                        });
+                    }
+                });
+
+                input.type = 'text';
+                input.id = 'filter_' + columnName;
+                input.placeholder = columnName;
+                if (colIndex < 9) {
+                    input.style.width = widthTheadValues[colIndex] + 'vw';
+                } else {
+                    if ((colIndex - 10) % 4 === 1 || (colIndex - 10) % 4 === 2) { // Check if colIndex is 10, 11, 14, 15, etc.
+                        input.style.width = '4vw';
+                    } else {
+                        input.style.width = '5vw';
+                    }
+                }
+                colIndex++
+                input.dataset.columnName = columnName; // Store the column name in a data attribute
+                subTh.appendChild(input); // Append the input to the sub-header
+                subTh.appendChild(br); // Append a line break to the sub-header
+                subTh.appendChild(headerRowSortBtn); // Append the sort button to the sub-header
+                headerRow.appendChild(subTh); // Append the sub-th to the header row
+            });
+        });
+
+        const editHeaderCell = document.createElement('th');
+        editHeaderCell.id = 'edit';
+        editHeaderCell.textContent = "Edit";
+        headerRow.appendChild(editHeaderCell);
+
+        // Append the "Edit" header cell to the header row
+        if (pravice === 'MM2Pos') {
+            titleRow.querySelectorAll('th').forEach(th => {
+                // Check if the <th> element has an id attribute and its value is "Kupec"
+                if (th.id === 'KONSTRUKCIJA' || th.id === 'RAZREZ' || th.id === 'ZBIRANJE' || th.id === 'SESTAVLJANJE'
+                    || th.id === 'VARENJE' || th.id === 'ZARENJE' || th.id === 'BRUSENJE' || th.id === 'KONTR' || th.id === 'PESK') {
+                    // Hide the <th> element by setting its style display property to 'none'
+                    th.style.display = 'none';
+                }
+            });
+            headerRow.querySelectorAll('th').forEach(th => {
+                // Check if the <th> element has an id attribute and its value is "Kupec"
+                if (th.id === 'KONSTRUKCIJA_OD' || th.id === 'KONSTRUKCIJA_DO' || th.id === 'KONSTRUKCIJA_DANI' || th.id === 'KONSTRUKCIJA_STATUS'
+                    || th.id === 'RAZREZ_OD' || th.id === 'RAZREZ_DO' || th.id === 'RAZREZ_DANI' || th.id === 'RAZREZ_STATUS'
+                    || th.id === 'ZBIRANJE_OD' || th.id === 'ZBIRANJE_DO' || th.id === 'ZBIRANJE_DANI' || th.id === 'ZBIRANJE_STATUS'
+                    || th.id === 'SESTAVLJANJE_OD' || th.id === 'SESTAVLJANJE_DO' || th.id === 'SESTAVLJANJE_DANI' || th.id === 'SESTAVLJANJE_STATUS'
+                    || th.id === 'VARENJE_OD' || th.id === 'VARENJE_DO' || th.id === 'VARENJE_DANI' || th.id === 'VARENJE_STATUS'
+                    || th.id === 'ZARENJE_OD' || th.id === 'ZARENJE_DO' || th.id === 'ZARENJE_DANI' || th.id === 'ZARENJE_STATUS'
+                    || th.id === 'BRUSENJE_OD' || th.id === 'BRUSENJE_DO' || th.id === 'BRUSENJE_DANI' || th.id === 'BRUSENJE_STATUS'
+                    || th.id === 'KONTR_I_LAK_OD' || th.id === 'KONTR_DO' || th.id === 'KONTR_DANI' || th.id === 'KONTR_STATUS'
+                    || th.id === 'PESK_I_BARV_OD' || th.id === 'PESK_DO' || th.id === 'PESK_DANI' || th.id === 'PESK_STATUS'
+                ){
+                    // Hide the <th> element by setting its style display property to 'none'
+                    th.style.display = 'none';
+                }
+            });
+        }
+        thead.appendChild(titleRow);
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        const widthTbodyValues = [15,7,8,6,10,2,6,3,7]
+
+        // Create table rows
+        values.forEach((rowData, rowIndex) => {
+            const row = document.createElement('tr');
+            rowData.forEach((cellData, colIndex) => {
+                const cell = document.createElement('td');
+                console.log("values", values)
+                cell.style.border = '1px solid black'; // Add border style to each cell
+                const input = document.createElement('input');
+                if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
+                    // Parse string back to date object
+                    const dateParts = cellData.split(".");
+                    const formattedDate = dateParts[2] + '-' + (dateParts[1].length < 2 ? '0' : '') + dateParts[1] + '-' + (dateParts[0].length < 2 ? '0' : '') + dateParts[0];
+
+                    // Create input field for dates
+                    input.type = 'date';
+                    input.value = formattedDate;
+                    input.style.width = '6vw';
+                    input.disabled = true; // Disable input fields by default
+                    cell.appendChild(input);
+                } else {
+                    if (cellData === "I" || cellData === "J" || cellData === "K") {
+                        const select = document.createElement('select');
+                        select.style.width = '4vw';
+
+                        // Define options for colors and letters
+                        const options = [
+                            { value: 'I', label: 'I', color: 'gray' },
+                            { value: 'J', label: 'J', color: 'green' },
+                            { value: 'K', label: 'K', color: 'yellow' }
+                        ];
+
+                        // Create option elements and add them to the select element
+                        options.forEach(optionData  => {
+                            const option = document.createElement('option');
+                            option.value = optionData.value;
+                            option.textContent = optionData.label;
+                            option.dataset.color = optionData.color;
+                            option.style.backgroundColor = optionData.color;
+                            select.appendChild(option);
+                        });
+                        // Set initial background color based on cellData
+                        const selectedOption = options.find(option => option.value === cellData);
+                        select.style.backgroundColor = selectedOption.color;
+                        select.value = cellData;
+
+                        // Event listener to update background color on selection change
+                        select.addEventListener('change', () => {
+                            select.style.backgroundColor = select.options[select.selectedIndex].dataset.color;
+                        });
+
+                        // Append the select element to the cell
+                        select.disabled = true; // Disable input fields by default
+                        cell.appendChild(select);
+                    } else {
+                        // Create input field for other data
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = cellData;
+                        input.disabled = true; // Disable input fields by default
+                        if (colIndex < 9) {
+                            input.style.width = widthTbodyValues[colIndex] + 'vw';
+                        } else {
+                            input.style.width = '2vw';
+                        }
+
+                        cell.appendChild(input);
+                    }
+                    if (pravice === 'MM2Pos') {
+                            if (colIndex >= 18 && colIndex <= 21 || colIndex >= 50) {
+                                input.style.display = 'none';
+                            }
+                        }
+                }
+                input.disabled = true; // Disable input fields by default
+                if (pravice === 'MM2Pos') {
+                    if (colIndex >= 9 && colIndex <= 16 || colIndex >= 21 && colIndex <= 48) {
+                        console.log("TTTTTT", colIndex, "CELLDATA", cell)
+                        cell.setAttribute('class','hidden'); // Hiding the parent <td> element
+                    }
+                }
+                row.appendChild(cell);
+            });
+            // Add an Edit button to each row
+            const editCell = document.createElement('td');
+            editCell.classList.add('edit-column'); // Add a class to the cell for styling purposes
+            const editButton = document.createElement('button');
+            editButton.textContent = "Edit";
+            let editDateToggle = false;
+            document.addEventListener('keydown', function(event) {
+                if (editButton.textContent === "Submit" && event.key === "Escape") {
+                    row.querySelectorAll('input').forEach(input => {
+                        input.disabled = true;
+                    });
+                    editButton.textContent = "Edit";
+                    editDateToggle = false;
+                }
+            });
+            editButton.addEventListener('click', () => {
+                if (editDateToggle === false ){
+                    row.querySelectorAll('input').forEach(input => {
+                        if (input.type === 'date') {
+                            input.disabled = input.disabled !== true;
+                            editDateToggle = true;
+                        }
+                    });
+                    editButton.textContent = "Submit";
+                } else {
+                    if (editButton.textContent === "Submit") {
+                        const updatedRowData = [];
+                        row.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
+                            if (input.tagName === 'SELECT') { // Check if the element is a select element
+                                // Get the selected option value
+                                const selectedValue = input.options[input.selectedIndex].value;
+                                // Push the selected value into the updatedRowData array
+                                updatedRowData.push(selectedValue);
+                            } else { // For other input types (text and date)
+                                updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
+                            }
+                            // Disable the input element
+                            input.disabled = true;
+                        });
+                        console.log("Updated Row Data:", updatedRowData);
+                        const updatedData = { row: rowIndex, data: updatedRowData };
+                        // Send the updated data to the backend
+                        fetch('/planiranjePripravnegaDelaUpdate', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(updatedData)
+                        })
+                        .then(response => {
+                            if (response.ok) {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 500);
+                                console.log('Data updated successfully');
+                                // Optionally, you can handle success feedback here
+                            } else {
+                                console.error('Failed to update data');
+                                // Optionally, you can handle error feedback here
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            // Optionally, you can handle error feedback here
+                        });
+                        console.log("Updated Data:", updatedData);
+                        // Here you can send the updated data to the backend using fetch or any other method
+                    }
+                    editButton.textContent = "Edit";
+                    editDateToggle = false;
+                }
+            });
+            editCell.appendChild(editButton);
+            row.appendChild(editCell);
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+        tableContainer.appendChild(table);
+    })
+    .catch(error => console.error('Error:', error));
+
+
+    // Function to filter the table based on input values
+function filterTable() {
+    const table = document.getElementById("myTable");
+    const tbody = table.querySelector("tbody");
+    const filterInputs = document.querySelectorAll("thead input[type='text']");
+    const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
+
+    for (const row of tbody.rows) {
+        let rowVisible = true;
+
+        for (let i = 0; i < row.cells.length; i++) {
+            const cell = row.cells[i];
+            const filter = filters[i];
+
+            let cellValue = '';
+
+            // Check if the cell contains an input element
+            const input = cell.querySelector('input[type="text"]');
+            const dateInput = cell.querySelector('input[type="date"]');
+            const statusInput = cell.querySelector('select');
+            if (input) {
+                cellValue = input.value.trim().toUpperCase();
+            } else if (dateInput) {
+                cellValue = dateInput.value.trim().toUpperCase();
+
+                // Parse the date string into a Date object
+                var date = new Date(cellValue);
+
+                // Check if the parsed date is valid
+                if (!isNaN(date.getTime())) {
+                    // Format the date as dd/mm/yyyy
+                    cellValue = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
+                } else {
+                    // Handle invalid date input
+                    console.log("Invalid date input");
+                }
+                console.log(cellValue)
+            } else if (statusInput){
+                cellValue = statusInput.value.trim().toUpperCase();
+            }
+
+            // Apply filter only if filter input is not empty
+            if (filter) {
+                // Split the filter value by comma to support multiple criteria
+                const filterValues = filter.split(',');
+                // Check if any of the filter values match the cell content
+                const match = filterValues.some(filterValue => cellValue.includes(filterValue.trim()));
+                if (!match) {
+                    rowVisible = false;
+                    break; // Break if no match is found
+                }
+            }
+        }
+
+        row.style.display = rowVisible ? "" : "none";
+    }
+}
+    // Function to get the data type of column
+    function getColumnType(columnIndex) {
+        console.log("Column Index AAAAA:", columnIndex)
+        if ([3, 5, 6, 11].includes(columnIndex)) {
+            return 'integer';
+        } else if ([9, 10, 53, 55, 56].includes(columnIndex)) {
+            return 'date';
+        } else {
+            // Default to string if not explicitly defined
+            return 'string';
+        }
+    }
+
+    function sortTable(columnIndex, dataType) {
+    const table = document.getElementById("myTable");
+    const tbody = table.querySelector("tbody");
+    const rows = Array.from(tbody.rows);
+
+    // Determine the current sorting order of the column
+    const sortOrder = table.dataset.sortOrder || "asc";
+
+    rows.sort((a, b) => {
+        const aValue = getDataValue(a.cells[columnIndex], dataType);
+        console.log("A Value:", aValue)
+        const bValue = getDataValue(b.cells[columnIndex], dataType);
+        console.log("B Value:", bValue)
+
+        // Compare the values based on the sorting order
+        let comparison;
+        if (dataType === 'date') {
+            comparison = new Date(aValue) - new Date(bValue);
+        } else {
+
+            comparison = aValue.localeCompare(bValue);
+        }
+
+        // Reverse the comparison if sorting in descending order
+        return sortOrder === "asc" ? comparison : -comparison;
+    });
+
+    // Toggle the sorting order for the next click
+    table.dataset.sortOrder = sortOrder === "asc" ? "desc" : "asc";
+
+    // Re-append sorted rows to tbody
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+}
+
+    // Function to get the value of a cell considering input type
+    function getDataValue(cell, dataType) {
+        if (dataType !== 'status') {
+            const cellInput = cell.querySelector('input');
+            dataType = cellInput.getAttribute('type');
+        }
+        if (dataType === 'string') {
+            const input = cell.querySelector('input[type="text"]');
+            if (input !== ""){
+                console.log("InputAAAAA:", input)
+                return input.value.trim();
+            } else{
+                return "AGAGAG";
+            }
+        } else if (dataType === 'date'){
+            const input = cell.querySelector('input[type="date"]');
+            const value = input.value.trim();
+            // Convert date string to a JavaScript Date object
+            const dateParts = value.split("-");
+            const year = parseInt(dateParts[2], 10);
+            const month = parseInt(dateParts[1], 10) - 1; // Months are 0-based in JavaScript Date object
+            const day = parseInt(dateParts[0], 10);
+            return new Date(year, month, day);
+        } else if (dataType === 'status') {
+            return cell.value
+        } else {
+            const input = cell.querySelector('input[type="text"]');
+            return input.value.trim();
+        }
+    }
+
+    function getColumnIndicesFromInput(input) {
+        const columnName = input.dataset.columnName;
+        const table = document.getElementById("myTable");
+        const headers = table.querySelectorAll('th input[data-column-name]');
+        const indices = [];
+
+        // Loop through each header
+        for (let i = 0; i < headers.length; i++) {
+            // Check if the data-column-name attribute matches the columnName
+            if (headers[i].dataset.columnName === columnName) {
+                // Store the index of the header
+                indices.push(i);
+            }
+        }
+
+        return indices.length > 0 ? indices : [-1]; // Return an array of indices or -1 if not found
+    }
+
+    function hideCompletedPlans() {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.rows);
+        console.log("NEKAJ")
+
+        rows.forEach(row => {
+            const isCompleted = isAllColumnsJ(row, 'status');
+            if (isCompleted) {
+                row.style.display = 'none';
+            }
+        });
+
+        // Change button text to "Unhide completed plans"
+        const hideCompletedButton = document.querySelector("#hideCompletedButton");
+        hideCompletedButton.textContent = "Unhide completed plans";
+        hideCompletedButton.removeEventListener("click", hideCompletedPlans);
+        hideCompletedButton.addEventListener("click", unhideCompletedPlans);
+    }
+
+    // Function to unhide completed plans
+    function unhideCompletedPlans() {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.rows);
+
+        rows.forEach(row => {
+            row.style.display = ''; // Reset display property to show the row
+        });
+
+        // Change button text back to "Hide completed plans"
+        const hideCompletedButton = document.querySelector("#hideCompletedButton");
+        hideCompletedButton.textContent = "Hide completed plans";
+        hideCompletedButton.removeEventListener("click", unhideCompletedPlans);
+        hideCompletedButton.addEventListener("click", hideCompletedPlans);
+    }
+
+    // Button click event to hide completed plans
+    const hideCompletedButton = document.querySelector("#hideCompletedButton");
+    hideCompletedButton.addEventListener("click", hideCompletedPlans);
+
+
+    // Function to check if all columns in a row have value 'J'
+    function isAllColumnsJ(row, dataType) {
+        let allColumnsJ = true;
+        const statusRow = row.querySelectorAll('select')
+        console.log("Status row:", statusRow.length)
+        for (let i = 0; i < statusRow.length; i++) {
+            const cell = statusRow[i];
+            console.log("Index:", i, "Cell:", cell, "DT", dataType)
+            const cellValue = getDataValue(cell, dataType);
+            console.log("Cell Value BTN:", cellValue)
+            if (cellValue !== 'J') {
+                allColumnsJ = false;
+                console.log("Index inside:", i, "Value:", cellValue)
+                break;
+            }
+        }
+        return allColumnsJ;
+    }
+
+    // Function to simulate a click event on the button
+    function simulateButtonClick() {
+        // Select the button element
+        const hideCompletedButton = document.getElementById('hideCompletedButton');
+        // Simulate a click event on the button
+        hideCompletedButton.click();
+    }
+
+    window.onload = hideCompletedPlans;
+</script>
+</html>
+
+

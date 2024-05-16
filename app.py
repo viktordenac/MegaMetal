@@ -669,6 +669,13 @@ def planiranjePripravnegaDela():
     return render_template('planiranje_pripravnega_dela.html', stranice_list=session["stranice"])
 
 
+@app.route('/planiranjePripravnegaDelaPravice')
+def planiranjePripravnegaDelaPravice():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    return render_template('planiranje_pripravnega_dela_PRAVICE.html', stranice_list=session["stranice"])
+
+
 from collections import defaultdict
 
 
@@ -776,8 +783,8 @@ def get_next_valid_date(start_date, add_days=None):
 @app.route('/planiranjePripravnegaDelaUpdate', methods=['POST'])
 def update_planiranje_pripravnega_Dela():
     import datetime
-    print(session["name"])
     updated_data = request.json
+    print(updated_data)
     podatki_stranice = updated_data['data']
     id_rn = updated_data['data'][6]
     record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()

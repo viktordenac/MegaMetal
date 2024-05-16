@@ -184,6 +184,26 @@
         editHeaderCell.textContent = "Edit";
         headerRow.appendChild(editHeaderCell);
 
+        if (pravice === 'MM1Pos'){
+            titleRow.querySelectorAll('th').forEach(th => {
+                // Check if the <th> element has an id attribute and its value is "Kupec"
+                if (th.id === 'KONSTRUKCIJA' || th.id === 'RAZREZ' || th.id === 'MPO') {
+                    // Hide the <th> element by setting its style display property to 'none'
+                    th.style.display = 'none';
+                }
+            });
+            headerRow.querySelectorAll('th').forEach(th => {
+                // Check if the <th> element has an id attribute and its value is "Kupec"
+                if (th.id === 'KONSTRUKCIJA_OD' || th.id === 'KONSTRUKCIJA_DO' || th.id === 'KONSTRUKCIJA_DANI' || th.id === 'KONSTRUKCIJA_STATUS'
+                    || th.id === 'RAZREZ_OD' || th.id === 'RAZREZ_DO' || th.id === 'RAZREZ_DANI' || th.id === 'RAZREZ_STATUS'
+                    || th.id === 'MPO_OD' || th.id === 'MPO_DO' || th.id === 'MPO_DANI' || th.id === 'MPO_STATUS'
+                ){
+                    // Hide the <th> element by setting its style display property to 'none'
+                    th.style.display = 'none';
+                }
+            });
+        }
+
         // Append the "Edit" header cell to the header row
         if (pravice === 'MM2Pos') {
             titleRow.querySelectorAll('th').forEach(th => {
@@ -205,6 +225,34 @@
                     || th.id === 'BRUSENJE_OD' || th.id === 'BRUSENJE_DO' || th.id === 'BRUSENJE_DANI' || th.id === 'BRUSENJE_STATUS'
                     || th.id === 'KONTR_I_LAK_OD' || th.id === 'KONTR_DO' || th.id === 'KONTR_DANI' || th.id === 'KONTR_STATUS'
                     || th.id === 'PESK_I_BARV_OD' || th.id === 'PESK_DO' || th.id === 'PESK_DANI' || th.id === 'PESK_STATUS'
+                ){
+                    // Hide the <th> element by setting its style display property to 'none'
+                    th.style.display = 'none';
+                }
+            });
+        }
+        if (pravice === 'KonPos') {
+            titleRow.querySelectorAll('th').forEach(th => {
+                // Check if the <th> element has an id attribute and its value is "Kupec"
+                if (th.id === 'RAZREZ' || th.id === 'MPO' || th.id === 'ZBIRANJE' || th.id === 'SESTAVLJANJE' || th.id === 'VARENJE'
+                    || th.id === 'ZARENJE' || th.id === 'BRUSENJE' || th.id === 'KONTR' || th.id === 'PESK' || th.id === 'MEHANSKA'
+                ) {
+                    // Hide the <th> element by setting its style display property to 'none'
+                    th.style.display = 'none';
+                }
+            });
+            headerRow.querySelectorAll('th').forEach(th => {
+                // Check if the <th> element has an id attribute and its value is "Kupec"
+                if (th.id === 'RAZREZ_OD' || th.id === 'RAZREZ_DO' || th.id === 'RAZREZ_DANI' || th.id === 'RAZREZ_STATUS'
+                    || th.id === 'MPO_OD' || th.id === 'MPO_DO' || th.id === 'MPO_DANI' || th.id === 'MPO_STATUS'
+                    || th.id === 'ZBIRANJE_OD' || th.id === 'ZBIRANJE_DO' || th.id === 'ZBIRANJE_DANI' || th.id === 'ZBIRANJE_STATUS'
+                    || th.id === 'SESTAVLJANJE_OD' || th.id === 'SESTAVLJANJE_DO' || th.id === 'SESTAVLJANJE_DANI' || th.id === 'SESTAVLJANJE_STATUS'
+                    || th.id === 'VARENJE_OD' || th.id === 'VARENJE_DO' || th.id === 'VARENJE_DANI' || th.id === 'VARENJE_STATUS'
+                    || th.id === 'ZARENJE_OD' || th.id === 'ZARENJE_DO' || th.id === 'ZARENJE_DANI' || th.id === 'ZARENJE_STATUS'
+                    || th.id === 'BRUSENJE_OD' || th.id === 'BRUSENJE_DO' || th.id === 'BRUSENJE_DANI' || th.id === 'BRUSENJE_STATUS'
+                    || th.id === 'KONTR_I_LAK_OD' || th.id === 'KONTR_DO' || th.id === 'KONTR_DANI' || th.id === 'KONTR_STATUS'
+                    || th.id === 'PESK_I_BARV_OD' || th.id === 'PESK_DO' || th.id === 'PESK_DANI' || th.id === 'PESK_STATUS'
+                    || th.id === 'MEHANSKA_OBDELAVA_OD' || th.id === 'MEHANSKA_DO' || th.id === 'MEHANSKA_DANI' || th.id === 'MEHANSKA_STATUS'
                 ){
                     // Hide the <th> element by setting its style display property to 'none'
                     th.style.display = 'none';
@@ -283,15 +331,20 @@
 
                         cell.appendChild(input);
                     }
-                    if (pravice === 'MM2Pos') {
-                            if (colIndex >= 18 && colIndex <= 21 || colIndex >= 50) {
-                                input.style.display = 'none';
-                            }
-                        }
                 }
                 input.disabled = true; // Disable input fields by default
-                if (pravice === 'MM2Pos') {
+                if (pravice === 'MM1Pos') {
+                    if (colIndex >= 9 && colIndex <= 20) {
+                        console.log("TTTTTT", colIndex, "CELLDATA", cell)
+                        cell.setAttribute('class','hidden'); // Hiding the parent <td> element
+                    }
+                }else if (pravice === 'MM2Pos') {
                     if (colIndex >= 9 && colIndex <= 16 || colIndex >= 21 && colIndex <= 48) {
+                        console.log("TTTTTT", colIndex, "CELLDATA", cell)
+                        cell.setAttribute('class','hidden'); // Hiding the parent <td> element
+                    }
+                }else if (pravice === 'KonPos') {
+                    if (colIndex >= 13 && colIndex <= 52) {
                         console.log("TTTTTT", colIndex, "CELLDATA", cell)
                         cell.setAttribute('class','hidden'); // Hiding the parent <td> element
                     }
@@ -439,7 +492,6 @@ function filterTable() {
 }
     // Function to get the data type of column
     function getColumnType(columnIndex) {
-        console.log("Column Index AAAAA:", columnIndex)
         if ([3, 5, 6, 11].includes(columnIndex)) {
             return 'integer';
         } else if ([9, 10, 53, 55, 56].includes(columnIndex)) {
@@ -460,9 +512,7 @@ function filterTable() {
 
     rows.sort((a, b) => {
         const aValue = getDataValue(a.cells[columnIndex], dataType);
-        console.log("A Value:", aValue)
         const bValue = getDataValue(b.cells[columnIndex], dataType);
-        console.log("B Value:", bValue)
 
         // Compare the values based on the sorting order
         let comparison;
@@ -494,7 +544,6 @@ function filterTable() {
         if (dataType === 'string') {
             const input = cell.querySelector('input[type="text"]');
             if (input !== ""){
-                console.log("InputAAAAA:", input)
                 return input.value.trim();
             } else{
                 return "AGAGAG";
@@ -538,7 +587,6 @@ function filterTable() {
         const table = document.getElementById("myTable");
         const tbody = table.querySelector("tbody");
         const rows = Array.from(tbody.rows);
-        console.log("NEKAJ")
 
         rows.forEach(row => {
             const isCompleted = isAllColumnsJ(row, 'status');
@@ -580,15 +628,11 @@ function filterTable() {
     function isAllColumnsJ(row, dataType) {
         let allColumnsJ = true;
         const statusRow = row.querySelectorAll('select')
-        console.log("Status row:", statusRow.length)
         for (let i = 0; i < statusRow.length; i++) {
             const cell = statusRow[i];
-            console.log("Index:", i, "Cell:", cell, "DT", dataType)
             const cellValue = getDataValue(cell, dataType);
-            console.log("Cell Value BTN:", cellValue)
             if (cellValue !== 'J') {
                 allColumnsJ = false;
-                console.log("Index inside:", i, "Value:", cellValue)
                 break;
             }
         }

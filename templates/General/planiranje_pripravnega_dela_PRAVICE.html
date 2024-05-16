@@ -281,6 +281,33 @@
                     th.style.display = 'none';
                 }
             });
+        }else if (pravice === 'SkladPos'){
+            titleRow.querySelectorAll('th').forEach(th => {
+                // Check if the <th> element has an id attribute and its value is "Kupec"
+                if (th.id === 'KONSTRUKCIJA' || th.id === 'RAZREZ' || th.id === 'MPO' || th.id === 'SESTAVLJANJE'
+                    || th.id === 'VARENJE' || th.id === 'ZARENJE' || th.id === 'BRUSENJE' || th.id === 'KONTR' || th.id === 'PESK'
+                    || th.id === 'MEHANSKA') {
+                    // Hide the <th> element by setting its style display property to 'none'
+                    th.style.display = 'none';
+                }
+            });
+            headerRow.querySelectorAll('th').forEach(th => {
+                // Check if the <th> element has an id attribute and its value is "Kupec"
+                if (th.id === 'KONSTRUKCIJA_OD' || th.id === 'KONSTRUKCIJA_DO' || th.id === 'KONSTRUKCIJA_DANI' || th.id === 'KONSTRUKCIJA_STATUS'
+                    || th.id === 'RAZREZ_OD' || th.id === 'RAZREZ_DO' || th.id === 'RAZREZ_DANI' || th.id === 'RAZREZ_STATUS'
+                    || th.id === 'MPO_OD' || th.id === 'MPO_DO' || th.id === 'MPO_DANI' || th.id === 'MPO_STATUS'
+                    || th.id === 'SESTAVLJANJE_OD' || th.id === 'SESTAVLJANJE_DO' || th.id === 'SESTAVLJANJE_DANI' || th.id === 'SESTAVLJANJE_STATUS'
+                    || th.id === 'VARENJE_OD' || th.id === 'VARENJE_DO' || th.id === 'VARENJE_DANI' || th.id === 'VARENJE_STATUS'
+                    || th.id === 'ZARENJE_OD' || th.id === 'ZARENJE_DO' || th.id === 'ZARENJE_DANI' || th.id === 'ZARENJE_STATUS'
+                    || th.id === 'BRUSENJE_OD' || th.id === 'BRUSENJE_DO' || th.id === 'BRUSENJE_DANI' || th.id === 'BRUSENJE_STATUS'
+                    || th.id === 'KONTR_I_LAK_OD' || th.id === 'KONTR_DO' || th.id === 'KONTR_DANI' || th.id === 'KONTR_STATUS'
+                    || th.id === 'PESK_I_BARV_OD' || th.id === 'PESK_DO' || th.id === 'PESK_DANI' || th.id === 'PESK_STATUS'
+                    || th.id === 'MEHANSKA_OBDELAVA_OD' || th.id === 'MEHANSKA_DO' || th.id === 'MEHANSKA_DANI' || th.id === 'MEHANSKA_STATUS'
+                ){
+                    // Hide the <th> element by setting its style display property to 'none'
+                    th.style.display = 'none';
+                }
+            });
         }
         thead.appendChild(titleRow);
         thead.appendChild(headerRow);
@@ -371,9 +398,13 @@
                         console.log("TTTTTT", colIndex, "CELLDATA", cell)
                         cell.setAttribute('class','hidden'); // Hiding the parent <td> element
                     }
-                }
-                else if (pravice === 'RezPos') {
+                }else if (pravice === 'RezPos') {
                     if (colIndex >= 9 && colIndex <= 12 || colIndex >= 17 && colIndex <= 20 || colIndex >= 25 && colIndex <= 52) {
+                        console.log("TTTTTT", colIndex, "CELLDATA", cell)
+                        cell.setAttribute('class','hidden'); // Hiding the parent <td> element
+                    }
+                }else if (pravice === 'SkladPos') {
+                    if (colIndex >= 9 && colIndex <= 20 || colIndex >= 25 && colIndex <= 52) {
                         console.log("TTTTTT", colIndex, "CELLDATA", cell)
                         cell.setAttribute('class','hidden'); // Hiding the parent <td> element
                     }

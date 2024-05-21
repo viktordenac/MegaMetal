@@ -681,10 +681,19 @@ def planiranjePripravnegaDela():
     columns = [column.key for column in TPRO_PLAN.__table__.columns]
     # Convert the rows to a dictionary
     data = []
+
+    def reformat_date(date_str):
+        if date_str:
+            return datetime.strptime(str(date_str), "%Y-%m-%d").strftime("%d/%m/%Y")
+        return date_str
+
     for row in rows:
         row_data = {}
         for column in columns:
-            row_data[column] = getattr(row, column)
+            value = getattr(row, column)
+            if column.endswith('_OD') or column.endswith('_DO'):
+                value = reformat_date(value)
+            row_data[column] = value
         data.append(row_data)
     # Create DataFrame from the dictionary
     df = pd.DataFrame(data)
@@ -831,6 +840,7 @@ def update_planiranje_pripravnega_Dela():
     from decimal import Decimal
     modified_record_list = []
     for item in record_list:
+
         if isinstance(item, Decimal):
             modified_record_list.append(int(item))  # Convert Decimal to int
         elif isinstance(item, datetime.date):
@@ -840,7 +850,7 @@ def update_planiranje_pripravnega_Dela():
                 modified_record_list.append(item.strftime('%m/%d/%Y'))  # Format date
         else:
             modified_record_list.append(item)
-    record_titles = []
+    print(modified_record_list)
     differences = [i for i, (x, y) in enumerate(zip(podatki_stranice, modified_record_list)) if str(x) != str(y)]
     print("Indexes with different values:", differences)
     for index in differences[:]:  # using [:] to create a copy of the list to avoid modifying it while iterating
@@ -854,7 +864,7 @@ def update_planiranje_pripravnega_Dela():
     list_dani=[11,15,19,23,27,31,35,39,43,47,51,53]
     list_to_change_status = [12,16,20,24,28,32,36,40,44,48,52,54]
     mjenjan=0
-    indexes = [9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42,45,46,49,50]
+    indexes = [9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42,45,46]
     date_format = "%d/%m/%Y"
     # Ako je izmjenjen STATUS
     if differences[0] in list_to_change_status:
@@ -948,10 +958,12 @@ def update_planiranje_pripravnega_Dela():
     # update datum isporuke
     if mjenjan==0:
         for idx in indexes:
+            print(idx)
+            print(modified_record_list[idx])
             try:
                 modified_record_list[idx] = datetime.datetime.strptime(modified_record_list[idx], '%d/%m/%Y')
-            except:
-                print("")
+            except Exception as e:
+                print(e)
         selected_dates = [modified_record_list[i] for i in filtered_indexes if isinstance(modified_record_list[i], datetime.datetime)]
         # Find the maximum date
         max_date = max(selected_dates)

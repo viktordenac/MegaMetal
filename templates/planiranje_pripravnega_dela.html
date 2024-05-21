@@ -125,6 +125,26 @@
         </div>
     </div>
 <script>
+    function submitRowData(row, button) {
+        const updatedRowData = Array.from(row.querySelectorAll('input')).map(input => {
+            return input.value;
+        });
+        const updatedData = { row: row.rowIndex, data: updatedRowData };
+        fetch('/planiranjePripravnegaDelaUpdate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedData)
+        })
+        .then(response => {
+            if (response.ok) {
+                toggleEditState(row, button); // Switch back to non-editing mode
+            } else {
+                console.error('Error:', response);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
     function toggleEditState(row, button) {
         // Determine if we are entering or exiting edit mode
         const isEditing = button.textContent === 'Edit';
@@ -140,8 +160,14 @@
         }
 
         // Update the button text based on the current state
-        button.textContent = isEditing ? 'Submit' : 'Edit';
+        if (isEditing) {
+            button.textContent = 'Submit';
+        } else {
+            button.textContent = 'Edit';
+            submitRowData(row, button); // Call the new function to submit the data
+        }
     }
+
 
 
     function sortTable(column) {

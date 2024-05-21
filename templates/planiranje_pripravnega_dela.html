@@ -3,11 +3,322 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../../static/style/smallScreen.css">
+    <title>Dates Data</title>
+	<style>
+        #table-container {
+            max-height: 600px; /* Adjust as needed */
+            overflow-y: auto;
+            margin-left: 14%;
+            width: 86%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+        th, td {
+            padding: 10px;
+            border: 0.5px solid #ddd;
+            text-align: center;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgb(220, 220, 220);
+        }
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="date"] {
+            width: 7vw;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+         /* CSS to make the "Edit" column fixed */
+        .edit-column {
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            right: 0;
+            z-index: 0; /* Ensure it's above other cells */
+        }
+
+        /* Optionally, you can style the "Edit" header cell */
+        #edit {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+        .hidePlans {
+            margin-left: 14%;
+            margin-top: 10px;
+            padding: 5px;
+            background-color: lightblue;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
-    <!-- Include the navigation bar using JavaScript -->
-    {% include 'navigation.html' %}
-    {% include '/General/planiranje_pripravnega_dela.html' %}
+    <div>
+        {% include 'navigation.html' %}
+        <h2>Plani</h2>
+        <nav id="navigacijaPlaniranja">
+            <button id="hideCompletedButton" class="hidePlans" onclick="hideCompletedPlans()">Hide completed plans</button>
+        </nav>
+        <div id="table-container">
+            <table id="myTable">
+                <thead>
+                    <tr>
+                        {% for column in column_names %}
+                            <th>{{ column }}</th>
+                        {% endfor %}
+                        <th id="edit">Edit</th> <!-- Assuming you have an 'Edit' column -->
+                    </tr>
+                    <tr>
+                        {% for column in column_names %}
+                            <th>
+                                <input type="text" data-column-name="{{ column }}" onkeyup="filterTable()" placeholder="{{ column }}:">
+                                <button class="sort-button" onclick="sortTable('{{ column }}')">
+                                    {% if column_to_sort == col %}
+                                        {% if ascending %}
+                                            Asc
+                                        {% else %}
+                                            Desc
+                                        {% endif %}
+                                    {% else %}
+                                        Sort
+                                    {% endif %}
+                                </button>
+                            </th>
+                        {% endfor %}
+                        <th></th> <!-- Empty header for the 'Edit' column -->
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in row_data %}
+                        <tr>
+                            {% for cell in row %}
+                                <td><input type="text" value="{{ cell }}" disabled></td>
+                            {% endfor %}
+                            <td class="edit-column">
+                                <button onclick="toggleEditState(this.parentElement.parentElement, this)">Edit</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+<script>
+    function toggleEditState(row, button) {
+        // Determine if we are entering or exiting edit mode
+        const isEditing = button.textContent === 'Edit';
+
+        // Toggle the disabled state of inputs in the specified range
+        for (const cell of row.cells) {
+            if (cell.cellIndex >= 9 && cell.cellIndex <= 52) {
+                const input = cell.querySelector('input');
+                if (input) {
+                    input.disabled = !isEditing;
+                }
+            }
+        }
+
+        // Update the button text based on the current state
+        button.textContent = isEditing ? 'Submit' : 'Edit';
+    }
+
+
+    function sortTable(column) {
+        console.log(column);
+        var url = new URL(window.location.href);
+        var sort_by = url.searchParams.get("sort_by");
+        var ascending = url.searchParams.get("ascending") === "true";
+
+        // If already sorting by the same column, toggle ascending/descending
+        if (sort_by === column) {
+            ascending = !ascending;
+        } else {
+            // Default to ascending order if sorting by a new column
+            ascending = true;
+        }
+
+        // Update query parameters
+        url.searchParams.set("sort_by", column);
+        url.searchParams.set("ascending", ascending);
+
+        // Redirect to the updated URL
+        window.location.href = url.toString();
+    }
+
+    function clearSort(event, column) {
+        event.stopPropagation();  // Prevent the sortTable function from being called
+
+        var url = new URL(window.location.href);
+        url.searchParams.delete("sort_by");
+        url.searchParams.delete("ascending");
+
+        // Redirect to the updated URL
+        window.location.href = url.toString();
+    }
+    // Function to filter the table based on input values
+function filterTable() {
+    const table = document.getElementById("myTable");
+    const tbody = table.querySelector("tbody");
+    const filterInputs = document.querySelectorAll("thead input[type='text']");
+    const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
+
+    for (const row of tbody.rows) {
+        let rowVisible = true;
+
+        for (let i = 0; i < row.cells.length; i++) {
+            const cell = row.cells[i];
+            const filter = filters[i];
+
+            let cellValue = '';
+
+            // Check if the cell contains an input element
+            const input = cell.querySelector('input[type="text"]');
+            const dateInput = cell.querySelector('input[type="date"]');
+            const statusInput = cell.querySelector('select');
+            if (input) {
+                cellValue = input.value.trim().toUpperCase();
+            } else if (dateInput) {
+                cellValue = dateInput.value.trim().toUpperCase();
+
+                // Parse the date string into a Date object
+                var date = new Date(cellValue);
+
+                // Check if the parsed date is valid
+                if (!isNaN(date.getTime())) {
+                    // Format the date as dd/mm/yyyy
+                    cellValue = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
+                } else {
+                    // Handle invalid date input
+                }
+            } else if (statusInput){
+                cellValue = statusInput.value.trim().toUpperCase();
+            }
+
+            // Apply filter only if filter input is not empty
+            if (filter) {
+                // Split the filter value by comma to support multiple criteria
+                const filterValues = filter.split(',');
+                // Check if any of the filter values match the cell content
+                const match = filterValues.some(filterValue => cellValue.includes(filterValue.trim()));
+                if (!match) {
+                    rowVisible = false;
+                    break; // Break if no match is found
+                }
+            }
+        }
+
+        row.style.display = rowVisible ? "" : "none";
+    }
+}
+
+    // Function to get the value of a cell considering input type
+    function getDataValue(cell, dataType) {
+        if (dataType !== 'status') {
+            const cellInput = cell.querySelector('input');
+            dataType = cellInput.getAttribute('type');
+        }
+        if (dataType === 'string') {
+            const input = cell.querySelector('input[type="text"]');
+            if (input !== ""){
+                return input.value.trim();
+            } else{
+                return "AGAGAG";
+            }
+        } else if (dataType === 'date'){
+            const input = cell.querySelector('input[type="date"]');
+            const value = input.value.trim();
+            // Convert date string to a JavaScript Date object
+            const dateParts = value.split("-");
+            const year = parseInt(dateParts[2], 10);
+            const month = parseInt(dateParts[1], 10) - 1; // Months are 0-based in JavaScript Date object
+            const day = parseInt(dateParts[0], 10);
+            return new Date(year, month, day);
+        } else if (dataType === 'status') {
+            return cell.value
+        } else {
+            const input = cell.querySelector('input[type="text"]');
+            return input.value.trim();
+        }
+    }
+
+    function hideCompletedPlans() {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.rows);
+
+        rows.forEach(row => {
+            const isCompleted = isAllColumnsJ(row, 'status');
+            if (isCompleted) {
+                row.style.display = 'none';
+            }
+        });
+
+        // Change button text to "Unhide completed plans"
+        const hideCompletedButton = document.querySelector("#hideCompletedButton");
+        hideCompletedButton.textContent = "Unhide completed plans";
+        hideCompletedButton.removeEventListener("click", hideCompletedPlans);
+        hideCompletedButton.addEventListener("click", unhideCompletedPlans);
+    }
+
+    // Function to unhide completed plans
+    function unhideCompletedPlans() {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.rows);
+
+        rows.forEach(row => {
+            row.style.display = ''; // Reset display property to show the row
+        });
+
+        // Change button text back to "Hide completed plans"
+        const hideCompletedButton = document.querySelector("#hideCompletedButton");
+        hideCompletedButton.textContent = "Hide completed plans";
+        hideCompletedButton.removeEventListener("click", unhideCompletedPlans);
+        hideCompletedButton.addEventListener("click", hideCompletedPlans);
+    }
+
+    // Button click event to hide completed plans
+    const hideCompletedButton = document.querySelector("#hideCompletedButton");
+    hideCompletedButton.addEventListener("click", hideCompletedPlans);
+
+
+    // Function to check if all columns in a row have value 'J'
+    function isAllColumnsJ(row, dataType) {
+        let allColumnsJ = true;
+        const statusRow = row.querySelectorAll('select')
+        for (let i = 0; i < statusRow.length; i++) {
+            const cell = statusRow[i];
+            const cellValue = getDataValue(cell, dataType);
+            if (cellValue !== 'J') {
+                allColumnsJ = false;
+                break;
+            }
+        }
+        return allColumnsJ;
+    }
+
+    //window.onload = hideCompletedPlans;
+</script>
 </body>
 </html>

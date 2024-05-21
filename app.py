@@ -17,7 +17,7 @@ import json
 from flask import Flask, render_template, redirect, url_for, send_file, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, select, exists, text, asc
+from sqlalchemy import func, select, exists, text, asc, extract
 from io import BytesIO
 from sqlalchemy.exc import IntegrityError
 from realizirano import Realizirano
@@ -666,7 +666,37 @@ def delete_tev_evid():
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-    return render_template('planiranje_pripravnega_dela.html', stranice_list=session["stranice"])
+    print("loaaaaaaaaaaaaaaaaaaaaaaaaaaaaad")
+    # Get the current year and month
+    now = datetime.now()
+    current_year = now.year
+    current_month = now.month
+
+    # Query to get records from the current month
+    rows = (db.session.query(TPRO_PLAN)
+            .filter(extract('year', TPRO_PLAN.KONSTRUKCIJA_OD) == current_year)
+            .filter(extract('month', TPRO_PLAN.KONSTRUKCIJA_OD) == current_month)
+            .order_by(TPRO_PLAN.ID_PK.asc())
+            .all())    # Get column names from the SQLAlchemy model
+    columns = [column.key for column in TPRO_PLAN.__table__.columns]
+    # Convert the rows to a dictionary
+    data = []
+    for row in rows:
+        row_data = {}
+        for column in columns:
+            row_data[column] = getattr(row, column)
+        data.append(row_data)
+    # Create DataFrame from the dictionary
+    df = pd.DataFrame(data)
+    # Sorting
+    column_to_sort = request.args.get('sort_by', None)
+    ascending = request.args.get('ascending', 'true').lower() == 'true'
+    if column_to_sort:
+        df = df.sort_values(by=column_to_sort, ascending=ascending)
+
+    return render_template('planiranje_pripravnega_dela.html', column_names=df.columns.values,
+                           row_data=list(df.values.tolist()), link_column="Patient ID", zip=zip,
+                           column_to_sort=column_to_sort, ascending=ascending, stranice_list=session["stranice"])
 
 
 @app.route('/planiranjePripravnegaDelaPravice')
@@ -684,6 +714,10 @@ from collections import defaultdict
 @app.route('/planiranjePripravnegaDelaLoad', methods=['GET'])
 def planiranjePripravnegaDelaLoad():
     import datetime
+    import time  # Import the time module
+
+    start_time = time.time()  # Record the start time
+
     if not is_authenticated():
         return redirect(url_for("login"))
 
@@ -735,11 +769,14 @@ def planiranjePripravnegaDelaLoad():
                 formatted_row.append(value)
             data.append(formatted_row)
 
+        end_time = time.time()  # Record the end time
+        execution_time = end_time - start_time  # Calculate the execution time
+        print(f"Execution time: {execution_time:.4f} seconds")  # Print the execution time
+
         # Return the JSON response with column groups
-        return jsonify({'column_groups': column_groups, 'data': data, 'role': user_role})
+        return jsonify({'column_groups': column_groups, 'data': data, 'role': user_role, 'execution_time': execution_time})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
 
 
 # Route to handle submitting updated data

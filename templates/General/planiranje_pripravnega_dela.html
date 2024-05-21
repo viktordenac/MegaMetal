@@ -1,69 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dates Data</title>
     <style>
         #table-container {
-            max-height: 600px; /* Adjust as needed */
+            max-height: 600px;
             overflow-y: auto;
             margin-left: 14%;
             width: 86%;
         }
+
         table {
             width: 100%;
             border-collapse: collapse;
+            margin: auto;
         }
+
         thead {
             font-size: 15px;
             table-layout: fixed;
-            background-color: #b6b6b6; /* Background color of floating header */
+            background-color: #b6b6b6;
             position: sticky;
             top: 0;
-            z-index: 1; /* Ensure the floating header stays on top of the table */
+            z-index: 1;
         }
-        th, td {
+
+        th,
+        td {
             padding: 10px;
             border: 0.5px solid #ddd;
             text-align: center;
         }
+
         body {
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
             background-color: rgb(220, 220, 220);
         }
-        h1, h2 {
+
+        h1,
+        h2 {
             text-align: center;
             margin-top: 20px;
         }
+
         label {
             display: block;
             margin-bottom: 5px;
         }
-        input[type="text"], input[type="date"] {
+
+        input[type="text"],
+        input[type="date"] {
             width: 7vw;
             padding: 5px;
             box-sizing: border-box;
         }
-         /* CSS to make the "Edit" column fixed */
+
         .edit-column {
-            background-color: #b6b6b6; /* Background color of floating header */
+            background-color: #b6b6b6;
             position: sticky;
             right: 0;
-            z-index: 0; /* Ensure it's above other cells */
+            z-index: 0;
         }
 
-        /* Optionally, you can style the "Edit" header cell */
         #edit {
             font-size: 15px;
             table-layout: fixed;
-            background-color: #b6b6b6; /* Background color of floating header */
+            background-color: #b6b6b6;
             position: sticky;
             top: 0;
-            z-index: 1; /* Ensure the floating header stays on top of the table */
+            z-index: 1;
         }
+
         .hidePlans {
             margin-left: 14%;
             margin-top: 10px;
@@ -73,477 +85,288 @@
         }
     </style>
 </head>
+
 <body>
     <div>
         <h2>Plani</h2>
         <nav id="navigacijaPlaniranja">
-            <button id="hideCompletedButton" class="hidePlans" onclick="hideCompletedPlans()">Hide completed plans</button>
+            <button id="hideCompletedButton" class="hidePlans" onclick="toggleCompletedPlans()">Hide completed plans</button>
         </nav>
         <div id="table-container"></div>
     </div>
-</body>
-<script>
-    fetch('/planiranjePripravnegaDelaLoad')
-    .then(response => response.json())
-    .then(data => {
-        const columnGroups = data.column_groups; // Change variable name to columnGroups for clarity
-        const values = data.data;
-        const pravice = data.role;
-        const tableContainer = document.getElementById('table-container');
-        const table = document.createElement('table');
-        table.style.margin = 'auto'; // Center the table horizontally
-        table.id = 'myTable';
-        const thead = document.createElement('thead');
-        const tbody = document.createElement('tbody');
-
-        const titleRow = document.createElement('tr');
-        titleRow.style.textAlign = 'center'; // Apply center alignment using CSS
-
-        // Create table headers
-        const headerRow = document.createElement('tr');
-        headerRow.addEventListener('keyup', function(event) {
-            const target = event.target;
-            if (target.tagName.toLowerCase() === 'input') {
-                const columnName = target.dataset.columnName; // Extract the column name from the dataset
-                filterTable(columnName);
-            }
-        });
-        const widthTheadValues = [15,7,8,6,10,3,6,3,7]
-        let colIndex = 0
-        // Iterate over column groups
-        columnGroups.forEach(group => {
-            const th = document.createElement('th');
-            const colspan = group.columns.length; // Get the size of the column group
-            th.colSpan = colspan; // Set colspan attribute
-            th.textContent = group.prefix; // Set the column group name as the text content
-            th.setAttribute('id', group.prefix);
-            titleRow.appendChild(th); // Append the th to the title row
-            // Add individual column names as th elements with colspan 1
-            group.columns.forEach(columnName => {
-                const subTh = document.createElement('th');
-                subTh.setAttribute('id', columnName);
-                const input = document.createElement('input');
-                const br = document.createElement('br');
-                const headerRowSortBtn = document.createElement('button');
-                headerRowSortBtn.textContent = 'Sort';
-                headerRowSortBtn.style.backgroundColor = 'lightblue';
-                headerRowSortBtn.style.borderRadius = '5px';
-                headerRowSortBtn.addEventListener('click', function(event) {
-                    const target = event.target;
-                    const input = target.parentNode.querySelector('*'); // Find the nearest input element
-                    if (input) {
-                        const columnIndices = getColumnIndicesFromInput(input);
-                        columnIndices.forEach(columnIndex => {
-                            if (columnIndex !== -1) {
-                                let dataType;
-                                if (input.placeholder === 'STATUS') {
-                                    dataType = 'status';
-                                } else {
-                                    dataType = getColumnType(columnIndex);
-                                }
-                                sortTable(columnIndex, dataType);
-                            }
-                        });
-                    }
-                });
-
-                input.type = 'text';
-                input.id = 'filter_' + columnName;
-                input.placeholder = columnName;
-                if (colIndex < 9) {
-                    input.style.width = widthTheadValues[colIndex] + 'vw';
-                } else {
-                    if ((colIndex - 10) % 4 === 1 || (colIndex - 10) % 4 === 2) { // Check if colIndex is 10, 11, 14, 15, etc.
-                        input.style.width = '4vw';
-                    } else {
-                        input.style.width = '5vw';
-                    }
-                }
-                colIndex++
-                input.dataset.columnName = columnName; // Store the column name in a data attribute
-                subTh.appendChild(input); // Append the input to the sub-header
-                subTh.appendChild(br); // Append a line break to the sub-header
-                subTh.appendChild(headerRowSortBtn); // Append the sort button to the sub-header
-                headerRow.appendChild(subTh); // Append the sub-th to the header row
-            });
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            fetch('/planiranjePripravnegaDelaLoad')
+                .then(response => response.json())
+                .then(data => renderTable(data))
+                .catch(error => console.error('Error:', error));
         });
 
-        if (pravice === 'Uprava') {
-            const editHeaderCell = document.createElement('th');
-            editHeaderCell.id = 'edit';
-            editHeaderCell.textContent = "Edit";
-            headerRow.appendChild(editHeaderCell);
+        function renderTable(data) {
+            const { column_groups, data: values, role } = data;
+            const tableContainer = document.getElementById('table-container');
+            const table = document.createElement('table');
+            table.id = 'myTable';
+
+            const thead = createTableHeader(column_groups, role);
+            const tbody = createTableBody(values, role);
+
+            table.appendChild(thead);
+            table.appendChild(tbody);
+            tableContainer.appendChild(table);
+
+            lazyLoadRows(tbody, values, role);
         }
 
-        thead.appendChild(titleRow);
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-        const widthTbodyValues = [15,7,8,6,10,2,6,3,7]
+        function createTableHeader(columnGroups, role) {
+            const thead = document.createElement('thead');
+            const titleRow = document.createElement('tr');
+            const headerRow = document.createElement('tr');
 
-        // Create table rows
-        values.forEach((rowData, rowIndex) => {
+            const widthTheadValues = [15, 7, 8, 6, 10, 3, 6, 3, 7];
+            let colIndex = 0;
+
+            columnGroups.forEach(group => {
+                const th = document.createElement('th');
+                th.colSpan = group.columns.length;
+                th.textContent = group.prefix;
+                th.id = group.prefix;
+                titleRow.appendChild(th);
+
+                group.columns.forEach(columnName => {
+                    const subTh = document.createElement('th');
+                    subTh.id = columnName;
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.id = `filter_${columnName}`;
+                    input.placeholder = columnName;
+                    input.style.width = colIndex < 9 ? `${widthTheadValues[colIndex]}vw` : `${(colIndex - 10) % 4 === 1 || (colIndex - 10) % 4 === 2 ? 4 : 5}vw`;
+                    input.dataset.columnName = columnName;
+                    colIndex++;
+
+                    const br = document.createElement('br');
+                    const headerRowSortBtn = document.createElement('button');
+                    headerRowSortBtn.textContent = 'Sort';
+                    headerRowSortBtn.style.backgroundColor = 'lightblue';
+                    headerRowSortBtn.style.borderRadius = '5px';
+                    headerRowSortBtn.addEventListener('click', () => {
+                        const columnIndices = getColumnIndicesFromInput(input);
+                        columnIndices.forEach(index => {
+                            if (index !== -1) {
+                                sortTable(index, getColumnType(index));
+                            }
+                        });
+                    });
+
+                    subTh.appendChild(input);
+                    subTh.appendChild(br);
+                    subTh.appendChild(headerRowSortBtn);
+                    headerRow.appendChild(subTh);
+                });
+            });
+
+            if (role === 'Uprava') {
+                const editHeaderCell = document.createElement('th');
+                editHeaderCell.id = 'edit';
+                editHeaderCell.textContent = "Edit";
+                headerRow.appendChild(editHeaderCell);
+            }
+
+            thead.appendChild(titleRow);
+            thead.appendChild(headerRow);
+            return thead;
+        }
+
+        function createTableBody(values, role) {
+            const tbody = document.createElement('tbody');
+            const widthTbodyValues = [15, 7, 8, 6, 10, 2, 6, 3, 7];
+
+            // Only render the initial batch of rows for lazy loading
+            const initialBatchSize = 100;
+            for (let i = 0; i < Math.min(values.length, initialBatchSize); i++) {
+                const row = createTableRow(values[i], role, widthTbodyValues);
+                tbody.appendChild(row);
+            }
+
+            return tbody;
+        }
+
+        function createTableRow(rowData, role, widthTbodyValues) {
             const row = document.createElement('tr');
+
             rowData.forEach((cellData, colIndex) => {
                 const cell = document.createElement('td');
-                cell.style.border = '1px solid black'; // Add border style to each cell
-                const input = document.createElement('input');
-                if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
-                    // Parse string back to date object
-                    const dateParts = cellData.split(".");
-                    const formattedDate = dateParts[2] + '-' + (dateParts[1].length < 2 ? '0' : '') + dateParts[1] + '-' + (dateParts[0].length < 2 ? '0' : '') + dateParts[0];
-
-                    // Create input field for dates
-                    input.type = 'date';
-                    input.value = formattedDate;
-                    input.style.width = '6vw';
-                    input.disabled = true; // Disable input fields by default
-                    cell.appendChild(input);
-                } else {
-                    if (cellData === "I" || cellData === "J" || cellData === "K") {
-                        const select = document.createElement('select');
-                        select.style.width = '4vw';
-
-                        // Define options for colors and letters
-                        const options = [
-                            { value: 'I', label: 'I', color: 'gray' },
-                            { value: 'J', label: 'J', color: 'green' },
-                            { value: 'K', label: 'K', color: 'yellow' }
-                        ];
-
-                        // Create option elements and add them to the select element
-                        options.forEach(optionData  => {
-                            const option = document.createElement('option');
-                            option.value = optionData.value;
-                            option.textContent = optionData.label;
-                            option.dataset.color = optionData.color;
-                            option.style.backgroundColor = optionData.color;
-                            select.appendChild(option);
-                        });
-                        // Set initial background color based on cellData
-                        const selectedOption = options.find(option => option.value === cellData);
-                        select.style.backgroundColor = selectedOption.color;
-                        select.value = cellData;
-
-                        // Event listener to update background color on selection change
-                        select.addEventListener('change', () => {
-                            select.style.backgroundColor = select.options[select.selectedIndex].dataset.color;
-                        });
-
-                        // Append the select element to the cell
-                        select.disabled = true; // Disable input fields by default
-                        cell.appendChild(select);
-                    } else {
-                        // Create input field for other data
-                        const input = document.createElement('input');
-                        input.type = 'text';
-                        input.value = cellData;
-                        input.disabled = true; // Disable input fields by default
-                        if (colIndex < 9) {
-                            input.style.width = widthTbodyValues[colIndex] + 'vw';
-                        } else {
-                            input.style.width = '2vw';
-                        }
-                        cell.appendChild(input);
-                    }
-                }
-                input.disabled = true; // Disable input fields by default
+                const input = createInputCell(cellData, colIndex, widthTbodyValues);
+                cell.appendChild(input);
                 row.appendChild(cell);
             });
-            // Add an Edit button to each row
-            if (pravice === 'Uprava') {
-                // Add an Edit button to each row
-                const editCell = document.createElement('td');
-                editCell.classList.add('edit-column'); // Add a class to the cell for styling purposes
-                const editButton = document.createElement('button');
-                editButton.textContent = "Edit";
-                let editDateToggle = false;
-                document.addEventListener('keydown', function(event) {
-                    if (editButton.textContent === "Submit" && event.key === "Escape") {
-                        row.querySelectorAll('input').forEach(input => {
-                            input.disabled = true;
-                        });
-                        editButton.textContent = "Edit";
-                        editDateToggle = false;
-                    }
-                });
-                editButton.addEventListener('click', () => {
-                    if (editDateToggle === false ){
-                        row.querySelectorAll('input').forEach(input => {
-                            if (input.type === 'date') {
-                                input.disabled = input.disabled !== true;
-                                editDateToggle = true;
-                            }
-                        });
-                        editButton.textContent = "Submit";
-                    } else {
-                        if (editButton.textContent === "Submit") {
-                            const updatedRowData = [];
-                            row.querySelectorAll('input[type="text"], input[type="date"], select').forEach(input => {
-                                if (input.tagName === 'SELECT') { // Check if the element is a select element
-                                    // Get the selected option value
-                                    const selectedValue = input.options[input.selectedIndex].value;
-                                    // Push the selected value into the updatedRowData array
-                                    updatedRowData.push(selectedValue);
-                                } else { // For other input types (text and date)
-                                    updatedRowData.push(input.type === 'date' ? input.valueAsDate.toLocaleDateString() : input.value);
-                                }
-                                // Disable the input element
-                                input.disabled = true;
-                            });
-                            const updatedData = { row: rowIndex, data: updatedRowData };
-                            // Send the updated data to the backend
-                            fetch('/planiranjePripravnegaDelaUpdate', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify(updatedData)
-                            })
-                            .then(response => {
-                                if (response.ok) {
-                                    setTimeout(function() {
-                                        location.reload();
-                                    }, 500);
-                                    // Optionally, you can handle success feedback here
-                                } else {
-                                    // Optionally, you can handle error feedback here
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                // Optionally, you can handle error feedback here
-                            });
-                            // Here you can send the updated data to the backend using fetch or any other method
-                        }
-                        editButton.textContent = "Edit";
-                        editDateToggle = false;
-                    }
-                });
-                editCell.appendChild(editButton);
+
+            if (role === 'Uprava') {
+                const editCell = createEditCell(row);
                 row.appendChild(editCell);
             }
-            tbody.appendChild(row);
-        });
-        table.appendChild(tbody);
-        tableContainer.appendChild(table);
-    })
-    .catch(error => console.error('Error:', error));
+
+            return row;
+        }
+
+        function createInputCell(cellData, colIndex, widthTbodyValues) {
+            const input = document.createElement('input');
+            input.disabled = true;
+
+            if (typeof cellData === 'string' && /^\d{2}\.\d{2}\.\d{4}$/.test(cellData)) {
+                input.type = 'date';
+                const [day, month, year] = cellData.split(".");
+                input.value = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+                input.style.width = '6vw';
+            } else if (['I', 'J', 'K'].includes(cellData)) {
+                const select = document.createElement('select');
+                select.style.width = '4vw';
+
+                const options = [
+                    { value: 'I', label: 'I' },
+                    { value: 'J', label: 'J' },
+                    { value: 'K', label: 'K' }
+                ];
+
+                options.forEach(optionData => {
+                    const option = document.createElement('option');
+                    option.value = optionData.value;
+                    option.textContent = optionData.label;
+                    select.appendChild(option);
+                });
+
+                select.value = cellData;
+                select.disabled = true;
+
+                return select;
+            } else {
+                input.type = 'text';
+                input.value = cellData;
+                input.style.width = colIndex < 9 ? `${widthTbodyValues[colIndex]}vw` : '2vw';
+            }
+
+            return input;
+        }
 
 
-    // Function to filter the table based on input values
-function filterTable() {
-    const table = document.getElementById("myTable");
-    const tbody = table.querySelector("tbody");
-    const filterInputs = document.querySelectorAll("thead input[type='text']");
-    const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
+        function createEditCell(row) {
+            const editCell = document.createElement('td');
+            const editButton = document.createElement('button');
+            editButton.textContent = 'Edit';
+            editButton.addEventListener('click', function () {
+                const isEditing = editButton.textContent === 'Submit';
+                toggleEditState(row, editButton, !isEditing);
 
-    for (const row of tbody.rows) {
-        let rowVisible = true;
+                if (!isEditing) {
+                    const updatedRowData = Array.from(row.querySelectorAll('input, select')).map(input => input.type === 'date' ? input.value.split('-').reverse().join('.') : input.value);
+                    const updatedData = { index: row.rowIndex, rowData: updatedRowData };
 
-        for (let i = 0; i < row.cells.length; i++) {
-            const cell = row.cells[i];
-            const filter = filters[i];
-
-            let cellValue = '';
-
-            // Check if the cell contains an input element
-            const input = cell.querySelector('input[type="text"]');
-            const dateInput = cell.querySelector('input[type="date"]');
-            const statusInput = cell.querySelector('select');
-            if (input) {
-                cellValue = input.value.trim().toUpperCase();
-            } else if (dateInput) {
-                cellValue = dateInput.value.trim().toUpperCase();
-
-                // Parse the date string into a Date object
-                var date = new Date(cellValue);
-
-                // Check if the parsed date is valid
-                if (!isNaN(date.getTime())) {
-                    // Format the date as dd/mm/yyyy
-                    cellValue = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
-                } else {
-                    // Handle invalid date input
+                    fetch('/planiranjePripravnegaDelaSubmit', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(updatedData)
+                    })
+                        .then(response => response.ok ? toggleEditState(row, editButton, false) : console.error('Error:', response))
+                        .catch(error => console.error('Error:', error));
                 }
-            } else if (statusInput){
-                cellValue = statusInput.value.trim().toUpperCase();
-            }
+            });
 
-            // Apply filter only if filter input is not empty
-            if (filter) {
-                // Split the filter value by comma to support multiple criteria
-                const filterValues = filter.split(',');
-                // Check if any of the filter values match the cell content
-                const match = filterValues.some(filterValue => cellValue.includes(filterValue.trim()));
-                if (!match) {
-                    rowVisible = false;
-                    break; // Break if no match is found
+            editCell.appendChild(editButton);
+            return editCell;
+        }
+
+        function toggleEditState(row, button, isEditing) {
+            Array.from(row.querySelectorAll('input[type="text"], input[type="date"], select')).forEach(input => {
+                input.disabled = !isEditing;
+            });
+            button.textContent = isEditing ? 'Submit' : 'Edit';
+        }
+
+        function getColumnIndicesFromInput(input) {
+            const columnNames = Array.from(document.querySelectorAll('thead input')).map(input => input.dataset.columnName);
+            return columnNames.reduce((indices, columnName, index) => {
+                if (columnName === input.dataset.columnName) {
+                    indices.push(index);
+                }
+                return indices;
+            }, []);
+        }
+
+        function getColumnType(columnIndex) {
+            const input = document.querySelectorAll('thead input')[columnIndex];
+            return input.type === 'date' ? 'date' : 'text';
+        }
+
+        function sortTable(columnIndex, columnType) {
+            const table = document.getElementById('myTable');
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.rows);
+
+            rows.sort((a, b) => {
+                const cellA = a.cells[columnIndex].querySelector('input, select');
+                const cellB = b.cells[columnIndex].querySelector('input, select');
+                const valueA = cellA.type === 'date' ? cellA.valueAsDate : cellA.value;
+                const valueB = cellB.type === 'date' ? cellB.valueAsDate : cellB.value;
+
+                return columnType === 'date' ? valueA - valueB : valueA.localeCompare(valueB);
+            });
+
+            rows.forEach(row => tbody.appendChild(row));
+        }
+
+        function toggleCompletedPlans() {
+            const hideButton = document.getElementById('hideCompletedButton');
+            const table = document.getElementById('myTable');
+            const rows = table.querySelectorAll('tbody tr');
+
+            const hide = hideButton.textContent === 'Hide completed plans';
+            hideButton.textContent = hide ? 'Show completed plans' : 'Hide completed plans';
+
+            rows.forEach(row => {
+                const statusCell = row.cells[8];
+                const statusSelect = statusCell.querySelector('select');
+                if (statusSelect.value === 'I') {
+                    row.style.display = hide ? 'none' : '';
+                }
+            });
+        }
+
+        function lazyLoadRows(tbody, values, role) {
+            const lazyLoadThreshold = 300;  // Number of rows to load in each batch
+            let startIndex = tbody.rows.length;
+
+            function loadMoreRows() {
+                const fragment = document.createDocumentFragment();
+
+                for (let i = startIndex; i < Math.min(values.length, startIndex + lazyLoadThreshold); i++) {
+                    const row = createTableRow(values[i], role, [15, 7, 8, 6, 10, 2, 6, 3, 7]);
+                    fragment.appendChild(row);
+                }
+
+                tbody.appendChild(fragment);
+                startIndex += lazyLoadThreshold;
+
+                if (startIndex >= values.length) {
+                    tableContainer.removeEventListener('scroll', onScroll);
                 }
             }
-        }
 
-        row.style.display = rowVisible ? "" : "none";
-    }
-}
-    // Function to get the data type of column
-    function getColumnType(columnIndex) {
-        if ([3, 5, 6, 11].includes(columnIndex)) {
-            return 'integer';
-        } else if ([9, 10, 53, 55, 56].includes(columnIndex)) {
-            return 'date';
-        } else {
-            // Default to string if not explicitly defined
-            return 'string';
-        }
-    }
+            function onScroll() {
+                const scrollTop = tableContainer.scrollTop;
+                const scrollHeight = tableContainer.scrollHeight;
+                const clientHeight = tableContainer.clientHeight;
 
-    function sortTable(columnIndex, dataType) {
-    const table = document.getElementById("myTable");
-    const tbody = table.querySelector("tbody");
-    const rows = Array.from(tbody.rows);
-
-    // Determine the current sorting order of the column
-    const sortOrder = table.dataset.sortOrder || "asc";
-
-    rows.sort((a, b) => {
-        const aValue = getDataValue(a.cells[columnIndex], dataType);
-        const bValue = getDataValue(b.cells[columnIndex], dataType);
-
-        // Compare the values based on the sorting order
-        let comparison;
-        if (dataType === 'date') {
-            comparison = new Date(aValue) - new Date(bValue);
-        } else {
-
-            comparison = aValue.localeCompare(bValue);
-        }
-
-        // Reverse the comparison if sorting in descending order
-        return sortOrder === "asc" ? comparison : -comparison;
-    });
-
-    // Toggle the sorting order for the next click
-    table.dataset.sortOrder = sortOrder === "asc" ? "desc" : "asc";
-
-    // Re-append sorted rows to tbody
-    tbody.innerHTML = '';
-    rows.forEach(row => tbody.appendChild(row));
-}
-
-    // Function to get the value of a cell considering input type
-    function getDataValue(cell, dataType) {
-        if (dataType !== 'status') {
-            const cellInput = cell.querySelector('input');
-            dataType = cellInput.getAttribute('type');
-        }
-        if (dataType === 'string') {
-            const input = cell.querySelector('input[type="text"]');
-            if (input !== ""){
-                return input.value.trim();
-            } else{
-                return "AGAGAG";
+                if (scrollTop + clientHeight >= scrollHeight - 50) {
+                    loadMoreRows();
+                }
             }
-        } else if (dataType === 'date'){
-            const input = cell.querySelector('input[type="date"]');
-            const value = input.value.trim();
-            // Convert date string to a JavaScript Date object
-            const dateParts = value.split("-");
-            const year = parseInt(dateParts[2], 10);
-            const month = parseInt(dateParts[1], 10) - 1; // Months are 0-based in JavaScript Date object
-            const day = parseInt(dateParts[0], 10);
-            return new Date(year, month, day);
-        } else if (dataType === 'status') {
-            return cell.value
-        } else {
-            const input = cell.querySelector('input[type="text"]');
-            return input.value.trim();
+
+            const tableContainer = document.getElementById('table-container');
+            tableContainer.addEventListener('scroll', onScroll);
+
+            loadMoreRows();  // Load initial batch
         }
-    }
-
-    function getColumnIndicesFromInput(input) {
-        const columnName = input.dataset.columnName;
-        const table = document.getElementById("myTable");
-        const headers = table.querySelectorAll('th input[data-column-name]');
-        const indices = [];
-
-        // Loop through each header
-        for (let i = 0; i < headers.length; i++) {
-            // Check if the data-column-name attribute matches the columnName
-            if (headers[i].dataset.columnName === columnName) {
-                // Store the index of the header
-                indices.push(i);
-            }
-        }
-
-        return indices.length > 0 ? indices : [-1]; // Return an array of indices or -1 if not found
-    }
-
-    function hideCompletedPlans() {
-        const table = document.getElementById("myTable");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.rows);
-
-        rows.forEach(row => {
-            const isCompleted = isAllColumnsJ(row, 'status');
-            if (isCompleted) {
-                row.style.display = 'none';
-            }
-        });
-
-        // Change button text to "Unhide completed plans"
-        const hideCompletedButton = document.querySelector("#hideCompletedButton");
-        hideCompletedButton.textContent = "Unhide completed plans";
-        hideCompletedButton.removeEventListener("click", hideCompletedPlans);
-        hideCompletedButton.addEventListener("click", unhideCompletedPlans);
-    }
-
-    // Function to unhide completed plans
-    function unhideCompletedPlans() {
-        const table = document.getElementById("myTable");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.rows);
-
-        rows.forEach(row => {
-            row.style.display = ''; // Reset display property to show the row
-        });
-
-        // Change button text back to "Hide completed plans"
-        const hideCompletedButton = document.querySelector("#hideCompletedButton");
-        hideCompletedButton.textContent = "Hide completed plans";
-        hideCompletedButton.removeEventListener("click", unhideCompletedPlans);
-        hideCompletedButton.addEventListener("click", hideCompletedPlans);
-    }
-
-    // Button click event to hide completed plans
-    const hideCompletedButton = document.querySelector("#hideCompletedButton");
-    hideCompletedButton.addEventListener("click", hideCompletedPlans);
-
-
-    // Function to check if all columns in a row have value 'J'
-    function isAllColumnsJ(row, dataType) {
-        let allColumnsJ = true;
-        const statusRow = row.querySelectorAll('select')
-        for (let i = 0; i < statusRow.length; i++) {
-            const cell = statusRow[i];
-            const cellValue = getDataValue(cell, dataType);
-            if (cellValue !== 'J') {
-                allColumnsJ = false;
-                break;
-            }
-        }
-        return allColumnsJ;
-    }
-
-    // Function to simulate a click event on the button
-    function simulateButtonClick() {
-        // Select the button element
-        const hideCompletedButton = document.getElementById('hideCompletedButton');
-        // Simulate a click event on the button
-        hideCompletedButton.click();
-    }
-
-    window.onload = hideCompletedPlans;
-</script>
+    </script>
+</body>
 </html>
-
-

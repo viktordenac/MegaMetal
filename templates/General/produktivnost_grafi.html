@@ -40,7 +40,6 @@
             <input type="date" id="from_date_table" name="from_date" value="2024-01-01">
             <label for="to_date_table">To:</label>
             <input type="date" id="to_date_table" name="to_date" value="2024-12-31">
-            <button type="button" onclick="fetchDataTable()">Select Dates</button>
         </form>
         <h2>Worker DataFrame</h2>
         <div id="workerDF">
@@ -52,6 +51,10 @@
                 <h3 style="color: red">WORST 5 workers</h3>
                 <div id="bottom5Table"></div>
             </div>
+        </div>
+        <h2 id="workerChartTitle"></h2>
+        <div>
+            <canvas id="delavecChart" width="200" height="200"></canvas>
         </div>
     </div>
 
@@ -80,6 +83,7 @@
         fetchDataTable();
 
         var myChart; // Declare the chart variable globally
+        var delavecChart; // Declare the chart variable globally
 
     function fetchData() {
         var from_date = document.getElementById('from_date_graf').value;
@@ -175,6 +179,8 @@
                 // Check if the value is a date and format it if necessary
                 if (key === 'MJESEC_GODINA') {
                     tableHtml += '<td>' + formatDate(item[key]) + '</td>';
+                } else if (key === 'DELAVEC') {
+                    tableHtml += '<td><button class="delavecButton" onclick="displayChartForPerson(\'' + item[key] + '\')">' + item[key] + '</button></td>';
                 } else {
                     tableHtml += '<td>' + item[key] + '</td>';
                 }
@@ -188,6 +194,72 @@
         // Display the table in the designated div
         document.getElementById(divId).innerHTML = tableHtml;
     }
+
+    function displayChartForPerson(delavecName) {
+        document.getElementById('workerChartTitle').innerText = delavecName;
+        var from_date = document.getElementById('from_date_table').value;
+        var to_date = document.getElementById('to_date_table').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/produktivnost_grafi_delavec_load?from_date=' + from_date + '&to_date=' + to_date + '&delavec=' + delavecName);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                console.log(response);
+
+                // Extract data from the response
+                var delavecPodatki = response.delavecPodatki;
+
+                // Extract MJESEC_GODINA and average_produktivnost arrays
+                var mjesecGodina = delavecPodatki.map(function(item) {
+                    return formatDate(item.MJESEC_GODINA);
+                });
+                var average_produktivnost = delavecPodatki.map(function(item) {
+                    return item.average_produktivnost;
+                });
+
+                if(delavecChart) {
+                    delavecChart.destroy();
+                }
+
+                // Create a bar chart
+                var ctx = document.getElementById('delavecChart').getContext('2d');
+                delavecChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: mjesecGodina,
+                        datasets: [{
+                            label: 'Average Produktivnost',
+                            data: average_produktivnost,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+            } else {
+                console.error('Request failed. Status: ' + xhr.status);
+            }
+        };
+        xhr.onerror = function() {
+            console.error('Request error');
+        };
+        xhr.send();
+        console.log("Displaying chart for: " + delavecName);
+    }
+
+
+
+
+
+
 
     function formatDate(dateString) {
     const months = [

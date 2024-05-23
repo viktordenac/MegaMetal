@@ -148,6 +148,7 @@
     function toggleEditState(row, button) {
         // Determine if we are entering or exiting edit mode
         const isEditing = button.textContent === 'Edit';
+        console.log(isEditing)
 
         // Toggle the disabled state of inputs in the specified range
         for (const cell of row.cells) {

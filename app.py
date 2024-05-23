@@ -557,17 +557,25 @@ def get_chart_color(index):
     ]
     return colors[index % len(colors)]
 
-
 @app.route("/produktivnost_table_load")
 def produktivnost_table_load():
     if not is_authenticated():
         return jsonify({"error": "Not authenticated"})
-    # Retrieve 'from_date' and 'to_date' from request parameters
-    from_date_str = request.args.get('from_date', '2024-01-01')
-    to_date_str = request.args.get('to_date', '2024-12-31')
-    # Convert date strings to datetime objects
-    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
-    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    # Get the current year and month
+    current_year = date.today().year
+    current_month = date.today().month
+
+    # Set from_date to the first day of the current month
+    from_date = datetime(current_year, current_month, 1)
+
+    # Set to_date to the last day of the current month
+    if current_month == 12:
+        to_date = datetime(current_year + 1, 1, 1) - timedelta(days=1)
+    else:
+        to_date = datetime(current_year, current_month + 1, 1) - timedelta(days=1)
+
+    # Convert to_date to a string in the format YYYY-MM-DD
+    to_date = to_date.strftime('%Y-%m-%d')
     print(from_date)
     import numpy as np
     # Assuming TBA_REAL is your model and db is your SQLAlchemy session
@@ -585,16 +593,17 @@ def produktivnost_table_load():
         print(str(data).encode('utf-8'))
 
     df = pd.DataFrame(grouped_data, columns=['MJESEC_GODINA', 'DELAVEC', 'PRODUKTIVNOST_GRUPE'])
+    df_grouped = df.groupby(['MJESEC_GODINA', 'DELAVEC'])['PRODUKTIVNOST_GRUPE'].mean().reset_index()
+    df_grouped = df_grouped.sort_values(by='PRODUKTIVNOST_GRUPE', ascending=False)
 
-    print(str(df).encode('utf-8'))
     # Prepare data for the table
     table_data = [
         {
-            'MJESEC_GODINA': data[0],
-            'DELAVEC': data[1],
-            'average_produktivnost': data[2] if not np.isnan(data[2]) else 0
+            'MJESEC_GODINA': row['MJESEC_GODINA'],
+            'DELAVEC': row['DELAVEC'],
+            'average_produktivnost': row['PRODUKTIVNOST_GRUPE'] if not np.isnan(row['PRODUKTIVNOST_GRUPE']) else 0
         }
-        for data in grouped_data
+        for index, row in df_grouped.iterrows()
     ]
 
     # Extract top and bottom five records
@@ -602,6 +611,54 @@ def produktivnost_table_load():
     bottom_five = table_data[-5:]
     if table_data:
         return jsonify({"table_data_top": top_five, "table_data_bottom": bottom_five})
+    else:
+        return jsonify({"error": "No data found"})
+
+@app.route("/produktivnost_grafi_delavec_load")
+def produktivnost_grafi_delavec_load():
+    if not is_authenticated():
+        return jsonify({"error": "Not authenticated"})
+
+    # Retrieve 'from_date' and 'to_date' from request parameters
+    from_date_str = request.args.get('from_date', '2024-01-01')
+    to_date_str = request.args.get('to_date', '2024-12-31')
+    delavec = request.args.get('delavec', 'Delavec')
+    # Convert date strings to datetime objects
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+
+    import numpy as np
+    # Assuming TBA_REAL is your model and db is your SQLAlchemy session
+    grouped_data = db.session.query(
+        TBA_REAL.MJESEC_GODINA,
+        TBA_REAL.DELAVEC,
+        (TBA_REAL.PRODUKTIVNOST_GRUPE)
+    ).filter(
+        TBA_REAL.MJESEC_GODINA.between(from_date, to_date)
+    ).order_by(
+        TBA_REAL.PRODUKTIVNOST_GRUPE.desc()
+    ).all()
+    print("Table data:")
+    for data in grouped_data:
+        print(str(data).encode('utf-8'))
+
+    df = pd.DataFrame(grouped_data, columns=['MJESEC_GODINA', 'DELAVEC', 'PRODUKTIVNOST_GRUPE'])
+    df_grouped = df.groupby(['MJESEC_GODINA', 'DELAVEC'])['PRODUKTIVNOST_GRUPE'].mean().reset_index()
+    df_grouped = df_grouped.sort_values(by='MJESEC_GODINA', ascending=True)
+    filtered_df = df_grouped[df_grouped['DELAVEC'] == delavec]
+
+    # Prepare data for the table
+    table_data = [
+        {
+            'MJESEC_GODINA': row['MJESEC_GODINA'],
+            'DELAVEC': row['DELAVEC'],
+            'average_produktivnost': row['PRODUKTIVNOST_GRUPE'] if not np.isnan(row['PRODUKTIVNOST_GRUPE']) else 0
+        }
+        for index, row in filtered_df.iterrows()
+    ]
+
+    if table_data:
+        return jsonify({"delavecPodatki": table_data})
     else:
         return jsonify({"error": "No data found"})
 

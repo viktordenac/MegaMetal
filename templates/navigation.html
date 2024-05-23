@@ -48,6 +48,11 @@
     <a href="{{ url_for('verzugsLista') }}">Verzug lista</a>
     {% endif %}
 
+    <!-- Kapaciteta link -->
+    {% if 'uprava' in stranice_list %}
+    <a href="{{ url_for('produktivnost_grafi') }}">Uprava</a>
+    {% endif %}
+
     {% if 'evidenca_ur' in stranice_list %}
     <a href="{{ url_for('tev_evid') }}">Evidenca ur</a>
     {% endif %}
@@ -81,6 +86,7 @@
     </div>
     <a href="#">Normativi</a>
     <a href="{{ url_for('verzugsLista') }}">Verzug lista</a>
+    <a href="{{ url_for('produktivnost_grafi') }}">Produktivnost</a>
     <a href="#">Kapaciteta</a>
     <a href="{{ url_for('izmene') }}">Izmene</a>
     <a href="{{ url_for('tev_evid') }}">Evidenca ur</a>

@@ -19,8 +19,8 @@
                         <th>Username</th>
                         <th>grafi</th>
                         <th>po_identu</th>
-                        <!-- Add more <th> elements for other privileges -->
                         <th>torta</th>
+                        <th>oee</th>
                         <th>planiranje_proizvodnje</th>
                         <th>normativi</th>
                         <th>verzug_lista</th>
@@ -32,6 +32,7 @@
                         <th>neaktivni_nalogi</th>
                         <th>mm2Alat</th>
                         <th>fix_plan</th>
+                        <th>produktivnost</th>
                         <th>top_user</th>
                         <th>Edit</th>
                     </tr>
@@ -40,7 +41,7 @@
                     {% for user in data %}
                     <tr>
                         <td>{{ user.Username }}</td>
-                        {% for privilege in ['grafi', 'po_identu', 'torta', 'planiranje_proizvodnje', 'normativi', 'verzug_lista', 'kapaciteta', 'izmene', 'evidenca_ur', 'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi', 'mm2Alat', 'fix_plan', 'top_user'] %}
+                        {% for privilege in ['grafi', 'po_identu', 'torta','oee', 'planiranje_proizvodnje', 'normativi', 'verzug_lista', 'kapaciteta', 'izmene', 'evidenca_ur', 'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi', 'mm2Alat', 'fix_plan','produktivnost', 'top_user'] %}
                         <td><label for="{{ privilege }}"></label><input id="{{ privilege }}" type="checkbox" {% if user.Stranice is not none and privilege in user.Stranice %}checked{% endif %} disabled></td>
                         {% endfor %}
                         <td><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Edit</button></td>

@@ -6,6 +6,13 @@
     margin: 0 auto; /* Center the container */
 }
 
+#delavecChart {
+    width: 50%;
+    max-height: 400px;
+    /* Center the container */
+    margin: 0 auto;
+}
+
 /* Adjust canvas size */
 canvas {
     max-width: 100%; /* Ensure canvas doesn't overflow its container */
@@ -69,4 +76,14 @@ tbody tr:nth-child(even) {
     border: 1px solid #ddd; /* Add a grey border */
     margin-bottom: 12px; /* Add some space below the input */
     margin-left: 15%;
+}
+
+.delavecButton {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
 }

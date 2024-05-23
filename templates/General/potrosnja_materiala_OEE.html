@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Realizacija bruto/neto Torta</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <style>
+        .myChart {
+			margin-left: 20px;
+			height: 901px;
+            width: 182px;
+        }
+        .table-container {
+            max-height: 600px; /* Adjust as needed */
+            overflow-y: auto;
+            width: 60%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        thead {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #f8f9fa; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main content -->
+    <div class="content">
+        <h1>OEE</h1>
+        <form id="date_form">
+            <label for="from_date">From:</label>
+            <input type="date" id="from_date" name="from_date" value="2024-01-01">
+            <label for="to_date">To:</label>
+            <input type="date" id="to_date" name="to_date" value="2024-12-31">
+            <button type="button" onclick="fetchData()">Select Dates</button>
+        </form>
+        <hr>
+        <div class="table-container">
+            <h2>Machine Data</h2>
+            <div id="machine_data_table"></div>
+        </div>
+        <hr>
+        <canvas id="myChart" class="myChart"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchData(); // Call fetchData() to fetch data and generate the graph
+        });
+
+        function fetchData() {
+            var fromDate = document.getElementById('from_date').value;
+            var toDate = document.getElementById('to_date').value;
+
+            // Fetch machine data and display it in the table
+            fetchMachineData();
+
+            // Fetch data for the graph
+            fetchGraphData(fromDate, toDate);
+        }
+
+        function fetchMachineData() {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/fetch_machine_data');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    displayMachineDataTable(response);
+                } else {
+                    console.error('Request failed. Status: ' + xhr.status);
+                }
+            };
+            xhr.send();
+        }
+
+        function displayMachineDataTable(data) {
+            var table = "<table><tr><th>Machine name</th><th>Dostupne ure</th><th>Efektivne ure</th><th>Porabljeni čas</th><th>OEU</th><th>OEE</th></tr>";
+            data.forEach(function(row) {
+                table += "<tr><td>" + row["Machine name"] + "</td><td>" + row["Dostupne ure"] + "</td><td>" + row["Efektivne ure"] + "</td><td>" + row["Porabljeni čas"] + "</td><td>" + row["OEU"] + "</td><td>" + row["OEE"] + "</td></tr>";
+            });
+            table += "</table>";
+
+            // Display the table in a designated HTML element
+            document.getElementById('machine_data_table').innerHTML = table;
+        }
+
+function fetchGraphData(fromDate, toDate) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', `/graph_data?from_date=${fromDate}&to_date=${toDate}`);
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            var response = JSON.parse(xhr.responseText); // Parse JSON response
+            generateGraph(response);
+        } else {
+            console.error('Request failed. Status: ' + xhr.status);
+        }
+    };
+    xhr.send();
+}
+
+        var myChart; // Declare the chart variable globally
+function generateGraph(data) {
+    console.log(data);
+
+    // Ensure data is parsed correctly
+    var dataArray;
+    try {
+        dataArray = Array.isArray(data) ? data : JSON.parse(data);
+    } catch (e) {
+        console.error("Data is not a valid JSON array", e);
+        return;
+    }
+
+    if (!Array.isArray(dataArray)) {
+        console.error("Data array is empty or not valid.");
+        return;
+    }
+
+    // Extract unique dates
+    var uniqueDates = [...new Set(dataArray.map(item => new Date(item.DATUM).toLocaleDateString()))];
+
+    // Group data by machine names
+    var groupedData = dataArray.reduce((acc, item) => {
+        const machineName = item['Machine name'];
+        const date = new Date(item.DATUM).toLocaleDateString();
+        const oee = parseFloat(item.OEE);
+
+        if (!acc[machineName]) {
+            acc[machineName] = {};
+        }
+        acc[machineName][date] = oee;
+        return acc;
+    }, {});
+
+    // Define an array of colors
+    const colors = [
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(255, 159, 64, 0.2)'
+    ];
+
+    const borderColors = [
+        'rgba(255, 99, 132, 1)',
+        'rgba(54, 162, 235, 1)',
+        'rgba(255, 206, 86, 1)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(153, 102, 255, 1)',
+        'rgba(255, 159, 64, 1)'
+    ];
+
+    // Create datasets for each machine
+    var datasets = Object.keys(groupedData).map((machineName, index) => {
+        return {
+            label: machineName,
+            data: uniqueDates.map(date => groupedData[machineName][date] || 0), // Ensure data is in order of uniqueDates
+            backgroundColor: colors[index % colors.length],
+            borderColor: borderColors[index % borderColors.length],
+            borderWidth: 1
+        };
+    });
+
+    // Create Chart.js configuration object
+    var chartConfig = {
+        type: 'bar',
+        data: {
+            labels: uniqueDates, // Use dates as labels
+            datasets: datasets
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }]
+            }
+        }
+    };
+
+    // Destroy existing chart if it exists to prevent duplicate rendering
+    if (typeof myChart !== 'undefined' && myChart) {
+        myChart.destroy();
+    }
+
+    // Create new Chart.js instance
+    var ctx = document.getElementById('myChart').getContext('2d');
+    myChart = new Chart(ctx, chartConfig);
+}
+
+
+
+
+    </script>
+</body>
+</html>

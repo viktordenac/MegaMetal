@@ -8,7 +8,7 @@
     <!-- Home link -->
     <a href="{{ url_for('index') }}">Home</a>
 
-    {% if 'grafi' in stranice_list or 'po_identu' in stranice_list or 'torta' in stranice_list %}
+    {% if 'grafi' in stranice_list or 'po_identu' in stranice_list or 'torta' in stranice_list or 'oee' in stranice_list %}
     <div class="potrosnja-materiala">
         Potrošnja materiala &rarr;
         <!-- Inside Dropdown -->
@@ -21,6 +21,9 @@
             {% endif %}
             {% if 'torta' in stranice_list %}
             <a href="{{ url_for('potrosnja_materiala_torta') }}"><div class="ddPotrosnja">Torta</div></a>
+            {% endif %}
+            {% if 'oee' in stranice_list %}
+            <a href="{{ url_for('potrosnja_materiala_OEE') }}"><div class="ddPotrosnja">OEE</div></a>
             {% endif %}
         </div>
     </div>
@@ -50,7 +53,7 @@
 
     <!-- Kapaciteta link -->
     {% if 'uprava' in stranice_list %}
-    <a href="{{ url_for('produktivnost_grafi') }}">Uprava</a>
+    <a href="{{ url_for('produktivnost_grafi') }}">Produktivnost</a>
     {% endif %}
 
     {% if 'evidenca_ur' in stranice_list %}
@@ -87,6 +90,7 @@
     <a href="#">Normativi</a>
     <a href="{{ url_for('verzugsLista') }}">Verzug lista</a>
     <a href="{{ url_for('produktivnost_grafi') }}">Produktivnost</a>
+    <a href="{{ url_for('potrosnja_materiala_OEE') }}">OEE</a>
     <a href="#">Kapaciteta</a>
     <a href="{{ url_for('izmene') }}">Izmene</a>
     <a href="{{ url_for('tev_evid') }}">Evidenca ur</a>

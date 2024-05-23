@@ -225,6 +225,18 @@ class TBA_REAL(db.Model):
     PRODUKTIVNOST_GRUPE = db.Column(db.REAL)
     ID_PK = db.Column(db.Integer, primary_key=True)
 
+
+class TREZ_OEE(db.Model):
+    __tablename__ = 'TREZ_OEE'
+    MACHINE_NAME = db.Column(db.String(20), primary_key=True)
+    DOSTUPNE_URE = db.Column(db.String(10))
+    EFEKTIVNE_URE = db.Column(db.String(10))
+    PORABLJENI_CAS = db.Column(db.String(10))
+    OEU = db.Column(db.String(10))
+    OEE = db.Column(db.String(10))
+    DATUM = db.Column(db.String(10))
+    ID_PK = db.Column(db.Integer, primary_key=True)
+
 @login_manager.user_loader
 def load_user(kartica):
     employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
@@ -661,6 +673,73 @@ def produktivnost_grafi_delavec_load():
         return jsonify({"delavecPodatki": table_data})
     else:
         return jsonify({"error": "No data found"})
+
+
+@app.route("/potrosnja_materiala_OEE")
+def potrosnja_materiala_OEE():
+    if not is_authenticated():
+        return jsonify({"error": "Not authenticated"})
+    stranice_list = session["stranice"]
+    return render_template("potrosnja_materiala_OEE.html", stranice_list=stranice_list)
+
+@app.route("/fetch_machine_data")
+def fetch_machine_data():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+
+    today = datetime.today().date()  # Get today's date
+
+    machine_data = TREZ_OEE.query.filter(TREZ_OEE.DATUM == today).all()
+    data = []
+    for machine in machine_data:
+        data.append({
+            "Machine name": machine.MACHINE_NAME,
+            "Dostupne ure": machine.DOSTUPNE_URE,
+            "Efektivne ure": machine.EFEKTIVNE_URE,
+            "Porabljeni čas": machine.PORABLJENI_CAS,
+            "OEU": machine.OEU,
+            "OEE": machine.OEE,
+            "DATUM": machine.DATUM
+        })
+    return jsonify(data)
+
+
+data = []
+@app.route("/graph_data")
+def graph_data():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    print("#$##$#$")
+
+    # Retrieve 'from_date' and 'to_date' from request parameters
+    from_date_str = request.args.get('from_date', '2024-01-01')
+    to_date_str = request.args.get('to_date', '2024-12-31')
+
+    # Convert date strings to datetime objects
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    print("From", from_date)
+    print("To",to_date)
+    # Query the database for records within the specified date range
+    machine_data = TREZ_OEE.query.all()
+    # Process the data
+    print("MD", machine_data)
+    for machine in machine_data:
+        print(machine.OEE)
+        print(machine.DATUM)
+        oe=float(str(machine.OEE).replace("%",""))
+        data.append({
+            "Machine name": machine.MACHINE_NAME,
+            "OEE": oe,
+            "DATUM": machine.DATUM
+        })
+    # Convert data to DataFrame
+    df = pd.DataFrame(data,columns=['Machine name', 'OEE','DATUM'])  # Replace 'column1', 'column2' with your actual column names
+    grouped_df = df.groupby(['Machine name', 'DATUM']).mean().reset_index()
+    data_json = grouped_df.to_json(orient='records')
+    print(data_json)
+    return jsonify(data_json)
 
 
 @app.route('/logout')

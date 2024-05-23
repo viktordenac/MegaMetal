@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productivity</title>
+    <!-- Include Chart.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <link rel="stylesheet" href="../../static/style/potrosnja_materiala_grafi.css">
+    <style>
+    #workerDF {
+        display: flex;
+        justify-content: space-between; /* To evenly distribute the sections */
+    }
+
+    .data-frame-section {
+        width: 48%; /* Adjust the width as needed */
+    }
+    </style>
+
+</head>
+<body>
+    <div class="content">
+        <h1>Produktivnost za period</h1>
+        <form class="date_form">
+            <label for="from_date_graf">From:</label>
+            <input type="date" id="from_date_graf" name="from_date" value="2024-01-01">
+            <label for="to_date_graf">To:</label>
+            <input type="date" id="to_date_graf" name="to_date" value="2024-12-31">
+            <button type="button" onclick="fetchData()">Select Dates</button>
+        </form>
+        <!-- Graph -->
+        <div>
+            <canvas id="myChart"></canvas>
+        </div>
+        <hr>
+        <form class="date_form">
+            <label for="from_date_table">From:</label>
+            <input type="date" id="from_date_table" name="from_date" value="2024-01-01">
+            <label for="to_date_table">To:</label>
+            <input type="date" id="to_date_table" name="to_date" value="2024-12-31">
+            <button type="button" onclick="fetchDataTable()">Select Dates</button>
+        </form>
+        <h2>Worker DataFrame</h2>
+        <div id="workerDF">
+            <div id="top5" class="data-frame-section">
+                <h3 style="color: #45a049">BEST 5 workers</h3>
+                <div id="top5Table"></div>
+            </div>
+            <div id="bottom5" class="data-frame-section">
+                <h3 style="color: red">WORST 5 workers</h3>
+                <div id="bottom5Table"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get today's date
+        var today = new Date();
+
+        // // Check if today is Monday (0 index for Sunday, 1 for Monday, and so on)
+        // if (today.getDay() === 1) { // If today is Monday
+        //     today.setDate(today.getDate() - 3); // Set to previous Friday
+        // } else {
+        //     today.setDate(today.getDate() - 1); // Set to yesterday
+        // }
+        //
+        // // Format the date as 'YYYY-MM-DD' for input[type=date]
+        // var yyyy = today.getFullYear();
+        // var mm = String(today.getMonth() + 1).padStart(2, '0');
+        // var dd = String(today.getDate()).padStart(2, '0');
+        // var formattedDate = yyyy + '-' + mm + '-' + dd;
+        //
+        // // Set the 'from_date' and 'to_date' input values to the calculated date
+        // document.getElementById('from_date').value = formattedDate;
+        // document.getElementById('to_date').value = formattedDate;
+
+        fetchData(); // Fetch data when the page loads initially
+        fetchDataTable();
+
+        var myChart; // Declare the chart variable globally
+
+    function fetchData() {
+        var from_date = document.getElementById('from_date_graf').value;
+        var to_date = document.getElementById('to_date_graf').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/produktivnost_grafi_load?from_date=' + from_date + '&to_date=' + to_date);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                displayChart(response);
+            } else {
+                console.error('Request failed. Status: ' + xhr.status);
+            }
+        };
+        xhr.send();
+    }
+
+    function fetchDataTable() {
+        var from_date = document.getElementById('from_date_table').value;
+        var to_date = document.getElementById('to_date_table').value;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/produktivnost_table_load?from_date=' + from_date + '&to_date=' + to_date);
+        xhr.onload = function() {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                var top_five = response.table_data_top;
+                var bottom_five = response.table_data_bottom;
+                displayTable(top_five, 'top5Table');
+                displayTable(bottom_five, 'bottom5Table');
+                //displayDataFrame(response.df); // Pass the DataFrame JSON to displayDataFrame function
+            } else {
+                console.error('Request failed. Status: ' + xhr.status);
+            }
+        };
+        xhr.send();
+    }
+
+    function displayChart(response) {
+        if (myChart) {
+            myChart.destroy();
+        }
+        // Render graph data
+        const graphData = response.graph_data;
+        const colors = response.colors;
+        const labels = response.labels;
+
+        // Prepare data for Chart.js
+        const datasets = [];
+        const places = Object.keys(colors);
+
+        places.forEach(place => {
+            const placeData = labels.map(label => graphData[label][place] || null);
+            datasets.push({
+                label: place,
+                data: placeData,
+                backgroundColor: colors[place],
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            });
+        });
+
+        // Create chart using Chart.js
+        const ctx = document.getElementById('myChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+
+    function displayTable(data, divId) {
+        // Create table headers
+        var tableHtml = '<table border="1">';
+        tableHtml += '<tr>';
+        for (var key in data[0]) {
+            tableHtml += '<th>' + key + '</th>';
+        }
+        tableHtml += '</tr>';
+
+        // Add table rows
+        data.forEach(function(item) {
+            tableHtml += '<tr>';
+            for (var key in item) {
+                // Check if the value is a date and format it if necessary
+                if (key === 'MJESEC_GODINA') {
+                    tableHtml += '<td>' + formatDate(item[key]) + '</td>';
+                } else {
+                    tableHtml += '<td>' + item[key] + '</td>';
+                }
+            }
+            tableHtml += '</tr>';
+        });
+
+        // Close table
+        tableHtml += '</table>';
+
+        // Display the table in the designated div
+        document.getElementById(divId).innerHTML = tableHtml;
+    }
+
+    function formatDate(dateString) {
+    const months = [
+        "Januar", "Februar", "Marec", "April", "Maj", "Junij",
+        "Julij", "Avgust", "September", "Oktober", "November", "December"
+    ];
+
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = months[date.getMonth()];
+
+    return year + " " + month;
+}
+
+    </script>
+</body>
+</html>

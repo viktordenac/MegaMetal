@@ -213,6 +213,18 @@ class TBA_FIX_REAL(db.Model):
     IZNOS = db.Column(db.Float)
     TEZINA = db.Column(db.Float)
 
+class TBA_REAL(db.Model):
+    __tablename__ = 'TBA_REAL'
+    MJESEC_GODINA = db.Column(db.DATE())
+    MJESTO = db.Column(db.String(20))
+    DELAVEC = db.Column(db.String(50))
+    IDRN = db.Column(db.String(50))
+    VREME = db.Column(db.REAL)
+    UKUPNI_SATI_IDENT = db.Column(db.REAL)
+    NORMA = db.Column(db.REAL)
+    PRODUKTIVNOST_GRUPE = db.Column(db.REAL)
+    ID_PK = db.Column(db.Integer, primary_key=True)
+
 @login_manager.user_loader
 def load_user(kartica):
     employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
@@ -269,6 +281,15 @@ def grupiranje_materiala():
     stranice_list = session["stranice"]
 
     return render_template("grupiranje_materiala.html", radniNalogi=identi, stranice_list=stranice_list)
+
+
+@app.route("/produktivnost_grafi")
+def produktivnost_grafi():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    stranice_list = session["stranice"]
+    return render_template("produktivnost_grafi.html", stranice_list=stranice_list)
+
 
 @app.route("/aktivni_nalogi")
 def aktivni_nalogi():
@@ -446,6 +467,143 @@ def grupiranje_materiala_table():
 
     except Exception as e:
         return jsonify({"error": str(e)})
+
+
+@app.route("/produktivnost_grafi_load")
+def produktivnost_grafi_load():
+    if not is_authenticated():
+        return jsonify({"error": "Not authenticated"})
+    # Retrieve 'from_date' and 'to_date' from request parameters
+    from_date_str = request.args.get('from_date', '2024-01-01')
+    to_date_str = request.args.get('to_date', '2024-12-31')
+    # Convert date strings to datetime objects
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    print(from_date)
+    import numpy as np
+    grouped_data = (db.session.query(
+        TBA_REAL.MJESEC_GODINA,
+        TBA_REAL.MJESTO,
+        func.avg(TBA_REAL.PRODUKTIVNOST_GRUPE).label('average_produktivnost')
+    ).filter(
+        TBA_REAL.MJESEC_GODINA.between(from_date, to_date)
+    ).group_by(
+        TBA_REAL.MJESEC_GODINA,
+        TBA_REAL.MJESTO
+    ).order_by(
+        TBA_REAL.MJESEC_GODINA
+    ).all())
+    for entry in grouped_data:
+        print(
+            f"DATE: {entry.MJESEC_GODINA}, Place: {entry.MJESTO}, Average Productivity: {entry.average_produktivnost}")
+    # Prepare data for the table
+    table_data = [
+        {
+            'MJESEC_GODINA': data[0] if data[0] else "",
+            'MJESTO': data[1],
+            'average_produktivnost': data[2] if not np.isnan(data[2]) else 0
+        }
+        for data in grouped_data
+    ]
+    print("Table data:", table_data)
+
+    # Prepare data for the graph
+    graph_data = {}
+    places = set()  # Store all places to ensure all places are included
+    import numpy as np
+    if grouped_data:
+        for data in grouped_data:
+            month_year = str(data[0]) if data[0] else ""
+            place = data[1]
+            avg_prod = data[2]
+            if month_year not in graph_data:
+                graph_data[month_year] = {}
+            graph_data[month_year][place] = avg_prod if avg_prod is not None else None
+            places.add(place)
+
+        # Fill NaN values with 0 for plotting on the graph
+        for month_data in graph_data.values():
+            for place in places:
+                if place not in month_data:
+                    month_data[place] = None
+
+        # Get unique places for coloring
+        unique_places = sorted(list(places))
+        colors = {}
+        for i, place in enumerate(unique_places):
+            colors[place] = get_chart_color(i)
+
+        # Get unique labels for the graph
+        labels = list(graph_data.keys())
+        print(labels)
+        print(graph_data)
+        print(table_data)
+
+        return jsonify({"table_data": table_data, "graph_data": graph_data, "colors": colors, "labels": labels})
+    else:
+        #print("No rows found for date range:", from_date_str, "to", to_date_str)
+        return jsonify({"error": "No data found"})
+
+
+def get_chart_color(index):
+    colors = [
+        'rgba(255, 99, 132, 0.2)',
+        'rgba(54, 162, 235, 0.2)',
+        'rgba(255, 206, 86, 0.2)',
+        'rgba(75, 192, 192, 0.2)',
+        'rgba(153, 102, 255, 0.2)',
+        'rgba(255, 159, 64, 0.2)',
+        'rgba(255, 99, 132, 0.2)'
+    ]
+    return colors[index % len(colors)]
+
+
+@app.route("/produktivnost_table_load")
+def produktivnost_table_load():
+    if not is_authenticated():
+        return jsonify({"error": "Not authenticated"})
+    # Retrieve 'from_date' and 'to_date' from request parameters
+    from_date_str = request.args.get('from_date', '2024-01-01')
+    to_date_str = request.args.get('to_date', '2024-12-31')
+    # Convert date strings to datetime objects
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    print(from_date)
+    import numpy as np
+    # Assuming TBA_REAL is your model and db is your SQLAlchemy session
+    grouped_data = db.session.query(
+        TBA_REAL.MJESEC_GODINA,
+        TBA_REAL.DELAVEC,
+        (TBA_REAL.PRODUKTIVNOST_GRUPE)
+    ).filter(
+        TBA_REAL.MJESEC_GODINA.between(from_date, to_date)
+    ).order_by(
+        TBA_REAL.PRODUKTIVNOST_GRUPE.desc()
+    ).all()
+    print("Table data:")
+    for data in grouped_data:
+        print(str(data).encode('utf-8'))
+
+    df = pd.DataFrame(grouped_data, columns=['MJESEC_GODINA', 'DELAVEC', 'PRODUKTIVNOST_GRUPE'])
+
+    print(str(df).encode('utf-8'))
+    # Prepare data for the table
+    table_data = [
+        {
+            'MJESEC_GODINA': data[0],
+            'DELAVEC': data[1],
+            'average_produktivnost': data[2] if not np.isnan(data[2]) else 0
+        }
+        for data in grouped_data
+    ]
+
+    # Extract top and bottom five records
+    top_five = table_data[:5]
+    bottom_five = table_data[-5:]
+    if table_data:
+        return jsonify({"table_data_top": top_five, "table_data_bottom": bottom_five})
+    else:
+        return jsonify({"error": "No data found"})
 
 
 @app.route('/logout')

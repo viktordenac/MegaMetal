@@ -8,17 +8,13 @@
     <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
         /* Adjust chart container size */
-        #myChart {
+        canvas {
             width: 100%;
             max-height: 680px;
             margin: 0 auto; /* Center the container */
-        }
-
-        /* Adjust canvas size */
-        canvas {
-            max-width: 100%; /* Ensure canvas doesn't overflow its container */
             height: auto; /* Maintain canvas aspect ratio */
         }
+
         /* Style for the data table */
         #data_table {
             width: 100%;
@@ -57,8 +53,22 @@
             <input type="date" id="to_date" name="to_date" value="2024-12-31">
             <button type="button" onclick="fetchData()">Select Dates</button>
         </form>
+
+
+
         <canvas id="myChart"></canvas>
         <div id="data_table"></div>
+        <hr>
+        <form id="month_form">
+            <label for="from_month">Select From Month:</label>
+            <input type="month" id="from_month" name="from_month">
+            <label for="to_month">Select From Month:</label>
+            <input type="month" id="to_month" name="to_month">
+            <button type="button" onclick="fetchMonthlyData()">Select Month</button>
+        </form>
+        <div>
+            <canvas id="monthlyChart"></canvas>
+        </div>
     </div>
 
 <script>
@@ -95,7 +105,7 @@
         xhr.onload = function() {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
-                displayChart(response);
+                displayPieChart(response);
             } else {
                 console.error('Request failed. Status: ' + xhr.status);
             }
@@ -103,9 +113,10 @@
         xhr.send();
     }
 
-    function displayChart(response) {
+    function displayPieChart(response) {
         var data = response.data;
         var groupedData = groupData(data);
+        console.log("Grouped data PIE: ", groupedData);
         displayDataTable(tableData); // Call the function here
         var labels = Object.keys(groupedData);
         var values = Object.values(groupedData);
@@ -130,6 +141,7 @@
             }
         });
     }
+
     var count = 0;
     var tableData = {
         '0-49': { count: 0, sum: 0, percentage: 0, color: 'red'},
@@ -196,8 +208,70 @@
         document.getElementById('data_table').innerHTML = table;
     }
 
+    function fetchMonthlyData() {
+            var from_selectedMonth = document.getElementById('from_month').value;
+            var from_year = from_selectedMonth.split('-')[0];
+            var from_month = from_selectedMonth.split('-')[1];
+            var to_selectedMonth = document.getElementById('to_month').value;
+            var to_year = to_selectedMonth.split('-')[0];
+            var to_month = to_selectedMonth.split('-')[1];
+            var from_firstDayOfMonth = new Date(from_year, from_month - 1, 1);
+            var to_lastDayOfMonth = new Date(to_year, to_month, 0);
+            var from_date = from_firstDayOfMonth.toISOString().split('T')[0];
+            var to_date = to_lastDayOfMonth.toISOString().split('T')[0];
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', '/potrošnja_materiala_grafi?from_date=' + from_date + '&to_date=' + to_date);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var response = JSON.parse(xhr.responseText);
+                    //displayChart(response);
+                    console.log("Response: ", response);
+                } else {
+                    console.error('Request failed. Status: ' + xhr.status);
+                }
+            };
+            xhr.send();
+        }
 
-
+    // function displayChart(response) {
+    //
+    //     // Render graph data
+    //     const graphData = response.graph_data;
+    //     const colors = response.colors;
+    //     const labels = response.labels;
+    //
+    //     // Prepare data for Chart.js
+    //     const datasets = [];
+    //     const places = Object.keys(colors);
+    //
+    //     places.forEach(place => {
+    //         const placeData = labels.map(label => graphData[label][place] || null);
+    //         datasets.push({
+    //             label: place,
+    //             data: placeData,
+    //             backgroundColor: colors[place],
+    //             borderColor: 'rgba(75, 192, 192, 1)',
+    //             borderWidth: 1
+    //         });
+    //     });
+    //
+    //     // Create chart using Chart.js
+    //     const ctx = document.getElementById('myChart').getContext('2d');
+    //     myChart = new Chart(ctx, {
+    //         type: 'bar',
+    //         data: {
+    //             labels: labels,
+    //             datasets: datasets
+    //         },
+    //         options: {
+    //             scales: {
+    //                 y: {
+    //                     beginAtZero: true
+    //                 }
+    //             }
+    //         }
+    //     });
+    // }
 </script>
 </body>
 </html>

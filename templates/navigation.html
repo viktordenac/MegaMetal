@@ -8,21 +8,21 @@
     <!-- Home link -->
     <a href="{{ url_for('index') }}">Home</a>
 
-    {% if 'grafi' in stranice_list or 'po_identu' in stranice_list or 'torta' in stranice_list or 'oee' in stranice_list %}
+    {% if 'grafi' in stranice_list or 'po_identu' in stranice_list or 'torta' in stranice_list or 'oee' in stranice_list or 'potrosnja_materiala' in stranice_list %}
     <div class="potrosnja-materiala">
         Potrošnja materiala &rarr;
         <!-- Inside Dropdown -->
         <div class="dropdown-potrosnja-materiala">
-            {% if 'grafi' in stranice_list %}
+            {% if 'grafi' in stranice_list or 'potrosnja_materiala' in stranice_list  %}
             <a href="{{ url_for('potrosnja_materiala') }}"><div class="ddPotrosnja">Grafi</div></a>
             {% endif %}
-            {% if 'po_identu' in stranice_list %}
+            {% if 'po_identu' in stranice_list or 'potrosnja_materiala' in stranice_list %}
             <a href="{{ url_for('grupiranje_materiala') }}"><div class="ddPotrosnja">Po identu</div></a>
             {% endif %}
-            {% if 'torta' in stranice_list %}
+            {% if 'torta' in stranice_list or 'potrosnja_materiala' in stranice_list %}
             <a href="{{ url_for('potrosnja_materiala_torta') }}"><div class="ddPotrosnja">Torta</div></a>
             {% endif %}
-            {% if 'oee' in stranice_list %}
+            {% if 'oee' in stranice_list or 'potrosnja_materiala' in stranice_list %}
             <a href="{{ url_for('potrosnja_materiala_OEE') }}"><div class="ddPotrosnja">OEE</div></a>
             {% endif %}
         </div>

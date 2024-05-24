@@ -37,6 +37,9 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+#user_path = "C:/Users/ivan.tonkic/Desktop/"
+user_path = "C:/Users/mm.student/PycharmProjects/MegaMetal/"
+
 # Example user model
 class User(UserMixin):
     def __init__(self, Kartica, Username, Ime, Mjesto):
@@ -1863,12 +1866,20 @@ def filter_data():
     return jsonify(filtered_data)
 
 
-@app.route("/refresh_fix_plan")
+@app.route('/refresh_fix_plan', methods=['POST'])
 def refresh_fix_plan():
-    print("Refreshing data...")
-    os.system(r"C:\Users\ivan.tonkic\Desktop\Mega_metal\fix_plan\Fix_plan.bat")
-    return jsonify({'success': True})
+    import subprocess
+    # Specify the path to your batch file
+    batch_file_path = user_path + 'Testing_Notes/testing.bat'
+    data = request.json
+    variable = data.get('variable')
 
+    try:
+        subprocess.run([batch_file_path], check=True, shell=True)
+        return jsonify({'success': True})
+    except Exception as e:
+        #write to file batch_file_path and e to see what is the error
+        return jsonify({'success': False, 'error_message': str(e)})
 """--------------------------------------------------------------------"""
 
 @app.route('/administracija', methods=['GET'])

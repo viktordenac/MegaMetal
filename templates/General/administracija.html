@@ -14,26 +14,70 @@
       <span class="decor"></span>
       <nav>
         <ul class="primary">
-          <li>
-            <a>Uporabnik</a>
-            <ul class="sub">
-              <li><a href="{{ url_for('user') }}">Urejanje</a></li>
-              <li><a href="{{ url_for('user_roles') }}">Vloge</a></li>
-            </ul>
-          </li>
-          <li>
-            <a>Nalogi</a>
-            <ul class="sub">
-              <li><a href="{{ url_for('aktivni_nalogi', status='1') }}">Aktivni</a></li>
-              <li><a href="{{ url_for('aktivni_nalogi', status='0') }}">Neaktivni</a></li>
-            </ul>
-          </li>
+            <li>
+            <a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Realizacija</a>
+                <ul class="sub">
+                    <li><a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Fix Plan</a></li>
+                    <li><a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Produktivnost</a></li>
+                    <li><a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Recylce</a></li>
+                </ul>
+            </li>
+            <li>
+            <a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Proizvodnja</a>
+                <ul class="sub">
+                    <li><a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Datum Isporuke</a></li>
+                </ul>
+            <li>
+                <a>Uporabnik</a>
+                <ul class="sub">
+                    <li><a href="{{ url_for('user') }}">Urejanje</a></li>
+                    <li><a href="{{ url_for('user_roles') }}">Vloge</a></li>
+                </ul>
+            </li>
+            <li>
+                <a>Nalogi</a>
+                <ul class="sub">
+                    <li><a href="{{ url_for('aktivni_nalogi', status='1') }}">Aktivni</a></li>
+                    <li><a href="{{ url_for('aktivni_nalogi', status='0') }}">Neaktivni</a></li>
+                </ul>
+            </li>
         </ul>
       </nav>
     </div>
 </div>
-
-
+<div id="loading" style="display: none;">Loading, please wait...</div>
 
 </body>
+<script>
+     function submitForm(event, script, buttonText) {
+            event.preventDefault();
+            const loadingDiv = document.getElementById('loading');
+            const text = buttonText.toLowerCase();
+
+            loadingDiv.style.display = 'block';
+            loadingDiv.innerText = 'Loading ' + text + ', please wait...';
+
+            fetch(script, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // Specify JSON content type
+                },
+                body: JSON.stringify({ // Include variable in the request body
+                    variable: text
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loadingDiv.innerText = 'Successfully finished!';
+                setTimeout(() => {
+                    loadingDiv.style.display = 'none';
+                }, 1500); // Hide the message after 3 seconds
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                console.error('Error:', error);
+            });
+    }
+
+</script>
 </html>

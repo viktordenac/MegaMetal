@@ -49,7 +49,6 @@
     <canvas id="comparisonChart2" class="graph-canvas"></canvas>
 
 <script>
-
     document.getElementById("refresh-button").addEventListener("click", function() {
         fetch('/refresh_fix_plan', {
             method: 'GET'
@@ -159,6 +158,25 @@
         filterAndRefreshChart(startWeek, endWeek);
     });
 
+    // Function to get week number from a date
+    function getWeekNumber(date) {
+        var startDate = new Date(date.getFullYear(), 0, 1);
+        var days = Math.floor((date - startDate) / (24 * 60 * 60 * 1000));
+        return Math.ceil((days + startDate.getDay() + 1) / 7);
+    }
+
+    // Set initial values and call filterAndRefreshChart on page load
+    window.onload = function() {
+        var currentDate = new Date();
+        var startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        var endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        var startWeek = getWeekNumber(startOfMonth);
+        var endWeek = getWeekNumber(endOfMonth);
+
+        document.getElementById("startWeek").value = startWeek;
+        document.getElementById("endWeek").value = endWeek;
+        filterAndRefreshChart(startWeek, endWeek);
+    };
 </script>
 
 </body>

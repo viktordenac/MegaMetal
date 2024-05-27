@@ -7,6 +7,7 @@ import calendar
 
 import holidays
 import msoffcrypto
+import numpy as np
 from dateutil.relativedelta import relativedelta
 
 slo_holidays = holidays.SI()  # this is a dict
@@ -229,6 +230,14 @@ class TBA_REAL(db.Model):
     ID_PK = db.Column(db.Integer, primary_key=True)
 
 
+class TBA_REAL_IDENT(db.Model):
+    __tablename__ = 'TBA_REAL_IDENT'
+    IDENT = db.Column(db.String(50))
+    DELAVEC = db.Column(db.String(50))
+    PRODUKTIVNOST_GRUPE = db.Column(db.REAL)
+    ID_PK = db.Column(db.Integer, primary_key=True)
+
+
 class TREZ_OEE(db.Model):
     __tablename__ = 'TREZ_OEE'
     MACHINE_NAME = db.Column(db.String(20), primary_key=True)
@@ -298,12 +307,22 @@ def grupiranje_materiala():
     return render_template("grupiranje_materiala.html", radniNalogi=identi, stranice_list=stranice_list)
 
 
-@app.route("/produktivnost_grafi")
-def produktivnost_grafi():
+@app.route("/produktivnost_delavcev_grafi")
+def produktivnost_delavcev_grafi():
     if not is_authenticated():
         return redirect(url_for("login"))
     stranice_list = session["stranice"]
-    return render_template("produktivnost_grafi.html", stranice_list=stranice_list)
+    return render_template("produktivnost_delavcev_grafi.html", stranice_list=stranice_list)
+
+
+@app.route("/produktivnost_pozicije")
+def produktivnost_pozicije():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    stranice_list = session["stranice"]
+    identi = TREZ_KALK.query.with_entities(TREZ_KALK.Ident).distinct().all()
+    identi = [row[0] for row in identi]
+    return render_template("produktivnost_pozicije.html", radniNalogi=identi, stranice_list=stranice_list)
 
 
 @app.route("/aktivni_nalogi")
@@ -447,6 +466,96 @@ def potrosnja_materiala_grafi():
         #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
 
+def categorize_postotak(value):
+    print(value)
+    try:
+        if value < 49:
+            return '0-49'
+        elif 49 <= value < 70:
+            return '50-70'
+        elif value >= 70:
+            return '>71'
+    except Exception as e:
+        return e
+
+@app.route("/potrosnja_materiala_mj")
+def potrosnja_materiala_mj():
+    if not is_authenticated():
+        return jsonify({"error": "Not authenticated"})
+
+    # Retrieve 'from_date' and 'to_date' from request parameters
+    from_date_str = request.args.get('from_date', '2024-01-01')
+    to_date_str = request.args.get('to_date', '2024-12-31')
+
+    # Convert date strings to datetime objects
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+
+    # Query the database for records within the specified date range
+    result = TREZ_TIME.query.filter(TREZ_TIME.DateCreated.between(from_date, to_date)).all()
+    if result:
+        data = []
+        #print("Rows found for date range:", from_date_str, "to", to_date_str)
+        # Formatting the results
+        for row in result:
+            print(row)
+            try:
+                row.Postotak = int(row.Postotak * 100)
+            except:
+                row.Postotak = 0
+            data.append({
+                "JobCode": row.JobCode,
+                "DateCreated": row.DateCreated.strftime('%Y-%m-%d'),
+                "Postotak": row.Postotak,
+                "Bruto": row.Bruto,
+            })
+            #print(row.JobCode, row.DateCreated, row.Postotak)
+        result_dicts = [obj.__dict__ for obj in result]
+        df = pd.DataFrame(result_dicts)
+        df = df.drop('_sa_instance_state', axis=1)
+        column_sum = df['Bruto'].sum()
+        df.insert(len(df.columns), 'Udio', df['Bruto'] / column_sum * 100)
+        df.insert(len(df.columns), 'Postotak*udio', df['Postotak']/100 * df['Udio']/100)
+        column_sum1 = df['Postotak*udio'].sum()
+        column_sum1 = (column_sum1 * 100).round(2)
+        postotakXudio = column_sum1.astype(str) + "%"
+        df['Postotak'] = df['Postotak'].astype(str) + "%"  # Add '%' to the 'Postotak' column
+        df['Bruto'] = df['Bruto'].astype(str) + ""  # Round to 3 decimals
+        df['Udio'] = df['Udio'].round(2).astype(str) + "%"
+        df['Postotak*udio'] = (df['Postotak*udio'] * 100).round(2).astype(str) + "%"
+
+        # Assuming df is your DataFrame
+        # Create a new row as a dictionary
+        new_df = df[
+            ['JobCode', 'DateCreated', 'Postotak', 'Bruto', 'Neto', 'Udio', 'Postotak*udio']]
+        new_df['DateCreated'] = new_df['DateCreated'].apply(format_date)
+        new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
+
+
+        # Convert 'DateCreated' to datetime
+        new_df['DateCreated'] = pd.to_datetime(new_df['DateCreated'])
+        # Extract month and year
+        new_df['YearMonth'] = new_df['DateCreated'].dt.to_period('M')
+        # Convert 'Postotak' to numeric values
+        new_df['Postotak'] = new_df['Postotak'].str.rstrip('%').astype('float')
+        new_df['kate'] = new_df['Postotak'].apply(categorize_postotak)
+        # Group by 'YearMonth' and 'PostotakCategory' and calculate the average 'Postotak'
+        grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(AveragePostotak=('Postotak', 'mean')).reset_index()
+
+        grouped_df = new_df.groupby(['YearMonth', 'kate'])['Postotak'].mean()
+        print("NEEEE")
+        print(grouped_df)
+
+        return jsonify({"data": grouped_df.to_json(orient='records')})
+    else:
+        #print("No rows found for date range:", from_date_str, "to", to_date_str)
+        return jsonify({"error": "No data found"})
+
+
+
+
+
+
 @app.route("/grupiranje_materiala_table", methods=['POST'])
 def grupiranje_materiala_table():
     if not is_authenticated():
@@ -463,6 +572,60 @@ def grupiranje_materiala_table():
         allData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, TREZ_KALK.Id_rn, func.sum(TREZ_KALK.Bruto)).filter_by(
             Ident=documentId).group_by(TREZ_KALK.Ident, TREZ_KALK.Id_rn).all()
 
+        vsi_identi = """
+                            select ident, sum(vreme) as vreme, sum(norma) as norma, sum(norma)/sum(vreme) as produktivnost  from (
+                            select SPLIT_PART("IDENT", '-', 1) || '-' || SPLIT_PART("IDENT", '-', 2) AS  IDENT, 
+                            sum("VREME") as vreme, sum(distinct("NORMA")) as norma, sum(distinct("NORMA"))/sum("VREME") as postotak 
+                            FROM public."TBA_REAL_IDENT"	
+                            group by("IDENT"))
+                            group by(ident)
+                            order by produktivnost desc
+                            """
+        vsi_deli_identov= """
+                            select "IDENT", sum("VREME") as vreme, sum(distinct("NORMA")) as norma, sum(distinct("NORMA"))/sum("VREME") as postotak 
+                            FROM public."TBA_REAL_IDENT"	
+                            group by("IDENT")
+                            """
+        rezultat_vseh_identov = db.session.execute(text(vsi_identi))
+        rezultat_delov_identov = db.session.execute(text(vsi_deli_identov))
+        # Extracting column names from the rezultat_vseh_identov set
+        columns_vseh_identov = rezultat_vseh_identov.keys()
+        columns_delov_identov = rezultat_delov_identov.keys()
+
+        # Creating a DataFrame from the SQL rezultat_vseh_identov
+        df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
+        df1 = pd.DataFrame(rezultat_delov_identov.fetchall(), columns=columns_delov_identov)
+        # Extract the parent 'ident' in df1
+        print("Initial df1:")
+        print(df1)
+
+        # Extract the parent 'ident' in df1 using a lambda function directly
+        df1['parent_ident'] = df1['IDENT'].apply(lambda x: '-'.join(x.split('-')[:2]) if len(x.split('-')) > 1 else x)
+
+        # Print transformed DataFrame
+        print("Transformed df1 with parent_ident:")
+        print(df1)
+        # Group df1 by parent_ident
+        grouped_df1 = df1.groupby('parent_ident')
+        grouped_data = {ident: group.to_dict(orient='records') for ident, group in grouped_df1}
+        # Prepare the final data to send to the frontend
+        # Select the top and bottom five rows
+        top_five = df.head(5)
+        bottom_five = df.tail(5)
+        top_parent_idents = top_five['ident'].tolist()
+        bottom_parent_idents = bottom_five['ident'].tolist()
+        selected_parents = top_parent_idents + bottom_parent_idents
+
+        filtered_grouped_data = {ident: grouped_data[ident] for ident in selected_parents if ident in grouped_data}
+
+        # Prepare the final data to send to the frontend
+        final_data = {
+            'parent_data_top': top_five.to_dict(orient='records'),
+            'parent_data_bottom': bottom_five.to_dict(orient='records'),
+            'child_data': filtered_grouped_data
+        }
+        print("Grouped df1:", final_data)
+
         if not filtered_results and not allData:
             return jsonify({"error": "No data found for the given document ID"})
 
@@ -477,8 +640,7 @@ def grupiranje_materiala_table():
         # Convert allData to a list of dictionaries
         all_data_dict = [{'Ident': row[0], 'Id_rn': row[1], 'Bruto': round((row[2]), 3)} for row in allData]  # Round to 3 decimals
 
-        # Return JSON response
-        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto, 'TBA_KOS': tba_kos_dict})
+        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto, 'TBA_KOS': tba_kos_dict, "response_data": final_data})
 
     except Exception as e:
         return jsonify({"error": str(e)})

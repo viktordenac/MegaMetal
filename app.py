@@ -106,8 +106,13 @@ def submit_evidenca_ur():
         db.session.add(new_entry)
         db.session.commit()
         return "Data inserted successfully!"
-    if not id_rn and vrijeme and faza:
+    if not id_rn and vrijeme and faza == "Režija":
         new_entry = TEV_EVID(Datum=datum, Izmena=izmena, Faza=faza, Opombe=opombe, Vrijeme=vrijeme, Kartica=kartica, Id_rn="999")
+        db.session.add(new_entry)
+        db.session.commit()
+        return "Data inserted successfully!"
+    elif not id_rn and vrijeme and faza:
+        new_entry = TEV_EVID(Datum=datum, Izmena=izmena, Faza=faza, Opombe=opombe, Vrijeme=vrijeme, Kartica=kartica, Id_rn="888")
         db.session.add(new_entry)
         db.session.commit()
         return "Data inserted successfully!"

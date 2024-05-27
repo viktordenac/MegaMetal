@@ -61,6 +61,8 @@
     <script>
         // Get today's date
         var today = new Date();
+        var startingDate = new Date();
+        startingDate.setDate(1)
 
         // Check if today is Monday (0 index for Sunday, 1 for Monday, and so on)
         if (today.getDay() === 1) { // If today is Monday
@@ -74,9 +76,13 @@
         var mm = String(today.getMonth() + 1).padStart(2, '0');
         var dd = String(today.getDate()).padStart(2, '0');
         var formattedDate = yyyy + '-' + mm + '-' + dd;
+        var yyyy = startingDate.getFullYear();
+        var mm = String(startingDate.getMonth() + 1).padStart(2, '0');
+        var dd = String(startingDate.getDate()).padStart(2, '0');
+        var formattedStartingDate = yyyy + '-' + mm + '-' + dd;
 
         // Set the 'from_date' and 'to_date' input values to the calculated date
-        document.getElementById('from_date_graf').value = formattedDate;
+        document.getElementById('from_date_graf').value = formattedStartingDate;
         document.getElementById('to_date_graf').value = formattedDate;
         function setDefaultMonths() {
             const now = new Date();

@@ -553,6 +553,7 @@ def produktivnost_grafi_load():
         print(labels)
         print(graph_data)
         print(table_data)
+        print("COLORS: ", unique_places)
 
         return jsonify({"table_data": table_data, "graph_data": graph_data, "colors": colors, "labels": labels})
     else:
@@ -635,12 +636,16 @@ def produktivnost_grafi_delavec_load():
         return jsonify({"error": "Not authenticated"})
 
     # Retrieve 'from_date' and 'to_date' from request parameters
-    from_date_str = request.args.get('from_date', '2024-01-01')
-    to_date_str = request.args.get('to_date', '2024-12-31')
+    from_date_str = request.args.get('from_date', '2024-01')
+    to_date_str = request.args.get('to_date', '2024-12')
     delavec = request.args.get('delavec', 'Delavec')
     # Convert date strings to datetime objects
-    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
-    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    from_date = datetime.strptime(from_date_str, '%Y-%m')
+    to_date_temp = datetime.strptime(to_date_str, '%Y-%m')
+    last_day_of_month = calendar.monthrange(to_date_temp.year, to_date_temp.month)[1]
+    to_date = to_date_temp.replace(day=last_day_of_month)
+    print(from_date)
+    print(to_date)
 
     import numpy as np
     # Assuming TBA_REAL is your model and db is your SQLAlchemy session
@@ -653,14 +658,17 @@ def produktivnost_grafi_delavec_load():
     ).order_by(
         TBA_REAL.PRODUKTIVNOST_GRUPE.desc()
     ).all()
+
+    nekaj = "DELAVEC: " + delavec
+    print(str(nekaj).encode('utf-8'))
     print("Table data:")
     for data in grouped_data:
         print(str(data).encode('utf-8'))
 
     df = pd.DataFrame(grouped_data, columns=['MJESEC_GODINA', 'DELAVEC', 'PRODUKTIVNOST_GRUPE'])
     df_grouped = df.groupby(['MJESEC_GODINA', 'DELAVEC'])['PRODUKTIVNOST_GRUPE'].mean().reset_index()
-    df_grouped = df_grouped.sort_values(by='MJESEC_GODINA', ascending=True)
-    filtered_df = df_grouped[df_grouped['DELAVEC'] == delavec]
+    df_grouped = df_grouped[df_grouped['DELAVEC'] == delavec]
+    filtered_df = df_grouped.sort_values(by='MJESEC_GODINA', ascending=True)
 
     # Prepare data for the table
     table_data = [
@@ -671,6 +679,9 @@ def produktivnost_grafi_delavec_load():
         }
         for index, row in filtered_df.iterrows()
     ]
+    print("Table data:")
+    for data in table_data:
+        print(str(data).encode('utf-8'))
 
     if table_data:
         return jsonify({"delavecPodatki": table_data})

@@ -219,21 +219,26 @@
             </form>
         </div>
     <!-- Add separate div containers for top and bottom tables -->
-        <div id="pozicijeDF">
-            <div id="top5" class="data-frame-section">
-                <h3 style="color: #45a049">BEST 5 workers</h3>
-                <div id="top5Table"></div>
-            </div>
-            <div id="bottom5" class="data-frame-section">
-                <h3 style="color: red">WORST 5 workers</h3>
-                <div id="bottom5Table"></div>
-            </div>
+
+    </div>
+    <div id="pozicijeDF">
+        <div id="top5" class="data-frame-section">
+            <h3 style="color: #45a049">BEST 5 workers</h3>
+            <div id="top5Table"></div>
+        </div>
+        <div id="bottom5" class="data-frame-section">
+            <h3 style="color: red">WORST 5 workers</h3>
+            <div id="bottom5Table"></div>
         </div>
     </div>
 
 </body>
 <script>
-    function fetchData() {
+    window.onload = function() {
+        console.log("Window loaded");
+        setTimeout(fetchDataTopAndSlow, 100); // Fetch data after 1 second
+    };
+    function fetchDataTopAndSlow() {
         const documentId = document.getElementById('documentID').value;
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/grupiranje_materiala_table'); // Adjust the URL if needed

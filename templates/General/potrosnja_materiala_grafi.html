@@ -27,6 +27,8 @@
     </div>
 
 <script>
+var labels;
+
     // Get today's date
     var today = new Date();
 
@@ -67,12 +69,13 @@
         };
         xhr.send();
     }
-
+	var labels;
     function displayChart(response) {
-    var data = response.data;
-    var labels = data.map(function(row) {
-        return row.JobCode;
-    });
+	var data = response.data;
+	labels = data.map(function(row) {
+		return row.JobCode;
+	});
+
     var postotakData = data.map(function(row, index) {
         var color = row.Postotak > 100 ? 'rgb(255,165,0, 0.8)': row.Postotak < 50 ? 'rgba(213,20,20, 0.4)': row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0, 0.8)' : (index % 2 === 0 ? 'rgba(0,255,0,0.4)' : 'rgba(0,255,0,0.2)');
         var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)': row.Postotak < 50 ? 'rgba(0,0,0)' : row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0)' : (index % 2 === 0 ? 'rgb(0,255,0)' : 'rgb(0,255,0)');
@@ -173,7 +176,46 @@
         // Display the table in the designated div
         document.getElementById('dataFrameTable').innerHTML = tableHtml;
     }
+document.getElementById('myChart').addEventListener('click', function(event) {
+    // Get the chart instance
+    var chartInstance = myChart; // Assuming myChart is your Chart.js instance
 
+    // Get the active points from the event
+    var activePoints = chartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: true }, false);
+
+    // If there are active points
+    if (activePoints.length > 0) {
+        // Get the index of the clicked column
+        var dataIndex = activePoints[0].index;
+
+        // Get the 'JobCode' associated with the clicked column
+        var clickedJobCode = labels[dataIndex];
+
+        console.log(clickedJobCode); // Log the clicked 'JobCode'
+		  fetch('/get_pdf', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ label: clickedJobCode })
+			})
+			.then(response => response.json())
+			.then(data => {
+				if (data.pdfBase64) {
+					// Open the PDF in a new tab
+					window.open('data:application/pdf;base64,' + data.pdfBase64, '_blank');
+				} else {
+					console.error('PDF not found for the clicked label:', clickedJobCode);
+				}
+			})
+			.catch(error => {
+				console.error('Error fetching PDF:', error);
+			});
+
+
+        // Rest of your code...
+    }
+});
 </script>
 </body>
 </html>

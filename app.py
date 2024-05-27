@@ -1,9 +1,11 @@
+import base64
 import io
 import os
 import re
 from collections import defaultdict
 from datetime import datetime, date, timedelta
 import calendar
+import glob
 
 import holidays
 import msoffcrypto
@@ -466,6 +468,31 @@ def potrosnja_materiala_grafi():
         #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
 
+def file_to_base64(file_path):
+    with open(file_path, 'rb') as file:
+        encoded = base64.b64encode(file.read())
+    return encoded.decode('utf-8')
+
+
+@app.route('/get_pdf', methods=['POST'])
+def get_pdf():
+    label = request.json['label']
+    pdf_directory = r'P:\Profirst\pdf-nested'
+    filename = label
+    number = filename.split('.')[0]
+    pattern = os.path.join(pdf_directory, f'*{number}*.pdf')
+    matching_files = glob.glob(pattern)
+    print(matching_files[0])
+
+    if matching_files:
+        # Assuming you want to read the first matching file and encode it to base64
+        with open(matching_files[0], 'rb') as f:
+            pdf_data = f.read()
+            pdf_base64 = base64.b64encode(pdf_data).decode('utf-8')
+        return jsonify({'pdfBase64': pdf_base64})
+    else:
+        return jsonify({'error': 'PDF not found for the label'}), 404
+
 def categorize_postotak(value):
     print(value)
     try:
@@ -498,7 +525,7 @@ def potrosnja_materiala_mj():
         #print("Rows found for date range:", from_date_str, "to", to_date_str)
         # Formatting the results
         for row in result:
-            print(row)
+            #print(row)
             try:
                 row.Postotak = int(row.Postotak * 100)
             except:
@@ -531,6 +558,7 @@ def potrosnja_materiala_mj():
         new_df['DateCreated'] = new_df['DateCreated'].apply(format_date)
         new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
 
+        #print(new_df)
 
         # Convert 'DateCreated' to datetime
         new_df['DateCreated'] = pd.to_datetime(new_df['DateCreated'])
@@ -541,19 +569,26 @@ def potrosnja_materiala_mj():
         new_df['kate'] = new_df['Postotak'].apply(categorize_postotak)
         # Group by 'YearMonth' and 'PostotakCategory' and calculate the average 'Postotak'
         grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(AveragePostotak=('Postotak', 'mean')).reset_index()
+        #print(new_df)
+        # Convert the Period type to string for JSON serialization
+        grouped_df['YearMonth'] = grouped_df['YearMonth'].astype(str)
 
-        grouped_df = new_df.groupby(['YearMonth', 'kate'])['Postotak'].mean()
-        print("NEEEE")
-        print(grouped_df)
+        # Convert to list of dictionaries
 
-        return jsonify({"data": grouped_df.to_json(orient='records')})
+        #average_prosjek = new_df.groupby(['YearMonth', 'kate'])['Postotak'].mean()
+        # Group by 'YearMonth' and 'kate' and calculate the average 'Postotak'
+        grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(AveragePostotak=('Postotak', 'mean')).reset_index()
+
+        # Convert the Period type to string for JSON serialization
+        grouped_df['YearMonth'] = grouped_df['YearMonth'].astype(str)
+
+        # Convert to list of dictionaries
+        json_data = grouped_df.to_dict(orient='records')
+        print(json_data)
+        return jsonify({"data": json_data})
     else:
         #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
-
-
-
-
 
 
 @app.route("/grupiranje_materiala_table", methods=['POST'])
@@ -626,7 +661,7 @@ def grupiranje_materiala_table():
         }
         print("Grouped df1:", final_data)
 
-        if not filtered_results and not allData:
+        if not filtered_results and not allData and not final_data:
             return jsonify({"error": "No data found for the given document ID"})
 
         # Fetch TBA_KOS data

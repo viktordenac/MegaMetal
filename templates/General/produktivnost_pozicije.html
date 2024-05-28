@@ -5,207 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iskanje identa</title>
     <link rel="stylesheet" href="../../static/style/smallScreen.css">
-    <style>
-        /* Add this CSS to your existing style block */
-        body {
-            margin: 0;
-            padding: 0;
-            justify-content: center;
-            min-height: 100vh; /* Use min-height to ensure full page height */
-        }
-
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
-            width: 100%; /* Set a width for the form */
-            margin-top: 2%; /* Adjust top margin as needed */
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0 20px 0;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            box-sizing: border-box;
-        }
-
-        input[type="submit"] {
-            width: 100%;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 0;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
-
-        /* Add this CSS to your existing style block */
-        .data-container {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
-            width: 100%;
-            box-sizing: border-box;
-            overflow-x: auto; /* Enable horizontal scrolling for small screens */
-        }
-
-        .data-container table {
-            width: 100%;
-            border-collapse: collapse;
-            white-space: nowrap; /* Prevent table cells from wrapping */
-        }
-
-        .data-container th, .data-container td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-            min-width: 100px; /* Set minimum width for cells */
-        }
-
-        .data-container th {
-            background-color: #f2f2f2;
-        }
-
-        /* Ensure table header remains visible while scrolling horizontally */
-        .data-container th {
-            position: sticky;
-            top: 0;
-            background-color: #f2f2f2;
-        }
-
-        /* Add this CSS to your existing style block */
-        .form-container {
-            width: 60%;
-            height: 60%;
-            margin-left: 13%;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .login-form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
-            width: 300px; /* Set a width for the form */
-            margin: 0 auto; /* Center the form horizontally */
-        }
-
-        .table-container {
-            width: 100%;
-            box-sizing: border-box;
-            overflow-x: auto; /* Enable horizontal scrolling for small screens */
-        }
-
-        .scrollable-table {
-            max-height: 500px; /* Assuming navbar height is 50px */
-            overflow: auto;
-        }
-
-        .dropdownIdNr {
-            position: relative;
-            display: inline-block;
-            height: 80px;
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0 20px 0;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            box-sizing: border-box;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 97%;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            z-index: 1;
-            width: 90%;
-            font-size: 25px;
-            font-weight: bold;
-            text-align: center;
-            vertical-align: center;
-        }
-
-        .dropdown-content div {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* Links inside the dropdown */
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
-
-        /* Change color of dropdown links on hover */
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
-
-        /* WARNING DON'T DELETE */
-        .show {
-            display: block;
-        }
-
-        /* Add responsive font size for table */
-        @media screen and (max-width: 768px) {
-            .data-container th, .data-container td {
-                font-size: 12px;
-                padding: 5px;
-            }
-        }
-        #dataContainer{
-            width: 80%;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        #summaryContainer {
-            width: 20%;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-        .container {
-            display: flex;
-            margin-left: 7vw;
-        }
-
-        .form-container,
-        #dataContainer,
-        #summaryContainer {
-            flex: 1;
-            margin-right: 20px; /* Adjust margin as needed */
-        }
-        #pozicijeDF {
-            display: flex;
-            justify-content: center;
-        }
-    </style>
+    <link rel="stylesheet" href="../../static/style/potrosnja_materiala_grafi.css">
+    <link rel="stylesheet" href="../../static/style/produktivnost_pozicije.css">
 </head>
 <body>
     <div class="container">
         <div class="form-container">
-            <form class="login-form" id="textForm" onsubmit="fetchData(); return false;">
+            <form class="login-form" id="textForm" onsubmit="fetchDataTopAndSlow(); return false;">
                 <h2>Iskanje bruto identa</h2>
                 <div class="dropdownIdNr">
                     <label for="documentID"></label><input type="text" id="documentID" oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown')" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
@@ -219,7 +25,48 @@
             </form>
         </div>
     <!-- Add separate div containers for top and bottom tables -->
-
+        <div id="dataContainer">
+            <h2>Kalkulacije</h2>
+            <div class="table-container">
+            <!-- Main table container -->
+                <div id="mainTableContainer" class ="scrollable-table">
+                    <div id="data_container" class="data-container">
+                        <table id="mainTable">
+                            <thead>
+                                <tr>
+                                    <th>Ident - Kos</th>
+                                    <th>Vreme</th>
+                                    <th>Norma</th>
+                                    <th>Postotak</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="summaryContainer">
+            <!-- Summary table container -->
+            <h3>Skupno kalkulacije</h3>
+            <div id="summaryTableContainer">
+                <div class="data-container">
+                    <table id="summaryTable">
+                        <thead>
+                            <tr>
+                                <th>Ident</th>
+                                <th>Vreme</th>
+                                <th>Norma</th>
+                                <th>Produktivnost</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     <div id="pozicijeDF">
         <div id="top5" class="data-frame-section">
@@ -248,7 +95,8 @@
                 try {
                     const response = JSON.parse(xhr.responseText);
                     console.log('Response:', response); // Log the response for debugging
-                    displayData(response.response_data);
+                    displayTopAndSlowData(response.response_data);
+                    displayData(response)
                 } catch (error) {
                     console.error('Error parsing JSON response:', error);
                 }
@@ -259,13 +107,40 @@
         xhr.send('documentInput=' + encodeURIComponent(documentId));
     }
 
-    function displayData(response) {
+    function displayTopAndSlowData(response) {
         const parentDataTop = response.parent_data_top;
         const parentDataBottom = response.parent_data_bottom;
         const childData = response.child_data;
 
         displayChartTable(parentDataTop, childData, 'top5Table');
         displayChartTable(parentDataBottom, childData, 'bottom5Table');
+    }
+
+    function displayData(response) {
+        const mainTable = document.getElementById('mainTable');
+        const summaryTable = document.getElementById('summaryTable');
+
+        if (response.error) {
+            alert(response.error); // Display error message in a popup
+            return; // Exit function early
+        } else {
+            mainTable.style.display = 'table';
+            summaryTable.style.display = 'table';
+            let mainHtml = '';
+            let summaryHtml = '';
+
+            // Populate main table
+            response.document_id_ident.forEach(function(row) {
+                mainHtml += '<tr><td>' + row.IDENT.toString() + '</td><td>' + row.vreme.toString() + '</td><td>' + row.norma.toString() + '</td><td>' + row.postotak.toString() + '%</td></tr>';
+            });
+            mainTable.querySelector('tbody').innerHTML = mainHtml;
+
+            // Populate summary table
+            response.sum_document_id_ident.forEach(function(row) {
+                summaryHtml += '<tr><td>' + row.ident.toString() + '</td><td>' + row.vreme.toString() + '</td><td>' + row.norma.toString() + '</td><td>' + row.produktivnost.toString() + '%</td></tr>';
+            });
+            summaryTable.querySelector('tbody').innerHTML = summaryHtml;
+        }
     }
 
     function displayChartTable(parentData, childData, divId) {
@@ -280,9 +155,12 @@
         parentData.forEach(function(row) {
             table += '<tr>';
             Object.keys(row).forEach(function(key) {
-                table += '<td>' + row[key] + '</td>';
+                if (key === 'ident'){
+                    table += '<td><button class="show-details" data-ident="' + row.ident + '">' + row[key] + '</button></td>';
+                }else{
+                    table += '<td>' + row[key] + '</td>';
+                }
             });
-            table += '<td><button class="show-details" data-ident="' + row.ident + '">Toggle Details</button></td>';
             table += '</tr>';
 
             if (childData[row.ident]) {

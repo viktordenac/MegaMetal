@@ -597,6 +597,7 @@ def grupiranje_materiala_table():
         return jsonify({"error": "Not authenticated"})
 
     documentId = request.form.get('documentInput')
+    print("AAAAAA", documentId)
 
     try:
         # Fetch data from the database
@@ -621,11 +622,33 @@ def grupiranje_materiala_table():
                             FROM public."TBA_REAL_IDENT"	
                             group by("IDENT")
                             """
-        rezultat_vseh_identov = db.session.execute(text(vsi_identi))
+
+        document_id_ident = ""
+        sum_document_id_ident = ""
+
+        if documentId:
+            rezultat_delov_identov = db.session.execute(text(vsi_deli_identov))
+            columns_delov_identov = rezultat_delov_identov.keys()
+            rezultat_vseh_identov = db.session.execute(text(vsi_identi))
+            columns_vseh_identov = rezultat_vseh_identov.keys()
+            df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
+            df1 = pd.DataFrame(rezultat_delov_identov.fetchall(), columns=columns_delov_identov)
+            print("Initial df:", df)
+            df1['parent_ident'] = df1['IDENT'].apply(lambda x: '-'.join(x.split('-')[:2]) if len(x.split('-')) > 1 else x)
+            filtered_df = df1[df1['parent_ident'] == documentId]
+            filtered_df_parent = df[df['ident'] == documentId]
+            print("Filtered df:", filtered_df)
+            print("Filtered df parent:", filtered_df_parent)
+            document_id_ident = filtered_df.sort_values(by='postotak', ascending=False)
+            document_id_ident = document_id_ident.to_dict(orient='records')
+            sum_document_id_ident = filtered_df_parent
+            sum_document_id_ident = sum_document_id_ident.to_dict(orient='records')
+            print("Selected ident:", filtered_df)
+
         rezultat_delov_identov = db.session.execute(text(vsi_deli_identov))
-        # Extracting column names from the rezultat_vseh_identov set
-        columns_vseh_identov = rezultat_vseh_identov.keys()
         columns_delov_identov = rezultat_delov_identov.keys()
+        rezultat_vseh_identov = db.session.execute(text(vsi_identi))
+        columns_vseh_identov = rezultat_vseh_identov.keys()
 
         # Creating a DataFrame from the SQL rezultat_vseh_identov
         df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
@@ -675,7 +698,7 @@ def grupiranje_materiala_table():
         # Convert allData to a list of dictionaries
         all_data_dict = [{'Ident': row[0], 'Id_rn': row[1], 'Bruto': round((row[2]), 3)} for row in allData]  # Round to 3 decimals
 
-        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto, 'TBA_KOS': tba_kos_dict, "response_data": final_data})
+        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto, 'TBA_KOS': tba_kos_dict, "response_data": final_data, "document_id_ident": document_id_ident, "sum_document_id_ident": sum_document_id_ident})
 
     except Exception as e:
         return jsonify({"error": str(e)})

@@ -144,20 +144,21 @@
     }
 
     function displayChartTable(parentData, childData, divId) {
-        let table = '<table class="data-frame-table">';
-        table += '<thead><tr>';
-        ['ident', 'norma', 'produktivnost', 'vreme'].forEach(function(key) {
-            table += '<th>' + key.toUpperCase() + '</th>';
-        });
-        table += '</tr></thead>';
-        table += '<tbody>';
+    let table = '<table class="data-frame-table">';
+    table += '<thead><tr>';
+    ['ident', 'norma', 'produktivnost', 'vreme'].forEach(function(key) {
+        table += '<th>' + key.toUpperCase() + '</th>';
+    });
+    table += '</tr></thead>';
+    table += '<tbody>';
 
-        parentData.forEach(function(row) {
+    function addRows(data, level) {
+        data.forEach(function(row) {
             table += '<tr>';
             Object.keys(row).forEach(function(key) {
-                if (key === 'ident'){
+                if (key === 'ident') {
                     table += '<td><button class="show-details" data-ident="' + row.ident + '">' + row[key] + '</button></td>';
-                }else{
+                } else {
                     table += '<td>' + row[key] + '</td>';
                 }
             });
@@ -165,31 +166,72 @@
 
             if (childData[row.ident]) {
                 childData[row.ident].forEach(function(childRow) {
-                    table += '<tr class="subcontent" data-parent-ident="' + row.ident + '" style="display: none;">';
+                    table += '<tr class="subcontent level-' + level + '" data-parent-ident="' + row.ident + '" style="display: none;">';
                     Object.keys(childRow).forEach(function(key) {
-                        if (key !== 'parent_ident') { // Check if key is not equal to 'IDENT'
+                        if(key === 'IDENT'){
+                            table += '<td><button class="show-sub-details" data-ident="' + childRow.IDENT + '">' + childRow[key] + '</button></td>';
+                        }else if (Array.isArray(childRow[key])){
+
+                        }else if (key !== 'parent_ident') {
                             table += '<td>' + childRow[key] + '</td>';
                         }
                     });
                     table += '</tr>';
+
+                    Object.keys(childRow).forEach(function(key) {
+                        // Recursively add child rows if they exist
+                        if (Array.isArray(childRow[key])) {
+                            var nekaj = [];
+                            childRow[key].forEach(function(arrayElement) {
+                                table += '<tr class="sub_subcontent level-' + (level+1) + '" data-parent-ident="' + childRow.IDENT + '" style="display: none;">';
+                                table += '<td>' + arrayElement.DELAVEC + '</td>' + '<td>' + arrayElement.norma + '</td>' + '<td>' + arrayElement.postotak + '</td>' + '<td>' + arrayElement.vreme + '</td>' + '<td>' + arrayElement.Mjesto + '</td>';
+                                table += '</tr>';
+                            });
+                        }
+                    });
                 });
             }
         });
-
-        table += '</tbody></table>';
-        document.getElementById(divId).innerHTML = table;
-
-        document.querySelectorAll('#' + divId + ' .show-details').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const ident = this.dataset.ident;
-                document.querySelectorAll('.subcontent').forEach(function(row) {
-                    if (row.dataset.parentIdent === ident) { // Corrected dataset name here
-                        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-                    }
-                });
-            });
-        });
     }
+
+    addRows(parentData, 1);
+
+    table += '</tbody></table>';
+    document.getElementById(divId).innerHTML = table;
+
+    document.querySelectorAll('#' + divId + ' .show-details').forEach(function(button) {
+    button.addEventListener('click', function() {
+        const ident = this.dataset.ident;
+        console.log("Ident", ident);
+
+        // Hide all sub_subcontent rows
+        document.querySelectorAll('.sub_subcontent').forEach(function(row) {
+            row.style.display = 'none';
+        });
+
+        document.querySelectorAll('.subcontent').forEach(function(row) {
+            if (row.dataset.parentIdent === ident) {
+                console.log("Parent Ident", row.dataset.parentIdent);
+                row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+            }
+        });
+    });
+});
+
+// Ensure the event listener for show-sub-details is outside the previous forEach loop
+document.querySelectorAll('#' + divId + ' .show-sub-details').forEach(function(button) {
+    button.addEventListener('click', function() {
+        const ident = this.dataset.ident;
+        document.querySelectorAll('.sub_subcontent').forEach(function(row) {
+            if (row.dataset.parentIdent === ident) {
+                row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+            }
+        });
+    });
+});
+
+}
+
 
 
 

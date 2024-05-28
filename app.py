@@ -648,8 +648,10 @@ def grupiranje_materiala_table():
             print("Filtered df:", filtered_df)
             print("Filtered df parent:", filtered_df_parent)
             document_id_ident = filtered_df.sort_values(by='postotak', ascending=False)
+            document_id_ident['postotak'] = ((document_id_ident['postotak'])*100).round(2)
             document_id_ident = document_id_ident.to_dict(orient='records')
             sum_document_id_ident = filtered_df_parent
+            sum_document_id_ident['produktivnost'] = ((sum_document_id_ident['produktivnost'])*100).round(2)
             sum_document_id_ident = sum_document_id_ident.to_dict(orient='records')
             print("Selected ident:", filtered_df)
 
@@ -658,31 +660,45 @@ def grupiranje_materiala_table():
         rezultat_vseh_identov = db.session.execute(text(vsi_identi))
         columns_vseh_identov = rezultat_vseh_identov.keys()
 
+        delavec_result = db.session.execute(text(vsi_delavci))
+        delavec_columns = delavec_result.keys()
+        delavec_data = pd.DataFrame(delavec_result.fetchall(), columns=delavec_columns)
+        delavec_data['postotak'] = ((delavec_data['postotak'])*100).round(2)
+
         # Creating a DataFrame from the SQL rezultat_vseh_identov
         df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
         df1 = pd.DataFrame(rezultat_delov_identov.fetchall(), columns=columns_delov_identov)
         # Extract the parent 'ident' in df1
-        print("Initial df1:")
-        print(df1)
 
         # Extract the parent 'ident' in df1 using a lambda function directly
         df1['parent_ident'] = df1['IDENT'].apply(lambda x: '-'.join(x.split('-')[:2]) if len(x.split('-')) > 1 else x)
 
-        # Print transformed DataFrame
-        print("Transformed df1 with parent_ident:")
-        print(df1)
+
         # Group df1 by parent_ident
         grouped_df1 = df1.groupby('parent_ident')
         grouped_data = {ident: group.to_dict(orient='records') for ident, group in grouped_df1}
         # Prepare the final data to send to the frontend
         # Select the top and bottom five rows
         top_five = df.head(5)
+        top_five.loc[:, 'produktivnost'] = ((top_five['produktivnost']) * 100).round(2)
         bottom_five = df.tail(5)
+        bottom_five.loc[:, 'produktivnost'] = ((bottom_five['produktivnost']) * 100).round(2)
         top_parent_idents = top_five['ident'].tolist()
         bottom_parent_idents = bottom_five['ident'].tolist()
         selected_parents = top_parent_idents + bottom_parent_idents
 
         filtered_grouped_data = {ident: grouped_data[ident] for ident in selected_parents if ident in grouped_data}
+        # Iterate over each record in child_data
+        for ident, records in filtered_grouped_data.items():
+            for record in records:
+                # Find the corresponding 'delavec' data where the 'IDENT' matches
+                matching_delavec = delavec_data[delavec_data['IDENT'] == record['IDENT']]
+
+                # Convert the matching 'delavec' data to a dictionary
+                matching_delavec_dict = matching_delavec.to_dict(orient='records')
+
+                # Add the 'delavec' data to the record in the 'child_data'
+                record['delavec_data'] = matching_delavec_dict
 
         # Prepare the final data to send to the frontend
         final_data = {
@@ -690,7 +706,6 @@ def grupiranje_materiala_table():
             'parent_data_bottom': bottom_five.to_dict(orient='records'),
             'child_data': filtered_grouped_data
         }
-        print("Grouped df1:", final_data)
 
         if not filtered_results and not allData and not final_data:
             return jsonify({"error": "No data found for the given document ID"})

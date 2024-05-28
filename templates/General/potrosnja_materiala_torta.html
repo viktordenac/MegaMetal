@@ -230,11 +230,12 @@
         var to_selectedMonth = document.getElementById('to_month').value;
         var to_year = to_selectedMonth.split('-')[0];
         var to_month = to_selectedMonth.split('-')[1];
-
-        var from_firstDayOfMonth = new Date(from_year, from_month, 1);
-        var to_lastDayOfMonth = new Date(to_year, to_month, 0);
+        var from_firstDayOfMonth = new Date(from_year, from_month - 1, 2);
+        var to_lastDayOfMonth = new Date(to_year, to_month, 1);
         var from_date = from_firstDayOfMonth.toISOString().split('T')[0];
         var to_date = to_lastDayOfMonth.toISOString().split('T')[0];
+        console.log('From date:', from_date)
+        console.log('To date:', to_date)
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/potrosnja_materiala_mj?from_date=' + from_date + '&to_date=' + to_date);
         xhr.onload = function() {
@@ -249,69 +250,70 @@
         xhr.send();
     }
     function displayChart(response) {
-    const graphData = response.data;
-    const labels = [...new Set(graphData.map(item => item.YearMonth))];
-    const categories = [...new Set(graphData.map(item => item.kate))];
-    const dataMap = {};
-    if (monthlyChart) {
-        monthlyChart.destroy();
-    }
-    graphData.forEach(item => {
-        if (!dataMap[item.YearMonth]) {
-            dataMap[item.YearMonth] = {};
+        const graphData = response.data;
+        const labels = [...new Set(graphData.map(item => item.YearMonth))];
+        const categories = [...new Set(graphData.map(item => item.kate))];
+
+        const dataMap = {};
+		if (monthlyChart) {
+            monthlyChart.destroy();
         }
-        dataMap[item.YearMonth][item.kate] = item.AveragePostotak;
-    });
-
-    const datasets = categories.map(category => {
-        const data = labels.map(label => dataMap[label][category] || 0);
-        const backgroundColors = labels.map((label, index) => {
-            if (category === '0-49') {
-                return 'rgba(255, 0, 0, 0.2)'; // red
-            } else if (category === '50-70') {
-                return 'rgba(255, 255, 0, 0.2)'; // yellow
-            } else if (category === '>71') {
-                return 'rgba(0, 255, 0, 0.2)'; // green
-            } else {
-                return 'rgba(0, 0, 0, 0.2)'; // default color for other categories
+        graphData.forEach(item => {
+            if (!dataMap[item.YearMonth]) {
+                dataMap[item.YearMonth] = {};
             }
+            dataMap[item.YearMonth][item.kate] = item.AveragePostotak;
         });
-        const borderColors = labels.map((label, index) => {
-            const value = data[index];
-            if (category === 'Postotak') {
-                if (value >= 71) {
-                    return 'rgba(0, 255, 0, 1)'; // green
-                } else if (value >= 50) {
-                    return 'rgba(255, 255, 0, 1)'; // yellow
+
+        const datasets = categories.map(category => {
+            const data = labels.map(label => dataMap[label][category] || 0);
+            const backgroundColors = labels.map((label, index) => {
+                if (category === '0-49') {
+                    return 'rgba(255, 0, 0, 0.2)'; // red
+                } else if (category === '50-70') {
+                    return 'rgba(255, 255, 0, 0.2)'; // yellow
+                } else if (category === '>71') {
+                    return 'rgba(0, 255, 0, 0.2)'; // green
                 } else {
-                    return 'rgba(255, 0, 0, 1)'; // red
+                    return 'rgba(0, 0, 0, 0.2)'; // default color for other categories
                 }
-            } else {
-                return 'rgba(0, 0, 0, 1)'; // default color for other categories
-            }
+            });
+            const borderColors = labels.map((label, index) => {
+                const value = data[index];
+                if (category === 'Postotak') {
+                    if (value >= 71) {
+                        return 'rgba(0, 255, 0, 1)'; // green
+                    } else if (value >= 50) {
+                        return 'rgba(255, 255, 0, 1)'; // yellow
+                    } else {
+                        return 'rgba(255, 0, 0, 1)'; // red
+                    }
+                } else {
+                    return 'rgba(0, 0, 0, 1)'; // default color for other categories
+                }
+            });
+            return {
+                label: category,
+                data: data,
+                backgroundColor: backgroundColors,
+                borderColor: borderColors,
+                borderWidth: 1
+            };
         });
-        return {
-            label: category,
-            data: data,
-            backgroundColor: backgroundColors,
-            borderColor: borderColors,
-            borderWidth: 1
-        };
-    });
 
-    const ctx = document.getElementById('monthlyChart').getContext('2d');
-    monthlyChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
+        const ctx = document.getElementById('monthlyChart').getContext('2d');
+        monthlyChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: datasets
             },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
             plugins: {
                 tooltip: {
                     callbacks: {
@@ -332,10 +334,9 @@
                     }
                 }
             }
-        }
-    });
-}
-
+            }
+        });
+    }
 </script>
 </body>
 </html>

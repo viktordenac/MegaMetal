@@ -550,16 +550,12 @@ def potrosnja_materiala_mj():
         df['Bruto'] = df['Bruto'].astype(str) + ""  # Round to 3 decimals
         df['Udio'] = df['Udio'].round(2).astype(str) + "%"
         df['Postotak*udio'] = (df['Postotak*udio'] * 100).round(2).astype(str) + "%"
-
+        df['Bruto'] = df['Bruto'].astype(float)
         # Assuming df is your DataFrame
         # Create a new row as a dictionary
-        new_df = df[
-            ['JobCode', 'DateCreated', 'Postotak', 'Bruto', 'Neto', 'Udio', 'Postotak*udio']]
+        new_df = df[['JobCode', 'DateCreated', 'Postotak', 'Bruto', 'Neto', 'Udio', 'Postotak*udio']]
         new_df['DateCreated'] = new_df['DateCreated'].apply(format_date)
-        new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
-
-        #print(new_df)
-
+        #new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
         # Convert 'DateCreated' to datetime
         new_df['DateCreated'] = pd.to_datetime(new_df['DateCreated'])
         # Extract month and year
@@ -567,24 +563,28 @@ def potrosnja_materiala_mj():
         # Convert 'Postotak' to numeric values
         new_df['Postotak'] = new_df['Postotak'].str.rstrip('%').astype('float')
         new_df['kate'] = new_df['Postotak'].apply(categorize_postotak)
-        # Group by 'YearMonth' and 'PostotakCategory' and calculate the average 'Postotak'
-        grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(AveragePostotak=('Postotak', 'mean')).reset_index()
-        #print(new_df)
-        # Convert the Period type to string for JSON serialization
-        grouped_df['YearMonth'] = grouped_df['YearMonth'].astype(str)
 
-        # Convert to list of dictionaries
-
-        #average_prosjek = new_df.groupby(['YearMonth', 'kate'])['Postotak'].mean()
         # Group by 'YearMonth' and 'kate' and calculate the average 'Postotak'
-        grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(AveragePostotak=('Postotak', 'mean')).reset_index()
-
+        #            SumBruto=('Bruto', 'sum')
+        grouped_df1 = new_df.groupby(['YearMonth']).agg(
+            SumBruto=('Bruto', 'sum')
+        ).reset_index()
+        new_df = new_df.rename(columns={'Bruto': 'Bruto1'})
+        # Perform the groupby operation with the renamed column
+        grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(
+            SumBruto1=('Bruto1', 'sum')
+        ).reset_index()
+        merged_df = pd.merge(grouped_df1, grouped_df, on='YearMonth')
+        grouped_df=merged_df
+        grouped_df['AveragePostotak']=(grouped_df['SumBruto1']/grouped_df['SumBruto']*100).round(2)
+        #grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(AveragePostotak=('Postotak', 'mean')).reset_index()
         # Convert the Period type to string for JSON serialization
         grouped_df['YearMonth'] = grouped_df['YearMonth'].astype(str)
-
-        # Convert to list of dictionaries
+        #grouped_df['AveragePostotak']=grouped_df['SumBruto1']/grouped_df['SumBruto']
+        grouped_df = grouped_df.drop('SumBruto1', axis=1)
+        grouped_df = grouped_df.drop('SumBruto', axis=1)
+        print(grouped_df)
         json_data = grouped_df.to_dict(orient='records')
-        print(json_data)
         return jsonify({"data": json_data})
     else:
         #print("No rows found for date range:", from_date_str, "to", to_date_str)
@@ -621,6 +621,14 @@ def grupiranje_materiala_table():
                             select "IDENT", sum("VREME") as vreme, sum(distinct("NORMA")) as norma, sum(distinct("NORMA"))/sum("VREME") as postotak 
                             FROM public."TBA_REAL_IDENT"	
                             group by("IDENT")
+                            """
+        vsi_delavci="""
+                            SELECT TBA_REAL_IDENT."DELAVEC", TBA_RAD."Mjesto",sum("VREME") as vreme, sum(distinct("NORMA")) as norma, 
+                            sum(distinct("NORMA"))/sum("VREME") as postotak, TBA_REAL_IDENT."IDENT" 
+                            from public."TBA_RAD" as TBA_RAD,
+                            public."TBA_REAL_IDENT" as TBA_REAL_IDENT 
+                            WHERE UPPER(TBA_REAL_IDENT."DELAVEC") = UPPER(TBA_RAD."Ime")
+                            group by(TBA_REAL_IDENT."DELAVEC"),TBA_RAD."Mjesto",TBA_REAL_IDENT."IDENT" 
                             """
 
         document_id_ident = ""

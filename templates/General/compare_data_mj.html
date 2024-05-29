@@ -19,6 +19,20 @@
         #refresh-button {
             margin-right: 0px;
         }
+        #loading {
+            display: none;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            color: white;
+            text-align: center;
+            padding-top: 20%;
+            font-size: 2em;
+        }
     </style>
 </head>
 <body>
@@ -30,22 +44,42 @@
 
 <canvas id="comparisonChart" class="graph-canvas"></canvas>
 <canvas id="comparisonChart2" class="graph-canvas"></canvas>
+<div id="loading" style="display: none;">Loading, please wait...</div>
 
 <script>
-    document.getElementById("refresh-button").addEventListener("click", function() {
-        fetch('/refresh_fix_plan', {
-            method: 'GET'
+    function loadingScreen(event, script, buttonText) {
+        event.preventDefault();
+        const loadingDiv = document.getElementById('loading');
+        const text = buttonText.toLowerCase();
+
+        loadingDiv.style.display = 'block';
+        loadingDiv.innerText = 'Loading ' + text + ', please wait...';
+
+        fetch(script, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Specify JSON content type
+            },
+            body: JSON.stringify({ // Include variable in the request body
+                variable: text
+            })
         })
-        .then(response => {
-            if(response.ok) {
-                setTimeout(function() {
-                        location.reload();
-                    }, 1000);
-            }
+        .then(response => response.json())
+        .then(data => {
+            loadingDiv.innerText = 'Successfully finished!';
+            setTimeout(() => {
+                loadingDiv.style.display = 'none';
+                location.reload();
+            }, 1500); // Hide the message after 1.5 seconds and reload the page
         })
         .catch(error => {
+            loadingDiv.style.display = 'none';
             console.error('Error:', error);
         });
+    }
+
+    document.getElementById("refresh-button").addEventListener("click", function(event) {
+        loadingScreen(event, '/refresh_fix_plan', 'refresh');
     });
 
     function updateSecondChart(data) {

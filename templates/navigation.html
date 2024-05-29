@@ -9,21 +9,21 @@
     <a href="{{ url_for('index') }}">Home</a>
 
     {% if 'grafi' in stranice_list or 'po_identu' in stranice_list or 'torta' in stranice_list or 'oee' in stranice_list or 'potrosnja_materiala' in stranice_list %}
-    <div class="potrosnja-materiala">
+    <div class="dropdown">
         Potrošnja materiala &rarr;
         <!-- Inside Dropdown -->
-        <div class="dropdown-potrosnja-materiala">
+        <div class="dropdown-dropdown">
             {% if 'grafi' in stranice_list or 'potrosnja_materiala' in stranice_list  %}
-            <a href="{{ url_for('potrosnja_materiala') }}"><div class="ddPotrosnja">Grafi</div></a>
+            <a href="{{ url_for('potrosnja_materiala') }}"><div class="ddDropdown">Grafi</div></a>
             {% endif %}
             {% if 'po_identu' in stranice_list or 'potrosnja_materiala' in stranice_list %}
-            <a href="{{ url_for('grupiranje_materiala') }}"><div class="ddPotrosnja">Po identu</div></a>
+            <a href="{{ url_for('grupiranje_materiala') }}"><div class="ddDropdown">Po identu</div></a>
             {% endif %}
             {% if 'torta' in stranice_list or 'potrosnja_materiala' in stranice_list %}
-            <a href="{{ url_for('potrosnja_materiala_torta') }}"><div class="ddPotrosnja">Torta</div></a>
+            <a href="{{ url_for('potrosnja_materiala_torta') }}"><div class="ddDropdown">Torta</div></a>
             {% endif %}
             {% if 'oee' in stranice_list or 'potrosnja_materiala' in stranice_list %}
-            <a href="{{ url_for('potrosnja_materiala_OEE') }}"><div class="ddPotrosnja">OEE</div></a>
+            <a href="{{ url_for('potrosnja_materiala_OEE') }}"><div class="ddDropdown">OEE</div></a>
             {% endif %}
         </div>
     </div>
@@ -31,12 +31,31 @@
 
     <!-- Planiranje proizvodnje section -->
     {% if 'planiranje_proizvodnje' in stranice_list %}
-    <div class="planiranje-proizvodnje">
+    <div class="dropdown">
         Planiranje proizvodnje &rarr;
         <!-- Inside Dropdown -->
-        <div class="dropdown-planiranje-proizvodnje">
-            <a href="{{ url_for('planiranjePripravnegaDela') }}"><div class="dItem">Planiranje pripravnega dela</div></a>
-            <a href="{{ url_for('planiranjePripravnegaDelaPravice') }}"><div class="dItem">PPD P</div></a>
+        <div class="dropdown-dropdown">
+            <a href="{{ url_for('planiranjePripravnegaDela') }}"><div class="ddDropdown">Planiranje pripravnega dela</div></a>
+            <a href="{{ url_for('planiranjePripravnegaDelaPravice') }}"><div class="ddDropdown">PPD P</div></a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if 'verzug_lista' in stranice_list or 'planiranje_proizvodnje' in stranice_list or 'torta' in stranice_list or 'oee' in stranice_list or 'potrosnja_materiala' in stranice_list %}
+    <div class="dropdown">
+        Proizvodnja &rarr;
+        <!-- Inside Dropdown -->
+        <div class="dropdown-dropdown">
+            {% if 'planiranje_proizvodnje' in stranice_list %}
+            <a href="{{ url_for('planiranjePripravnegaDela') }}"><div class="ddDropdown">Planiranje pripravnega dela</div></a>
+            <a href="{{ url_for('planiranjePripravnegaDelaPravice') }}"><div class="ddDropdown">PPD P</div></a>
+            {% endif %}
+            {% if 'verzug_lista' in stranice_list %}
+            <a href="{{ url_for('verzugsLista') }}"><div class="ddDropdown">Verzug lista</div></a>
+            {% endif %}
+            {% if 'verzug_lista' in stranice_list %}
+            <a href="#"><div class="ddDropdown">Kapaciteta</div></a>
+            {% endif %}
         </div>
     </div>
     {% endif %}
@@ -44,11 +63,6 @@
     <!-- Normativi link -->
     {% if 'normativi' in stranice_list %}
     <a href="#">Normativi</a>
-    {% endif %}
-
-    <!-- Verzug lista link -->
-    {% if 'verzug_lista' in stranice_list %}
-    <a href="{{ url_for('verzugsLista') }}">Verzug lista</a>
     {% endif %}
 
     <!-- Kapaciteta link -->
@@ -70,58 +84,64 @@
     {% endif %}
     <!-- Add more sections based on user permissions -->
     {% if 'top_user' in stranice_list %}
-        <div class="potrosnja-materiala">
+        <div class="dropdown">
         Potrošnja materiala &rarr;
         <!-- Inside Dropdown -->
-        <div class="dropdown-potrosnja-materiala">
-            <a href="{{ url_for('potrosnja_materiala') }}"><div class="ddPotrosnja">Grafi</div></a>
-            <a href="{{ url_for('grupiranje_materiala') }}"><div class="ddPotrosnja">Po identu</div></a>
-            <a href="{{ url_for('potrosnja_materiala_torta') }}"><div class="ddPotrosnja">Torta</div></a>
+        <div class="dropdown-dropdown">
+            <a href="{{ url_for('potrosnja_materiala') }}"><div class="ddDropdown">Grafi</div></a>
+            <a href="{{ url_for('grupiranje_materiala') }}"><div class="ddDropdown">Po identu</div></a>
+            <a href="{{ url_for('potrosnja_materiala_torta') }}"><div class="ddDropdown">Torta</div></a>
         </div>
     </div>
-    <div class="planiranje-proizvodnje">
-        Planiranje proizvodnje &rarr;
-        <!-- Inside Dropdown -->
-        <div class="dropdown-planiranje-proizvodnje">
-            <a href="{{ url_for('planiranjePripravnegaDela') }}"><div class="dItem">Planiranje pripravnega dela</div></a>
-            <a href="{{ url_for('planiranjePripravnegaDelaPravice') }}"><div class="dItem">PPD PRAVICE</div></a>
-        </div>
-    </div>
-    <div class="produktivnost">
+    <div class="dropdown">
         Produktivnost &rarr;
         <!-- Inside Dropdown -->
-        <div class="dropdown-produktivnost">
-            <a href="{{ url_for('produktivnost_delavcev_grafi') }}"><div class="ddProduktivnost">Delavcev</div></a>
-            <a href="{{ url_for('potrosnja_materiala_OEE') }}"><div class="ddProduktivnost">OEE</div></a>
-            <a href="{{ url_for('produktivnost_pozicije') }}"><div class="ddProduktivnost">Pozicije</div></a>
+        <div class="dropdown-dropdown">
+            <a href="{{ url_for('produktivnost_delavcev_grafi') }}"><div class="ddDropdown">Delavcev</div></a>
+            <a href="{{ url_for('potrosnja_materiala_OEE') }}"><div class="ddDropdown">OEE</div></a>
+            <a href="{{ url_for('produktivnost_pozicije') }}"><div class="ddDropdown">Pozicije</div></a>
         </div>
     </div>
-    <a href="#">Normativi</a>
-    <a href="{{ url_for('verzugsLista') }}">Verzug lista</a>
-
-    <a href="#">Kapaciteta</a>
-    <a href="{{ url_for('izmene') }}">Izmene</a>
-    <a href="{{ url_for('tev_evid') }}">Evidenca ur</a>
+    <div class="dropdown">
+        Proizvodnja &rarr;
+        <!-- Inside Dropdown -->
+        <div class="dropdown-dropdown">
+            <a href="{{ url_for('planiranjePripravnegaDela') }}"><div class="ddDropdown">Planiranje proizvodnje</div></a>
+            <a href="{{ url_for('planiranjePripravnegaDelaPravice') }}"><div class="ddDropdown">PPD P</div></a>
+            <a href="{{ url_for('verzugsLista') }}"><div class="ddDropdown">Verzug lista</div></a>
+            <a href="#"><div class="ddDropdown">Kapaciteta</div></a>
+        </div>
+    </div>
+    <div class="dropdown">
+        Ostalo &rarr;
+        <!-- Inside Dropdown -->
+        <div class="dropdown-dropdown">
+            <a href="#"><div class="ddDropdown">Normativi</div></a>
+            <a href="{{ url_for('izmene') }}"><div class="ddDropdown">Izmene</div></a>
+            <a href="{{ url_for('tev_evid') }}"><div class="ddDropdown">Evidenca ur</div></a>
+        </div>
+    </div>
 
     <a href="{{ url_for('administracija') }}">Administrativna dela &rarr;</a>
     <a href="{{ url_for('MM2Alat') }}">MM2 Alati</a>
-    <div class="fix-plan">
+
+    <div class="dropdown">
         Fix Plan &rarr;
         <!-- Inside Dropdown -->
-        <div class="dropdown-fix-plan">
-            <a href="{{ url_for('compare_data') }}"><div class="dItem">Po tjednu</div></a>
-            <a href="{{ url_for('compare_data_mj') }}"><div class="dItem">Po Mjesecu</div></a>
+        <div class="dropdown-dropdown">
+            <a href="{{ url_for('compare_data') }}"><div class="ddDropdown">Po tjednu</div></a>
+            <a href="{{ url_for('compare_data_mj') }}"><div class="ddDropdown">Po Mjesecu</div></a>
         </div>
     </div>
     {% endif %}
 
     {% if 'fix_plan' in stranice_list %}
-        <div class="fix-plan">
+        <div class="dropdown">
             Fix Plan &rarr;
             <!-- Inside Dropdown -->
-            <div class="dropdown-fix-plan">
-                <a href="{{ url_for('compare_data') }}"><div class="dItem">Po tjednu</div></a>
-                 <a href="{{ url_for('compare_data_mj')}}"><div class="dItem">Po Mjesecu</div></a>
+            <div class="dropdown-dropdown">
+                <a href="{{ url_for('compare_data') }}"><div class="ddDropdown">Po tjednu</div></a>
+                 <a href="{{ url_for('compare_data_mj')}}"><div class="ddDropdown">Po Mjesecu</div></a>
             </div>
         </div>
     {% endif %}

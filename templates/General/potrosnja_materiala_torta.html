@@ -151,6 +151,18 @@
                     backgroundColor: colors, // Set colors
                     borderWidth: 1
                 }]
+            },
+            options: {
+                plugins: {
+                    tooltip: {
+                        titleFont: { // Set the font size for the tooltip header
+                            size: 18 // Adjust the font size as needed
+                        },
+                        bodyFont: { // Set the font size for the tooltip
+                            size: 18 // Adjust the font size as needed
+                        }
+                    }
+                }
             }
         });
     }
@@ -314,26 +326,32 @@
                         beginAtZero: true
                     }
                 },
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            var label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
+                plugins: {
+                    tooltip: {
+                        titleFont: { // Set the font size for the tooltip header
+                            size: 18 // Adjust the font size as needed
+                        },
+                         bodyFont: { // Set the font size for the tooltip
+                            size: 18 // Adjust the font size as needed
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + '%';
+                                }
+                                if (context.dataset.label === 'Postotak') {
+                                    var dataPoint = data[context.dataIndex];
+                                    label += '\nBruto: ' + dataPoint.Bruto;
+                                }
+                                return label;
                             }
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y + '%';
-                            }
-                            if (context.dataset.label === 'Postotak') {
-                                var dataPoint = data[context.dataIndex];
-                                label += '\nBruto: ' + dataPoint.Bruto;
-                            }
-                            return label;
                         }
                     }
                 }
-            }
             }
         });
     }

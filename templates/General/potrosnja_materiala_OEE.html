@@ -189,6 +189,16 @@ function generateGraph(data) {
             datasets: datasets
         },
         options: {
+            plugins: {
+                tooltip: {
+                    titleFont: { // Set the font size for the tooltip header
+                        size: 18 // Adjust the font size as needed
+                    },
+                    bodyFont: { // Set the font size for the tooltip
+                        size: 18 // Adjust the font size as needed
+                    }
+                }
+            },
             scales: {
                 yAxes: [{
                     ticks: {

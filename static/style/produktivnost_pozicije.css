@@ -1,237 +1,247 @@
 /* Add this CSS to your existing style block */
-        body {
-            margin: 0;
-            padding: 0;
-            justify-content: center;
-            min-height: 100vh; /* Use min-height to ensure full page height */
-        }
+body {
+    margin: 0;
+    padding: 0;
+    justify-content: center;
+    min-height: 100vh; /* Use min-height to ensure full page height */
+}
 
-        form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
-            width: 100%; /* Set a width for the form */
-            margin-top: 2%; /* Adjust top margin as needed */
-        }
+form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
+    width: 100%; /* Set a width for the form */
+    margin-top: 2%; /* Adjust top margin as needed */
+}
 
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0 20px 0;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            box-sizing: border-box;
-        }
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0 20px 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
 
-        input[type="submit"] {
-            width: 100%;
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 0;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
+input[type="submit"] {
+    width: 100%;
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 0;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
 
-        input[type="submit"]:hover {
-            background-color: #45a049;
-        }
+input[type="submit"]:hover {
+    background-color: #45a049;
+}
 
-        .data-container {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
-            width: 100%;
-            box-sizing: border-box;
-            overflow-x: auto; /* Enable horizontal scrolling for small screens */
-        }
+.data-container {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto; /* Enable horizontal scrolling for small screens */
+}
 
-        .data-container table {
-            width: 100%;
-            border-collapse: collapse;
-            white-space: nowrap; /* Prevent table cells from wrapping */
-        }
+.data-container table {
+    width: 100%;
+    border-collapse: collapse;
+    white-space: nowrap; /* Prevent table cells from wrapping */
+}
 
-        .data-container th, .data-container td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-            min-width: 100px; /* Set minimum width for cells */
-        }
+.data-container th, .data-container td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    min-width: 100px; /* Set minimum width for cells */
+}
 
-        .data-container th {
-            background-color: #f2f2f2;
-        }
+.data-container th {
+    background-color: #f2f2f2;
+}
 
-        /* Ensure table header remains visible while scrolling horizontally */
-        .data-container th {
-            position: sticky;
-            top: 0;
-            background-color: #f2f2f2;
-        }
+/* Ensure table header remains visible while scrolling horizontally */
+.data-container th {
+    position: sticky;
+    top: 0;
+    background-color: #f2f2f2;
+}
 
-        .form-container {
-            width: 60%;
-            height: 60%;
-            margin-left: 13%;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+.form-container {
+    width: 60%;
+    height: 60%;
+    margin-left: 13%;
+    padding: 20px;
+    box-sizing: border-box;
+}
 
-        .login-form {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
-            width: 300px; /* Set a width for the form */
-            margin: 0 auto; /* Center the form horizontally */
-        }
+.login-form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px 0 rgba(0,0,0,0.1);
+    width: 300px; /* Set a width for the form */
+    margin: 0 auto; /* Center the form horizontally */
+}
 
-        .table-container {
-            width: 100%;
-            box-sizing: border-box;
-            overflow-x: auto; /* Enable horizontal scrolling for small screens */
-        }
+.table-container {
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto; /* Enable horizontal scrolling for small screens */
+}
 
-        .scrollable-table {
-            max-height: 500px; /* Assuming navbar height is 50px */
-            overflow: auto;
-        }
+.scrollable-table {
+    max-height: 500px; /* Assuming navbar height is 50px */
+    overflow: auto;
+}
 
-        .dropdownIdNr {
-            position: relative;
-            display: inline-block;
-            height: 80px;
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0 20px 0;
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            box-sizing: border-box;
-        }
+.dropdownIdNr {
+    position: relative;
+    display: inline-block;
+    height: 80px;
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0 20px 0;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
+}
 
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #f9f9f9;
-            min-width: 97%;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #ddd;
-            z-index: 1;
-            width: 90%;
-            font-size: 25px;
-            font-weight: bold;
-            text-align: center;
-            vertical-align: center;
-        }
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 97%;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    z-index: 1;
+    width: 90%;
+    font-size: 25px;
+    font-weight: bold;
+    text-align: center;
+    vertical-align: center;
+}
 
-        .dropdown-content div {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
+.dropdown-content div {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
 
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
 
-        /* Links inside the dropdown */
-        .dropdown-content a {
-            color: black;
-            padding: 12px 16px;
-            text-decoration: none;
-            display: block;
-        }
+/* Links inside the dropdown */
+.dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
 
-        /* Change color of dropdown links on hover */
-        .dropdown-content a:hover {
-            background-color: #f1f1f1;
-        }
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {
+    background-color: #f1f1f1;
+}
 
-        /* WARNING DON'T DELETE */
-        .show {
-            display: block;
-        }
+/* WARNING DON'T DELETE */
+.show {
+    display: block;
+}
 
-        /* Add responsive font size for table */
-        @media screen and (max-width: 768px) {
-            .data-container th, .data-container td {
-                font-size: 12px;
-                padding: 5px;
-            }
+/* Add responsive font size for table */
+@media screen and (max-width: 768px) {
+    .data-container th, .data-container td {
+        font-size: 12px;
+        padding: 5px;
+    }
 
-            .container {
-                flex-direction: column;
-                align-items: center;
-            }
+    .container {
+        flex-direction: column;
+        align-items: center;
+    }
 
-            .form-container,
-            #dataContainer,
-            #summaryContainer {
-                width: 100%;
-                margin: 10px 0;
-            }
-            .table-container {
-                margin-left: 12vw;
-            }
-        }
+    .form-container,
+    #dataContainer,
+    #summaryContainer {
+        width: 100%;
+        margin: 10px 0;
+    }
+    .table-container {
+        margin-left: 12vw;
+    }
+}
 
-        #dataContainer {
-            width: 80%;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+#dataContainer {
+    width: 80%;
+    padding: 20px;
+    box-sizing: border-box;
+}
 
-        #summaryContainer {
-            max-width: 30vw;
-            padding: 20px;
-            box-sizing: border-box;
-        }
+#summaryContainer {
+    max-width: 30vw;
+    padding: 20px;
+    box-sizing: border-box;
+}
 
-        .container {
-            display: flex;
-            margin-left: 7vw;
-        }
+.container {
+    display: flex;
+    margin-left: 7vw;
+}
 
-        .form-container,
-        #dataContainer,
-        #summaryContainer {
-            flex: 1;
-        }
+.form-container,
+#dataContainer,
+#summaryContainer {
+    flex: 1;
+}
 
-        #pozicijeDF {
-            display: flex;
-            justify-content: space-between;
-            margin-left: 30vw; /* Adjust the left margin as needed */
-            width: 50%; /* Ensure the container takes up the full width */
-        }
+#pozicijeDF {
+    display: flex;
+    justify-content: space-between;
+    margin-left: 30vw; /* Adjust the left margin as needed */
+    width: 50%; /* Ensure the container takes up the full width */
+}
 
-        #pozicijeDF .data-frame-section {
-            margin-right: 20px; /* Adjust the right margin between items as needed */
-        }
+#pozicijeDF .data-frame-section {
+    margin-right: 20px; /* Adjust the right margin between items as needed */
+}
 
-        #pozicijeDF .data-frame-section:last-child {
-            margin-right: 0; /* Remove right margin from the last item */
-        }
-        #pozicijeDF .subcontent {
-            font-size: medium;
-        }
-        #pozicijeDF .subcontent td {
-            padding-left: 10px; /* Adjust the value as needed */
-            background-color: #bdbdbd;
-        }
-        .show-details {
-            width: 100%;
-            background-color: #2b68c3;
-            font-size: medium;
-            color: white;
-            padding: 10px;
-            border: none;
-            border-radius: 3px;
-            cursor: pointer;
-        }
+#pozicijeDF .data-frame-section:last-child {
+    margin-right: 0; /* Remove right margin from the last item */
+}
+#pozicijeDF .subcontent {
+    font-size: medium;
+}
+#pozicijeDF .subcontent td {
+    padding-left: 10px; /* Adjust the value as needed */
+    background-color: #bdbdbd;
+}
+.show-details {
+    width: 100%;
+    background-color: #2b68c3;
+    font-size: medium;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+.show-sub-details {
+    width: 100%;
+    background-color: #408ffb;
+    font-size: smaller ;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}

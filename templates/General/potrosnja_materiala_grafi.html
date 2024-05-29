@@ -182,46 +182,46 @@ var labels;
         // Display the table in the designated div
         document.getElementById('dataFrameTable').innerHTML = tableHtml;
     }
-document.getElementById('myChart').addEventListener('click', function(event) {
-    // Get the chart instance
-    var chartInstance = myChart; // Assuming myChart is your Chart.js instance
+    document.getElementById('myChart').addEventListener('click', function(event) {
+        // Get the chart instance
+        var chartInstance = myChart; // Assuming myChart is your Chart.js instance
 
-    // Get the active points from the event
-    var activePoints = chartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: true }, false);
+        // Get the active points from the event
+        var activePoints = chartInstance.getElementsAtEventForMode(event, 'nearest', { intersect: true }, false);
 
-    // If there are active points
-    if (activePoints.length > 0) {
-        // Get the index of the clicked column
-        var dataIndex = activePoints[0].index;
+        // If there are active points
+        if (activePoints.length > 0) {
+            // Get the index of the clicked column
+            var dataIndex = activePoints[0].index;
 
-        // Get the 'JobCode' associated with the clicked column
-        var clickedJobCode = labels[dataIndex];
+            // Get the 'JobCode' associated with the clicked column
+            var clickedJobCode = labels[dataIndex];
 
-        console.log(clickedJobCode); // Log the clicked 'JobCode'
-		  fetch('/get_pdf', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ label: clickedJobCode })
-			})
-			.then(response => response.json())
-			.then(data => {
-				if (data.pdfBase64) {
-					// Open the PDF in a new tab
-					window.open('data:application/pdf;base64,' + data.pdfBase64, '_blank');
-				} else {
-					console.error('PDF not found for the clicked label:', clickedJobCode);
-				}
-			})
-			.catch(error => {
-				console.error('Error fetching PDF:', error);
-			});
+            console.log(clickedJobCode); // Log the clicked 'JobCode'
+              fetch('/get_pdf', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ label: clickedJobCode })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.pdfBase64) {
+                        // Open the PDF in a new tab
+                        window.open('data:application/pdf;base64,' + data.pdfBase64, '_blank');
+                    } else {
+                        console.error('PDF not found for the clicked label:', clickedJobCode);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching PDF:', error);
+                });
 
 
-        // Rest of your code...
-    }
-});
+            // Rest of your code...
+        }
+    });
 </script>
 </body>
 </html>

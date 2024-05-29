@@ -2,7 +2,7 @@ import base64
 import io
 import os
 import re
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from datetime import datetime, date, timedelta
 import calendar
 import glob
@@ -250,6 +250,25 @@ class TREZ_OEE(db.Model):
     OEE = db.Column(db.String(10))
     DATUM = db.Column(db.String(10))
     ID_PK = db.Column(db.Integer, primary_key=True)
+
+class TBA_FIX_DETAJL_RE(db.Model):
+    __tablename__ = 'TBA_FIX_DETALJ_RE'
+    ID_PK = db.Column(db.Integer, primary_key=True)
+    IDRN = db.Column(db.CHAR(50))
+    IZNOS = db.Column(db.REAL)
+    TJEDAN = db.Column(db.INT())
+    TEZINA = db.Column(db.REAL)
+    MJESEC = db.Column(db.INT())
+
+class TBA_FIX_DETAJL_PL(db.Model):
+    __tablename__ = 'TBA_FIX_DETALJ_PL'
+    ID_PK = db.Column(db.Integer, primary_key=True)
+    IDRN = db.Column(db.CHAR(50))
+    IZNOS = db.Column(db.REAL)
+    TJEDAN = db.Column(db.INT())
+    TEZINA = db.Column(db.REAL)
+    MJESEC = db.Column(db.INT())
+
 
 @login_manager.user_loader
 def load_user(kartica):
@@ -943,10 +962,15 @@ def potrosnja_materiala_OEE():
 def fetch_machine_data():
     if not is_authenticated():
         return redirect(url_for("login"))
+    # Retrieve 'from_date' and 'to_date' from request parameters
+    from_date_str = request.args.get('from_date', '2024-01-01')
+    to_date_str = request.args.get('to_date', '2024-12-31')
 
-    today = datetime.today().date()  # Get today's date
+    # Convert date strings to datetime objects
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
 
-    machine_data = TREZ_OEE.query.filter(TREZ_OEE.DATUM == today).all()
+    machine_data = TREZ_OEE.query.filter(TREZ_OEE.DATUM.between(from_date, to_date)).all()
     data = []
     for machine in machine_data:
         data.append({
@@ -961,14 +985,11 @@ def fetch_machine_data():
     return jsonify(data)
 
 
-data = []
 @app.route("/graph_data")
 def graph_data():
     if not is_authenticated():
         return redirect(url_for("login"))
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    print("#$##$#$")
-
+    data = []
     # Retrieve 'from_date' and 'to_date' from request parameters
     from_date_str = request.args.get('from_date', '2024-01-01')
     to_date_str = request.args.get('to_date', '2024-12-31')
@@ -976,15 +997,11 @@ def graph_data():
     # Convert date strings to datetime objects
     from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
     to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
-    print("From", from_date)
-    print("To",to_date)
+
     # Query the database for records within the specified date range
-    machine_data = TREZ_OEE.query.all()
+    machine_data = TREZ_OEE.query.filter(TREZ_OEE.DATUM.between(from_date, to_date)).all()
     # Process the data
-    print("MD", machine_data)
     for machine in machine_data:
-        print(machine.OEE)
-        print(machine.DATUM)
         oe=float(str(machine.OEE).replace("%",""))
         data.append({
             "Machine name": machine.MACHINE_NAME,
@@ -995,7 +1012,6 @@ def graph_data():
     df = pd.DataFrame(data,columns=['Machine name', 'OEE','DATUM'])  # Replace 'column1', 'column2' with your actual column names
     grouped_df = df.groupby(['Machine name', 'DATUM']).mean().reset_index()
     data_json = grouped_df.to_json(orient='records')
-    print(data_json)
     return jsonify(data_json)
 
 
@@ -1217,7 +1233,6 @@ def delete_tev_evid():
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-    print("loaaaaaaaaaaaaaaaaaaaaaaaaaaaaad")
     # Get the current year and month
     now = datetime.now()
     current_year = now.year
@@ -1248,6 +1263,7 @@ def planiranjePripravnegaDela():
         data.append(row_data)
     # Create DataFrame from the dictionary
     df = pd.DataFrame(data)
+    print(df)
     # Sorting
     column_to_sort = request.args.get('sort_by', None)
     ascending = request.args.get('ascending', 'true').lower() == 'true'
@@ -1258,6 +1274,22 @@ def planiranjePripravnegaDela():
                            row_data=list(df.values.tolist()), link_column="Patient ID", zip=zip,
                            column_to_sort=column_to_sort, ascending=ascending, stranice_list=session["stranice"])
 
+
+@app.template_filter('is_date')
+def is_date(value):
+    if not isinstance(value, str):
+        value = str(value)
+    pattern = r'^\d{2}/\d{2}/\d{4}$'
+    return re.match(pattern, value) is not None
+
+@app.template_filter('format_date_for_input')
+def format_date_for_input(value):
+    if not isinstance(value, str):
+        value = str(value)
+    if re.match(r'^\d{2}/\d{2}/\d{4}$', value):
+        day, month, year = value.split('/')
+        return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+    return value
 
 @app.route('/planiranjePripravnegaDelaPravice')
 def planiranjePripravnegaDelaPravice():

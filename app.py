@@ -670,7 +670,7 @@ def grupiranje_materiala_table():
             document_id_ident['postotak'] = ((document_id_ident['postotak'])*100).round(2)
             document_id_ident = document_id_ident.to_dict(orient='records')
             sum_document_id_ident = filtered_df_parent
-            sum_document_id_ident['produktivnost'] = ((sum_document_id_ident['produktivnost'])*100).round(2)
+            sum_document_id_ident.loc[:, 'produktivnost'] = (sum_document_id_ident['produktivnost'] * 100).round(2)
             sum_document_id_ident = sum_document_id_ident.to_dict(orient='records')
             print("Selected ident:", filtered_df)
 

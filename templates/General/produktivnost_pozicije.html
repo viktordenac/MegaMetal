@@ -14,7 +14,7 @@
             <form class="login-form" id="textForm" onsubmit="fetchDataTopAndSlow(); return false;">
                 <h2>Iskanje bruto identa</h2>
                 <div class="dropdownIdNr">
-                    <label for="documentID"></label><input type="text" id="documentID" oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown')" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
+                    <label for="documentID"></label><input type="text" id="documentID" oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown', true)" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
                     <div id="delovniNalogDropdown" class="dropdown-content">
                         {% for idRadnogNaloga in radniNalogi %}
                             <a class="dropdown-option-id-rn" onclick="selectOption('{{ idRadnogNaloga }}', 'documentID', 'delovniNalogDropdown')">{{ idRadnogNaloga }}</a>
@@ -96,7 +96,9 @@
                     const response = JSON.parse(xhr.responseText);
                     console.log('Response:', response); // Log the response for debugging
                     displayTopAndSlowData(response.response_data);
-                    displayData(response)
+                    if(response.document_id_ident && response.document_id_ident !== ""){
+                        displayData(response)
+                    }
                 } catch (error) {
                     console.error('Error parsing JSON response:', error);
                 }
@@ -129,6 +131,7 @@
             let mainHtml = '';
             let summaryHtml = '';
 
+
             // Populate main table
             response.document_id_ident.forEach(function(row) {
                 mainHtml += '<tr><td>' + row.IDENT.toString() + '</td><td>' + row.vreme.toString() + '</td><td>' + row.norma.toString() + '</td><td>' + row.postotak.toString() + '%</td></tr>';
@@ -144,105 +147,105 @@
     }
 
     function displayChartTable(parentData, childData, divId) {
-    let table = '<table class="data-frame-table">';
-    table += '<thead><tr>';
-    ['ident', 'norma', 'produktivnost', 'vreme'].forEach(function(key) {
-        table += '<th>' + key.toUpperCase() + '</th>';
-    });
-    table += '</tr></thead>';
-    table += '<tbody>';
+        let table = '<table class="data-frame-table">';
+        table += '<thead><tr>';
+        ['ident', 'norma', 'produktivnost', 'vreme'].forEach(function(key) {
+            table += '<th>' + key.toUpperCase() + '</th>';
+        });
+        table += '</tr></thead>';
+        table += '<tbody>';
 
-    function addRows(data, level) {
-        data.forEach(function(row) {
-            table += '<tr>';
-            Object.keys(row).forEach(function(key) {
-                if (key === 'ident') {
-                    table += '<td><button class="show-details" data-ident="' + row.ident + '">' + row[key] + '</button></td>';
-                } else {
-                    table += '<td>' + row[key] + '</td>';
+        function addRows(data, level) {
+            data.forEach(function(row) {
+                table += '<tr>';
+                Object.keys(row).forEach(function(key) {
+                    if (key === 'ident') {
+                        table += '<td><button class="show-details" data-ident="' + row.ident + '">' + row[key] + '</button></td>';
+                    } else {
+                        table += '<td>' + row[key] + '</td>';
+                    }
+                });
+                table += '</tr>';
+
+                if (childData[row.ident]) {
+                    childData[row.ident].forEach(function(childRow) {
+                        table += '<tr class="subcontent level-' + level + '" data-parent-ident="' + row.ident + '" style="display: none;">';
+                        Object.keys(childRow).forEach(function(key) {
+                            if(key === 'IDENT'){
+                                table += '<td><button class="show-sub-details" data-ident="' + childRow.IDENT + '">' + childRow[key] + '</button></td>';
+                            }else if (Array.isArray(childRow[key])){
+
+                            }else if (key !== 'parent_ident') {
+                                table += '<td>' + childRow[key] + '</td>';
+                            }
+                        });
+                        table += '</tr>';
+
+                        Object.keys(childRow).forEach(function(key) {
+                            // Recursively add child rows if they exist
+                            if (Array.isArray(childRow[key])) {
+                                var nekaj = [];
+                                childRow[key].forEach(function(arrayElement) {
+                                    table += '<tr class="sub_subcontent level-' + (level+1) + '" data-parent-ident="' + childRow.IDENT + '" style="display: none;">';
+                                    table += '<td>' + arrayElement.DELAVEC + '</td>' + '<td>' + arrayElement.norma + '</td>' + '<td>' + arrayElement.postotak + '</td>' + '<td>' + arrayElement.vreme + '</td>' + '<td>' + arrayElement.Mjesto + '</td>';
+                                    table += '</tr>';
+                                });
+                            }
+                        });
+                    });
                 }
             });
-            table += '</tr>';
+        }
 
-            if (childData[row.ident]) {
-                childData[row.ident].forEach(function(childRow) {
-                    table += '<tr class="subcontent level-' + level + '" data-parent-ident="' + row.ident + '" style="display: none;">';
-                    Object.keys(childRow).forEach(function(key) {
-                        if(key === 'IDENT'){
-                            table += '<td><button class="show-sub-details" data-ident="' + childRow.IDENT + '">' + childRow[key] + '</button></td>';
-                        }else if (Array.isArray(childRow[key])){
+        addRows(parentData, 1);
 
-                        }else if (key !== 'parent_ident') {
-                            table += '<td>' + childRow[key] + '</td>';
-                        }
-                    });
-                    table += '</tr>';
+        table += '</tbody></table>';
+        document.getElementById(divId).innerHTML = table;
 
-                    Object.keys(childRow).forEach(function(key) {
-                        // Recursively add child rows if they exist
-                        if (Array.isArray(childRow[key])) {
-                            var nekaj = [];
-                            childRow[key].forEach(function(arrayElement) {
-                                table += '<tr class="sub_subcontent level-' + (level+1) + '" data-parent-ident="' + childRow.IDENT + '" style="display: none;">';
-                                table += '<td>' + arrayElement.DELAVEC + '</td>' + '<td>' + arrayElement.norma + '</td>' + '<td>' + arrayElement.postotak + '</td>' + '<td>' + arrayElement.vreme + '</td>' + '<td>' + arrayElement.Mjesto + '</td>';
-                                table += '</tr>';
-                            });
-                        }
-                    });
+        document.querySelectorAll('#' + divId + ' .show-details').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const ident = this.dataset.ident;
+                console.log("Ident", ident);
+
+                // Hide all sub_subcontent rows
+                document.querySelectorAll('.sub_subcontent').forEach(function(row) {
+                    row.style.display = 'none';
                 });
-            }
-        });
-    }
 
-    addRows(parentData, 1);
-
-    table += '</tbody></table>';
-    document.getElementById(divId).innerHTML = table;
-
-    document.querySelectorAll('#' + divId + ' .show-details').forEach(function(button) {
-    button.addEventListener('click', function() {
-        const ident = this.dataset.ident;
-        console.log("Ident", ident);
-
-        // Hide all sub_subcontent rows
-        document.querySelectorAll('.sub_subcontent').forEach(function(row) {
-            row.style.display = 'none';
+                document.querySelectorAll('.subcontent').forEach(function(row) {
+                    if (row.dataset.parentIdent === ident) {
+                        console.log("Parent Ident", row.dataset.parentIdent);
+                        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                    }
+                });
+            });
         });
 
-        document.querySelectorAll('.subcontent').forEach(function(row) {
-            if (row.dataset.parentIdent === ident) {
-                console.log("Parent Ident", row.dataset.parentIdent);
-                row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-            }
+        // Ensure the event listener for show-sub-details is outside the previous forEach loop
+        document.querySelectorAll('#' + divId + ' .show-sub-details').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const ident = this.dataset.ident;
+                document.querySelectorAll('.sub_subcontent').forEach(function(row) {
+                    if (row.dataset.parentIdent === ident) {
+                        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                    }
+                });
+            });
         });
-    });
-});
-
-// Ensure the event listener for show-sub-details is outside the previous forEach loop
-document.querySelectorAll('#' + divId + ' .show-sub-details').forEach(function(button) {
-    button.addEventListener('click', function() {
-        const ident = this.dataset.ident;
-        document.querySelectorAll('.sub_subcontent').forEach(function(row) {
-            if (row.dataset.parentIdent === ident) {
-                row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-            }
-        });
-    });
-});
-
 }
 
 
 
 
-    function toggleDropdown(idOfElement) {
+    function toggleDropdown(idOfElement, toggle) {
         const dropdown = document.getElementById(idOfElement);
-        if(!dropdown.classList.contains("show")) {
-            dropdown.classList.toggle("show");
+        if(toggle === true) {
+            if(!dropdown.classList.contains("show")){
+                dropdown.classList.toggle("show");
+            }
         }else{
             dropdown.classList.remove("show");
         }
-        filterDropdown(); // Reset filter when showing dropdown
     }
 
     function filterDropdown(filteredItem, idOfElement, classOfElement) {
@@ -264,7 +267,7 @@ document.querySelectorAll('#' + divId + ' .show-sub-details').forEach(function(b
 
     function selectOption(selectedOption, textValue, idOfElement) {
         document.getElementById(textValue).value = selectedOption;
-        toggleDropdown(idOfElement); // You may want to hide the dropdown after selecting an option
+        toggleDropdown(idOfElement, false); // You may want to hide the dropdown after selecting an option
     }
 
     window.onclick = function(event) {
@@ -281,7 +284,7 @@ document.querySelectorAll('#' + divId + ' .show-sub-details').forEach(function(b
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
-            toggleDropdown('delovniNalogDropdown');
+            toggleDropdown('delovniNalogDropdown', false);
         }
     });
 

@@ -111,6 +111,7 @@ input[type="submit"]:hover {
     border: 1px solid #ccc;
     border-radius: 3px;
     box-sizing: border-box;
+    z-index: 9999; /* High z-index value to ensure it overlays other elements */
 }
 
 .dropdown-content {
@@ -208,6 +209,7 @@ input[type="submit"]:hover {
     display: flex;
     justify-content: space-between;
     margin-left: 30vw; /* Adjust the left margin as needed */
+    margin-top: 5vw;
     width: 50%; /* Ensure the container takes up the full width */
 }
 

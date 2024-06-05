@@ -194,7 +194,7 @@
         <form class="login-form" id="textForm" onsubmit="fetchData(); return false;">
             <h2>Iskanje bruto identa</h2>
             <div class="dropdownIdNr">
-                <label for="documentID"></label><input type="text" id="documentID" oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown')" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
+                <label for="documentID"></label><input type="text" id="documentID" oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown', true)" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
                 <div id="delovniNalogDropdown" class="dropdown-content">
                     {% for idRadnogNaloga in radniNalogi %}
                         <a class="dropdown-option-id-rn" onclick="selectOption('{{ idRadnogNaloga }}', 'documentID', 'delovniNalogDropdown')">{{ idRadnogNaloga }}</a>
@@ -314,14 +314,15 @@
     }
 
 
-    function toggleDropdown(idOfElement) {
+    function toggleDropdown(idOfElement, toggle) {
         const dropdown = document.getElementById(idOfElement);
-        if(!dropdown.classList.contains("show")) {
-            dropdown.classList.toggle("show");
+        if(toggle === true) {
+            if(!dropdown.classList.contains("show")){
+                dropdown.classList.toggle("show");
+            }
         }else{
             dropdown.classList.remove("show");
         }
-        filterDropdown(); // Reset filter when showing dropdown
     }
 
     function filterDropdown(filteredItem, idOfElement, classOfElement) {
@@ -343,7 +344,7 @@
 
     function selectOption(selectedOption, textValue, idOfElement) {
         document.getElementById(textValue).value = selectedOption;
-        toggleDropdown(idOfElement); // You may want to hide the dropdown after selecting an option
+        toggleDropdown(idOfElement, false); // You may want to hide the dropdown after selecting an option
     }
 
     window.onclick = function(event) {
@@ -360,7 +361,7 @@
 
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
-            toggleDropdown('delovniNalogDropdown');
+            toggleDropdown('delovniNalogDropdown', false);
         }
     });
 

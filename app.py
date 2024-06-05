@@ -840,21 +840,16 @@ def produktivnost_table_load():
     if not is_authenticated():
         return jsonify({"error": "Not authenticated"})
     # Get the current year and month
-    current_year = date.today().year
-    current_month = date.today().month
-
-    # Set from_date to the first day of the current month
-    from_date = datetime(current_year, current_month, 1)
-
-    # Set to_date to the last day of the current month
-    if current_month == 12:
-        to_date = datetime(current_year + 1, 1, 1) - timedelta(days=1)
-    else:
-        to_date = datetime(current_year, current_month + 1, 1) - timedelta(days=1)
-
-    # Convert to_date to a string in the format YYYY-MM-DD
-    to_date = to_date.strftime('%Y-%m-%d')
+    # Retrieve 'from_date' and 'to_date' from request parameters
+    from_date_str = request.args.get('from_date', '2024-01-01')
+    to_date_str = request.args.get('to_date', '2024-12-31')
+    # Convert date strings to datetime objects
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    print("AAAAA")
     print(from_date)
+    print(to_date)
+    print("AAAAA")
     import numpy as np
     # Assuming TBA_REAL is your model and db is your SQLAlchemy session
     grouped_data = db.session.query(

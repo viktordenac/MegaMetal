@@ -36,10 +36,11 @@
         </div>
         <hr>
         <form class="date_form">
-            <label for="from_date_table">From:</label>
+            <label for="from_date_table">Pick Best of Table From:</label>
             <input type="month" id="from_date_table" name="from_date_table">
             <label for="to_date_table">To:</label>
             <input type="month" id="to_date_table" name="to_date_table">
+            <button type="button" onclick="fetchDataTable()">Select Dates</button>
         </form>
         <h2>Worker DataFrame</h2>
         <div id="workerDF">
@@ -52,6 +53,13 @@
                 <div id="bottom5Table"></div>
             </div>
         </div>
+        <br>
+        <form class="date_form">
+            <label for="from_delavec_date_table">Pick Delavec From:</label>
+            <input type="month" id="from_delavec_date_table" name="from_delavec_date_table">
+            <label for="to_delavec_date_table">To:</label>
+            <input type="month" id="to_delavec_date_table" name="to_delavec_date_table">
+        </form>
         <h2 id="workerChartTitle"></h2>
         <div>
             <canvas id="delavecChart" width="200" height="200"></canvas>
@@ -92,8 +100,10 @@
             const fromMonth = `${year}-01`;
             const toMonth = `${year}-${month}`;
 
-            document.getElementById('from_date_table').value = fromMonth;
+            document.getElementById('from_date_table').value = toMonth;
             document.getElementById('to_date_table').value = toMonth;
+            document.getElementById('from_delavec_date_table').value = fromMonth;
+            document.getElementById('to_delavec_date_table').value = toMonth;
         }
         setDefaultMonths();
         fetchData(); // Fetch data when the page loads initially
@@ -110,6 +120,7 @@
         xhr.onload = function() {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
+                console.log(response);
                 displayChart(response);
             } else {
                 console.error('Request failed. Status: ' + xhr.status);
@@ -126,7 +137,7 @@
         var to_year = to_selectedMonth.split('-')[0];
         var to_month = to_selectedMonth.split('-')[1];
         var from_firstDayOfMonth = new Date(from_year, from_month - 1, 1);
-        var to_lastDayOfMonth = new Date(to_year, to_month, 0);
+        var to_lastDayOfMonth = new Date(to_year, to_month, 1);
         var from_date = from_firstDayOfMonth.toISOString().split('T')[0];
         var to_date = to_lastDayOfMonth.toISOString().split('T')[0];
         var xhr = new XMLHttpRequest();
@@ -136,6 +147,8 @@
                 var response = JSON.parse(xhr.responseText);
                 var top_five = response.table_data_top;
                 var bottom_five = response.table_data_bottom;
+                console.log("TABLE" + top_five);
+                console.log("TABLE" + bottom_five);
                 displayTable(top_five, 'top5Table');
                 displayTable(bottom_five, 'bottom5Table');
                 //displayDataFrame(response.df); // Pass the DataFrame JSON to displayDataFrame function
@@ -198,42 +211,49 @@
         });
     }
 
-    function displayTable(data, divId) {
-        // Create table headers
-        var tableHtml = '<table border="1">';
-        tableHtml += '<tr>';
-        for (var key in data[0]) {
-            tableHtml += '<th>' + key + '</th>';
-        }
-        tableHtml += '</tr>';
+    function displayTable(data, tableId) {
+        var tableHtml = '';
+        console.log("NEKJ", data.length)
 
-        // Add table rows
-        data.forEach(function(item) {
+        if (data.length === 0) {
+            tableHtml = '<p>No info to show</p>';
+        } else {
+            // Create table headers
+            tableHtml = '<table border="1">';
             tableHtml += '<tr>';
-            for (var key in item) {
-                // Check if the value is a date and format it if necessary
-                if (key === 'MJESEC_GODINA') {
-                    tableHtml += '<td>' + formatDate(item[key]) + '</td>';
-                } else if (key === 'DELAVEC') {
-                    tableHtml += '<td><button class="delavecButton" onclick="displayChartForPerson(\'' + item[key] + '\')">' + item[key] + '</button></td>';
-                } else {
-                    tableHtml += '<td>' + item[key] + '</td>';
-                }
+            for (var key in data[0]) {
+                tableHtml += '<th>' + key + '</th>';
             }
             tableHtml += '</tr>';
-        });
 
-        // Close table
-        tableHtml += '</table>';
+            // Add table rows
+            data.forEach(function(item) {
+                tableHtml += '<tr>';
+                for (var key in item) {
+                    // Check if the value is a date and format it if necessary
+                    if (key === 'MJESEC_GODINA') {
+                        tableHtml += '<td>' + formatDate(item[key]) + '</td>';
+                    } else if (key === 'DELAVEC') {
+                        tableHtml += '<td><button class="delavecButton" onclick="displayChartForPerson(\'' + item[key] + '\')">' + item[key] + '</button></td>';
+                    } else {
+                        tableHtml += '<td>' + item[key] + '</td>';
+                    }
+                }
+                tableHtml += '</tr>';
+            });
+
+            // Close table
+            tableHtml += '</table>';
+        }
 
         // Display the table in the designated div
-        document.getElementById(divId).innerHTML = tableHtml;
+        document.getElementById(tableId).innerHTML = tableHtml;
     }
 
     function displayChartForPerson(delavecName) {
         document.getElementById('workerChartTitle').innerText = delavecName;
-        var from_date = document.getElementById('from_date_table').value;
-        var to_date = document.getElementById('to_date_table').value;
+        var from_date = document.getElementById('from_delavec_date_table').value;
+        var to_date = document.getElementById('to_delavec_date_table').value;
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/produktivnost_grafi_delavec_load?from_date=' + from_date + '&to_date=' + to_date + '&delavec=' + delavecName);
         xhr.onload = function() {

@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Roles</title>
     <link rel="stylesheet" href="../../static/style/user_roles.css">
+    <style>
+        .edit-column {
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            right: 0;
+            z-index: 0; /* Ensure it's above other cells */
+        }
+    </style>
 </head>
 <body>
     <div>
@@ -34,7 +42,7 @@
                         <th>fix_plan</th>
                         <th>produktivnost</th>
                         <th>top_user</th>
-                        <th>Edit</th>
+                        <th class="edit-column">Edit</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -44,7 +52,7 @@
                         {% for privilege in ['grafi', 'po_identu', 'torta','oee', 'planiranje_proizvodnje', 'normativi', 'verzug_lista', 'kapaciteta', 'izmene', 'evidenca_ur', 'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi', 'mm2Alat', 'fix_plan','produktivnost', 'top_user'] %}
                         <td><label for="{{ privilege }}"></label><input id="{{ privilege }}" type="checkbox" {% if user.Stranice is not none and privilege in user.Stranice %}checked{% endif %} disabled></td>
                         {% endfor %}
-                        <td><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Edit</button></td>
+                        <td class="edit-column"><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Edit</button></td>
                     </tr>
                     {% endfor %}
                 </tbody>

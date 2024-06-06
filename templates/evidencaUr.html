@@ -71,7 +71,7 @@
             <input type="text" id="Faza" oninput="filterDropdown('Faza', 'fazaDropdown', 'faza-dropdown-option')" onclick="toggleDropdown('fazaDropdown')" placeholder="Išči Fazo ali Vnesi Ročno" autocomplete="off" required>
             <div id="fazaDropdown" class="dropdown-content-faza">
                 {% for faz in faze %}
-                    <a class="faza-dropdown-option" onclick="selectOption('{{ faz.Test }}', 'Faza', 'fazaDropdown')">{{ faz.Test }}</a>
+                    <a class="faza-dropdown-option" onclick="selectOption('{{ faz.VALUE }}', 'Faza', 'fazaDropdown')">{{ faz.VALUE }}</a>
                 {% endfor %}
             </div>
         </div>

@@ -35,8 +35,10 @@ class TEV_EVID(db.Model):
 
 class TBA_FAZA(db.Model):
     __tablename__ = 'TBA_FAZA'
-    Key = db.Column(db.CHAR(15))
-    Test = db.Column(db.CHAR(20), primary_key=True)
+    KEY = db.Column(db.CHAR(50))
+    VALUE = db.Column(db.CHAR(50))
+    VRSTA = db.Column(db.INT())
+    ID_PK = db.Column(db.INT(), primary_key=True)
 
 class TRN_RN(db.Model):
     __tablename__ = 'TRN_RN'
@@ -66,7 +68,7 @@ def evidenca_ur():
     if not is_authenticated():
         return redirect(url_for("login"))
     activities = TRN_RN.query.filter_by(Aktivan='1', Status=session["pozicija"]).all()
-    faze = TBA_FAZA.query.filter(TBA_FAZA.Key == session["mjesto"]).all()
+    faze = TBA_FAZA.query.filter(TBA_FAZA.KEY == session["mjesto"]).all()
     return render_template("evidencaUr.html", radniNalogi=activities, faze=faze)
 
 

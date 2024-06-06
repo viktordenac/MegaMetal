@@ -2137,7 +2137,6 @@ def get_table_data():
     rezultat_vseh_identov = db.session.execute(text(fix_select), {'label': label})
     columns_vseh_identov = rezultat_vseh_identov.keys()
     df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
-    print(df.columns)
     df = df.rename(columns={'realizirana_tezina': 'Tjedan Realizacije'})
     html_table = df.to_html(index=False)    # For demonstration, let's just return a sample table data.
     column_names = ["IDRN", "IZNOS", "TEZINA", "TJEDAN", "realizirani_iznos", "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"]
@@ -2146,6 +2145,30 @@ def get_table_data():
     filter_row = generate_filter_row(column_names)
 
     return render_template('General/compare_data_precise/fix_pl_table_tj.html', table_data=html_table)
+
+
+@app.route('/get_table_data_mj', methods=['GET'])
+def get_table_data_mj():
+    label = request.args.get('label')
+    # Here, you can perform any processing based on the label,
+    # such as querying a database or performing some calculations
+    # to get the table data.
+    fix_select = """
+                SELECT TBA_FIX_DETALJ_PL."IDRN", TBA_FIX_DETALJ_PL."IZNOS",TBA_FIX_DETALJ_PL."TEZINA",
+                       TBA_FIX_DETALJ_PL."MJESEC",TBA_FIX_DETALJ_RE."IZNOS" as REALIZIRANI_IZNOS,TBA_FIX_DETALJ_RE."MJESEC" as REALIZIRANA_TEZINA
+                FROM public."TBA_FIX_DETALJ_PL" as TBA_FIX_DETALJ_PL 
+                LEFT JOIN public."TBA_FIX_DETALJ_RE" as TBA_FIX_DETALJ_RE 
+                ON TBA_FIX_DETALJ_PL."IDRN" = TBA_FIX_DETALJ_RE."IDRN" 
+                WHERE (TBA_FIX_DETALJ_PL."MJESEC"::TEXT LIKE :label or TBA_FIX_DETALJ_RE."MJESEC"::TEXT LIKE :label)
+                """
+
+    rezultat_vseh_identov = db.session.execute(text(fix_select), {'label': label})
+    columns_vseh_identov = rezultat_vseh_identov.keys()
+    df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
+    df = df.rename(columns={'realizirana_tezina': 'Mjesec Realizacije'})
+
+    html_table = df.to_html(index=False)    # For demonstration, let's just return a sample table data.
+    return render_template('General/compare_data_precise/fix_pl_table_mj.html', table_data=html_table)
 
 
 @app.route("/filter_data", methods=["POST"])

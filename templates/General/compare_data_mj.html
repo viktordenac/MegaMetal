@@ -174,17 +174,77 @@
             }]
         },
         options: {
+            plugins: {
+                tooltip: {
+                    titleFont: { // Set the font size for the tooltip header
+                        size: 18 // Adjust the font size as needed
+                    },
+                    bodyFont: { // Set the font size for the tooltip
+                        size: 18 // Adjust the font size as needed
+                    }
+                }
+            }
             // Customize chart options as needed
         }
     });
+	document.getElementById('comparisonChart').addEventListener('click', function(event) {
+		var activePoints = comparisonChart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, false);
 
-    document.getElementById("weekRangeForm").addEventListener("submit", function(event) {
-        event.preventDefault();
-        var startWeek = document.getElementById("startWeek").value;
-        var endWeek = document.getElementById("endWeek").value;
+		if (activePoints.length > 0) {
+			var firstPoint = activePoints[0];
+			var label = comparisonChart.data.labels[firstPoint.index];
+
+			// Make AJAX request to Flask route
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', '/get_table_data_mj?label=' + label, true);
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === XMLHttpRequest.DONE) {
+					if (xhr.status === 200) {
+						// Parse the received JSON response
+						var htmlContent = xhr.responseText;
+						displayHTMLTableInNewTab(htmlContent);
+						// Open another HTML file in a new tab with URL parameters
+					} else {
+						// Handle error
+						console.error('Error:', xhr.statusText);
+					}
+				}
+			};
+			xhr.send();
+		}
+	});
+function displayHTMLTableInNewTab(htmlContent) {
+    // Open a new tab with the HTML content
+    var newTab = window.open();
+
+    // Modify the HTML content to make it prettier and remove the first column
+    var modifiedHtmlContent = htmlContent.replace('<table border="1">', '<table style="border-collapse: collapse; width: 100%;">')
+                                         .replace(/<th>0<\/th>/g, '') // Remove the first column header
+                                         .replace(/<td>0<\/td>/g, ''); // Remove the first column values
+
+    newTab.document.write(modifiedHtmlContent);
+    newTab.document.close();
+}
+
+    // Function to get week number from a date
+    function getWeekNumber(date) {
+        var startDate = new Date(date.getFullYear(), 0, 1);
+        var days = Math.floor((date - startDate) / (24 * 60 * 60 * 1000));
+        return Math.ceil((days + startDate.getDay() + 1) / 7);
+    }
+
+    // Set initial values and call filterAndRefreshChart on page load
+    window.onload = function() {
+        var currentDate = new Date();
+        var startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        var endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+        var startWeek = getWeekNumber(startOfMonth);
+        var endWeek = getWeekNumber(endOfMonth);
+
+        document.getElementById("startWeek").value = startWeek;
+        document.getElementById("endWeek").value = endWeek;
         filterAndRefreshChart(startWeek, endWeek);
-    });
-
+    };
 </script>
 
 </body>

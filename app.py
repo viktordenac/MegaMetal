@@ -70,6 +70,7 @@ class TBA_RAD(db.Model):
     Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
     Kartica_value = db.Column(db.Numeric(25, 0))
     Mjesto = db.Column(db.CHAR(15))
+    Kombinirani = db.Column(db.CHAR(15))
     Username = db.Column(db.CHAR(15))
     Password = db.Column(db.CHAR(10))
     Datexp = db.Column(db.DateTime())
@@ -1116,11 +1117,13 @@ def edit_user():
         user.Kartica = request.form.get('kartica')
         user.Kartica_value = request.form.get('novaKartica')
         user.Mjesto = request.form.get('mjesto')
+        user.Kombinirani = request.form.get('kombinirani')
         user.Password = request.form.get('password')
         if (request.form.get('datexp') != ''):
             user.Datexp = request.form.get('datexp')
         else:
             user.Datexp = None
+        print(user.Kombinirani)
         db.session.commit()
         return jsonify({'success': True})
     else:

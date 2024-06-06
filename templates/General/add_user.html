@@ -159,6 +159,7 @@
                     <th>Username</th>
                     <th>Kartica</th>
                     <th>Mjesto</th>
+                    <th>Combined</th>
                     <th>Password</th>
                     <th>Password Last Updated</th>
                     <th>Edit</th>
@@ -172,9 +173,10 @@
                     <td>{{ user.Username }}</td>
                     <td>{{ user.Kartica }}</td>
                     <td>{{ user.Mjesto }}</td>
+                    <td>{{ user.Kombinirani }}</td>
                     <td>{{ user.Password }}</td>
                     <td>{{ user.Datexp }}</td>
-                    <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}','{{ user.Kartica_value }}', '{{ user.Mjesto }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
+                    <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}','{{ user.Kartica_value }}', '{{ user.Mjesto }}', '{{ user.Kombinirani }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
                     <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}', '{{ user.Kartica }}')">Delete</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
@@ -196,8 +198,10 @@
             <input type="text" id="editKartica" name="kartica" required><br>
             <label for="editNovaKartica">NOVA KARTICA:</label>
             <input type="text" id="editNovaKartica" name="novaKartica"><br>
-            <label for="editMjesto">Vloga:</label>
+            <label for="editMjesto">Mjesto:</label>
             <input type="text" id="editMjesto" name="mjesto" required><br>
+            <label for="editKombinirani">Kombinirani:</label>
+            <input type="text" id="editKombinirani" name="kombinirani" required><br>
             <label for="editPassword">Geslo:</label>
             <input type="text" id="editPassword" name="password" required><br>
             <label for="editDatexp">Geslo poteče:</label>
@@ -214,12 +218,13 @@
 
 
 <script>
-    function editUser(name, username, kartica, novaKartica, mjesto, password, datexp) {
+    function editUser(name, username, kartica, novaKartica, mjesto, kombinirani, password, datexp) {
         document.getElementById("editName").value = name; // Clear previous values if any
         document.getElementById("editUsername").value = username;
         document.getElementById("editKartica").value = kartica;
         document.getElementById("editNovaKartica").value = novaKartica;
         document.getElementById("editMjesto").value = mjesto; // Replace with actual value
+        document.getElementById("editKombinirani").value = kombinirani; // Replace with actual value
         document.getElementById("editPassword").value = password;
         document.getElementById("editDatexp").value = datexp;
     }

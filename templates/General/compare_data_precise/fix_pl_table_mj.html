@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Table Data</title>
+    <title>Fix plan po tjednu</title>
     <style>
         /* Reset default margin and padding */
         * {
@@ -23,7 +23,6 @@
         .dataframe th, .dataframe td {
             border: 1px solid #ddd;
             padding: 12px;
-			width: 300px;
             text-align: center;
         }
 
@@ -40,57 +39,98 @@
         .dataframe tbody tr:hover {
             background-color: #f0f0f0;
         }
+
+        .filterInput {
+            width: 100px;
+        }
     </style>
 </head>
 <body>
-    <h1>Table Data</h1>
-    <table class="dataframe" id="data_table">
-        <thead>
-        <tr id="filterRow">
-            <th style="width: 100px;"><input type="text" class="filterInput" data-column="0"  style="width: 100px;" placeholder="Filter IDRN..."></th>
-            <th style="width: 100px;"><input type="text" class="filterInput" data-column="1"  style="width: 100px;" placeholder="Filter IZNOS..."></th>
-            <th style="width: 100px;"><input type="text" class="filterInput" data-column="2"  style="width: 100px;" placeholder="Filter TEZINA..."></th>
-            <th style="width: 100px;"><input type="text" class="filterInput" data-column="3"  style="width: 100px;" placeholder="Filter MJESEC..."></th>
-            <th style="width: 100px;"><input type="text" class="filterInput" data-column="4"  style="width: 100px;" placeholder="Filter realizirani_iznos..."></th>
-            <th style="width: 100px;"><input type="text" class="filterInput" data-column="5"  style="width: 100px;" placeholder="Filter Mjesec realizacije..."></th>
-        </tr>
-        </thead>
-        <tbody>
-            <!-- Table body content -->
-            {{ table_data | safe }}
-        </tbody>
-    </table>
+    <div id="tableContainer">
+        <h1 id="tableHeader">Fix plan po tjednu</h1>
+	    <button id="fetchDataButton">Fetch Data</button>
+        <table class="dataframe" id="data_table">
+            <thead>
+            <tr id="filterRow">
+                <th><input type="text" class="filterInput" data-column="0" placeholder="Filter IDRN..."></th>
+                <th><input type="text" class="filterInput" data-column="1" placeholder="Filter IZNOS..."></th>
+                <th><input type="text" class="filterInput" data-column="2" placeholder="Filter TEZINA..."></th>
+                <th><input type="text" class="filterInput" data-column="3" placeholder="Filter TJEDAN..."></th>
+                <th><input type="text" class="filterInput" data-column="4" placeholder="Filter realizirani_iznos..."></th>
+                <th><input type="text" class="filterInput" data-column="5" placeholder="Filter Tjedan realizacije..."></th>
+            </tr>
+            </thead>
+            <tbody>
+                <!-- Table body content -->
+                {{ table_data | safe }}
+            </tbody>
+        </table>
+    </div>
+
 
     <script>
-// Function to perform filtering
-function filterTable() {
-    var filterInputs = document.querySelectorAll('.filterInput');
-    var tableRows = document.querySelectorAll('.dataframe tbody tr');
+        // Function to set filter input width to match column header width
+        function setFilterInputWidth() {
+            var bodyCells = document.querySelectorAll('#data_table tbody tr:first-child td');
+            var filterInputs = document.querySelectorAll('.filterInput');
 
-    tableRows.forEach(function(row) {
-        var display = 'table-row';
-        row.style.display = display;
-
-        for (var i = 0; i < filterInputs.length; i++) {
-            var columnIndex = filterInputs[i].dataset.column;
-            var filterValue = filterInputs[i].value.toUpperCase();
-            var cellText = row.children[columnIndex].textContent.toUpperCase();
-
-            if (cellText.indexOf(filterValue) === -1) {
-                display = 'none';
-                break;
-            }
+            bodyCells.forEach(function(cell, index) {
+                var width = window.getComputedStyle(cell).width;
+                filterInputs[index].style.width = width;
+            });
         }
 
-        row.style.display = display;
-    });
-}
+        // Function to perform filtering
+        function filterTable() {
+            var filterInputs = document.querySelectorAll('.filterInput');
+            var tableRows = document.querySelectorAll('.dataframe tbody tr');
 
-// Attach event listener to each filter input
-var filterInputs = document.querySelectorAll('.filterInput');
-filterInputs.forEach(function(input) {
-    input.addEventListener('keyup', filterTable);
-});
+            tableRows.forEach(function(row) {
+                var display = 'table-row';
+
+                for (var i = 0; i < filterInputs.length; i++) {
+                    var columnIndex = filterInputs[i].dataset.column;
+                    var filterValue = filterInputs[i].value.toUpperCase();
+                    var cellText = row.children[columnIndex].textContent.toUpperCase();
+
+                    if (cellText.indexOf(filterValue) === -1) {
+                        display = 'none';
+                        break;
+                    }
+                }
+
+                row.style.display = display;
+            });
+        }
+
+        // Function to fetch table data
+        function fetchData() {
+            fetch(`/get_table_data_mj?label=%`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('tableContainer').innerHTML = html;
+                    setFilterInputWidth(); // Reset filter input width based on new table content
+                    attachFilterEvents(); // Reattach filter events to the new inputs
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+
+        // Function to attach filter events
+        function attachFilterEvents() {
+            var filterInputs = document.querySelectorAll('.filterInput');
+            filterInputs.forEach(function(input) {
+                input.addEventListener('keyup', filterTable);
+            });
+        }
+
+        // Attach event listener to the fetch data button
+        document.getElementById('fetchDataButton').addEventListener('click', fetchData);
+
+        // Set filter input width and attach event listeners for filtering
+        window.addEventListener('DOMContentLoaded', function() {
+            setFilterInputWidth();
+            attachFilterEvents();
+        });
     </script>
 </body>
 </html>

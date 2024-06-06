@@ -168,7 +168,7 @@
                 }
             }
             // Customize chart options as needed
-        }
+        },
     });
 
     var ctx2 = document.getElementById('comparisonChart2').getContext('2d');
@@ -201,6 +201,45 @@
         var endWeek = document.getElementById("endWeek").value;
         filterAndRefreshChart(startWeek, endWeek);
     });
+
+	document.getElementById('comparisonChart').addEventListener('click', function(event) {
+		var activePoints = comparisonChart.getElementsAtEventForMode(event, 'nearest', { intersect: true }, false);
+
+		if (activePoints.length > 0) {
+			var firstPoint = activePoints[0];
+			var label = comparisonChart.data.labels[firstPoint.index];
+
+			// Make AJAX request to Flask route
+			var xhr = new XMLHttpRequest();
+			xhr.open('GET', '/get_table_data?label=' + label, true);
+			xhr.onreadystatechange = function () {
+				if (xhr.readyState === XMLHttpRequest.DONE) {
+					if (xhr.status === 200) {
+						// Parse the received JSON response
+						var htmlContent = xhr.responseText;
+						displayHTMLTableInNewTab(htmlContent);
+						// Open another HTML file in a new tab with URL parameters
+					} else {
+						// Handle error
+						console.error('Error:', xhr.statusText);
+					}
+				}
+			};
+			xhr.send();
+		}
+	});
+function displayHTMLTableInNewTab(htmlContent) {
+    // Open a new tab with the HTML content
+    var newTab = window.open();
+
+    // Modify the HTML content to make it prettier and remove the first column
+    var modifiedHtmlContent = htmlContent.replace('<table border="1">', '<table style="border-collapse: collapse; width: 100%;">')
+                                         .replace(/<th>0<\/th>/g, '') // Remove the first column header
+                                         .replace(/<td>0<\/td>/g, ''); // Remove the first column values
+
+    newTab.document.write(modifiedHtmlContent);
+    newTab.document.close();
+}
 
     // Function to get week number from a date
     function getWeekNumber(date) {

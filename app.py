@@ -2108,6 +2108,46 @@ def compare_data():
                            stranice_list=stranice_list)
 
 
+
+def generate_filter_row(column_names):
+    filter_row = '<tr id="filterRow">'
+    for column_name in column_names:
+        filter_row += f'<th><input type="text" class="filterInput" data-column="{column_names.index(column_name)}" style="width: 100%;" placeholder="Filter {column_name}..."></th>'
+    filter_row += '</tr>'
+    return filter_row
+
+
+
+@app.route('/get_table_data', methods=['GET'])
+def get_table_data():
+    label = request.args.get('label')
+    # Here, you can perform any processing based on the label,
+    # such as querying a database or performing some calculations
+    # to get the table data.
+    fix_select = """
+                SELECT (TBA_FIX_DETALJ_PL."IDRN"), TBA_FIX_DETALJ_PL."IZNOS",TBA_FIX_DETALJ_PL."TEZINA",
+                       TBA_FIX_DETALJ_PL."TJEDAN",TBA_FIX_DETALJ_RE."IZNOS" as REALIZIRANI_IZNOS,TBA_FIX_DETALJ_RE."TJEDAN" as REALIZIRANA_TEZINA
+                FROM public."TBA_FIX_DETALJ_PL" as TBA_FIX_DETALJ_PL 
+                LEFT JOIN public."TBA_FIX_DETALJ_RE" as TBA_FIX_DETALJ_RE 
+                ON TBA_FIX_DETALJ_PL."IDRN" = TBA_FIX_DETALJ_RE."IDRN" 
+                WHERE (TBA_FIX_DETALJ_PL."TJEDAN"::TEXT LIKE :label or TBA_FIX_DETALJ_RE."TJEDAN"::TEXT LIKE :label)
+
+                        """
+
+    rezultat_vseh_identov = db.session.execute(text(fix_select), {'label': label})
+    columns_vseh_identov = rezultat_vseh_identov.keys()
+    df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
+    print(df.columns)
+    df = df.rename(columns={'realizirana_tezina': 'Tjedan Realizacije'})
+    html_table = df.to_html(index=False)    # For demonstration, let's just return a sample table data.
+    column_names = ["IDRN", "IZNOS", "TEZINA", "TJEDAN", "realizirani_iznos", "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"]
+
+    # Generate the filter row
+    filter_row = generate_filter_row(column_names)
+
+    return render_template('General/compare_data_precise/fix_pl_table_tj.html', table_data=html_table)
+
+
 @app.route("/filter_data", methods=["POST"])
 def filter_data():
     start_week = request.form.get("startWeek")

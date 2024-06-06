@@ -84,7 +84,8 @@
     {% endif %}
     <!-- Add more sections based on user permissions -->
     {% if 'top_user' in stranice_list %}
-        <div class="dropdown">
+    <a href="{{ url_for('action_plans') }}">Action Plan</a>
+    <div class="dropdown">
         Potrošnja materiala &rarr;
         <!-- Inside Dropdown -->
         <div class="dropdown-dropdown">

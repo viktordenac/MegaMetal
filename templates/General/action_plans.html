@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action Plans</title>
+    <style>
+	        h1, #toggleFinishedBtn {
+            margin-left: 15%;
+        }
+		        h1, #ActionPlans {
+            margin-left: 15%;
+        }
+        table {
+            width: 85%;
+            border-collapse: collapse;
+            margin-left: 15%;
+        }
+
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        td.activity, td.results {
+            max-width: 300px; /* Optional: Limit max width if necessary */
+            white-space: normal; /* Ensure text wraps */
+            word-wrap: break-word; /* Ensure words break correctly */
+        }
+
+        td.activity div, td.results div {
+            min-height: 1em;
+        }
+
+        td.activity input, td.results input {
+            display: none;
+        }
+
+        td.responsible,
+        td.department {
+            width: 2%; /* Half the width of the original */
+        }
+
+        td input[type="text"] {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        td button {
+            width: 100%;
+            padding: 8px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        td button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="ActionPlans">Action Plans</h1>
+    <button id="toggleFinishedBtn">Show Finished</button>
+    <table id="actionTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Activity</th>
+                <th>Responsible</th>
+                <th>Department</th>
+                <th>Start</th>
+                <th>End</th>
+                <th>Progress</th>
+                <th>Results</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for plan in action_plans %}
+            <form id="updateForm{{ plan.ID_PK }}" action="{{ url_for('update_action_plan', id=plan.ID_PK) }}" method="POST">
+                <tr class="expandable" data-progress="{{ plan.PROGRESS }}">
+                    <td>{{ plan.ID_PK }}</td>
+                    <td class="activity" data-plan-id="{{ plan.ID_PK }}">
+                        <div contenteditable="true">{{ plan.ACTIVITY }}</div>
+                        <input type="text" name="activity" value="{{ plan.ACTIVITY }}" style="display: none;">
+                    </td>
+                    <td class="responsible"><input type="text" name="responsible" value="{{ plan.RESPONSIBLE }}"></td>
+                    <td class="department"><input type="text" name="department" value="{{ plan.DEPARTMENT }}"></td>
+                    <td><input type="date" name="start" value="{{ plan.START }}"></td>
+                    <td><input type="date" name="end" value="{{ plan.END }}"></td>
+                    <td>
+                        <select name="progress">
+                            <option value="Not started" {% if plan.PROGRESS == 'Not started' %}selected{% endif %}>Not started</option>
+                            <option value="Running" {% if plan.PROGRESS == 'Running' %}selected{% endif %}>Running</option>
+                            <option value="Finished" {% if plan.PROGRESS == 'Finished' %}selected{% endif %}>Finished</option>
+                        </select>
+                    </td>
+                    <td class="results" data-plan-id="{{ plan.ID_PK }}">
+                        <div contenteditable="true">{{ plan.RESULTS }}</div>
+                        <input type="text" name="results" value="{{ plan.RESULTS }}" style="display: none;">
+                    </td>
+                    <td>
+                        <button type="submit" class="update-btn" data-form-id="updateForm{{ plan.ID_PK }}">Save</button>
+                    </td>
+                </tr>
+            </form>
+            {% endfor %}
+            <form action="{{ url_for('add_action_plan') }}" method="POST">
+                <tr>
+                    <td>New</td>
+                    <td><input type="text" name="activity" required></td>
+                    <td><input type="text" name="responsible" required></td>
+                    <td><input type="text" name="department" required></td>
+                    <td><input type="date" name="start" required></td>
+                    <td><input type="date" name="end" required></td>
+                    <td>
+                        <select name="progress">
+                            <option value="Not started">Not started</option>
+                            <option value="Running">Running</option>
+                            <option value="Finished">Finished</option>
+                        </select>
+                    </td>
+                    <td><input type="text" name="results" required></td>
+                    <td><button type="submit">Add</button></td>
+                </tr>
+            </form>
+        </tbody>
+    </table>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('loaded:');
+
+            populateProgressDropdowns();
+            updateProgressColumnColor(); // Call function to update color on page load
+            hideFinishedRows(); // Hide finished rows on load
+
+            // Change background color based on dropdown value
+            var progressDropdowns = document.querySelectorAll('select[name="progress"]');
+            progressDropdowns.forEach(function(dropdown) {
+                dropdown.addEventListener('change', function() {
+                    updateProgressColumnColor(); // Call function to update color on change
+                });
+            });
+
+            // Update value on button click
+            var updateButtons = document.querySelectorAll('.update-btn');
+            updateButtons.forEach(function(button) {
+                button.addEventListener('click', handleUpdate);
+            });
+
+            // Attach event listener to all contenteditable divs with class "activity"
+            var activityDivs = document.querySelectorAll('.activity > div[contenteditable="true"]');
+            activityDivs.forEach(function(div) {
+                div.addEventListener('input', function() {
+                    // Get the associated hidden input field
+                    var hiddenInput = this.parentElement.querySelector('input[type="text"]');
+                    if (hiddenInput) {
+                        // Update the value of the hidden input field with the content of the contenteditable div
+                        hiddenInput.value = this.textContent;
+                    }
+                });
+            });
+
+            // Toggle finished rows visibility
+            var toggleFinishedBtn = document.getElementById('toggleFinishedBtn');
+            toggleFinishedBtn.addEventListener('click', toggleFinishedRows);
+        });
+
+        // Function to hide rows where progress is "Finished"
+        function hideFinishedRows() {
+            var rows = document.querySelectorAll('tr[data-progress="Finished"]');
+            rows.forEach(function(row) {
+                row.style.display = 'none';
+            });
+        }
+
+        // Function to toggle visibility of "Finished" rows
+        function toggleFinishedRows() {
+            var rows = document.querySelectorAll('tr[data-progress="Finished"]');
+            var toggleBtn = document.getElementById('toggleFinishedBtn');
+            var show = toggleBtn.textContent === 'Show Finished';
+
+            rows.forEach(function(row) {
+                row.style.display = show ? '' : 'none';
+            });
+
+            toggleBtn.textContent = show ? 'Hide Finished' : 'Show Finished';
+        }
+
+        // Function to update background color of Progress column
+        function updateProgressColumnColor() {
+            console.log('progress:');
+
+            var progressCells = document.querySelectorAll('select[name="progress"]');
+            progressCells.forEach(function(cell) {
+                var selectedValue = cell.value;
+                var endCell = cell.parentElement.parentElement.querySelector('td:nth-child(6)');
+                var endDate = endCell.querySelector('input[type="date"]').value; // Get end date from input field
+                console.log("aaaaaaaaaaaaaaaaaaa");
+
+                console.log('selectedValue:', selectedValue, 'endDate:', endDate);
+                console.log(isEndDatePast(endDate));
+                console.log(endDate);
+                const today = new Date();
+                const threeDaysAgo = new Date(today);
+                threeDaysAgo.setDate(today.getDate() - 3);
+                if (selectedValue === 'Finished') {
+                    cell.parentElement.style.backgroundColor = 'green';
+                }
+                if (selectedValue !== 'Finished' && new Date(endDate) < today) {
+                    cell.parentElement.style.backgroundColor = 'red';
+                }
+                if (selectedValue !== 'Finished' && new Date(endDate) <= today && new Date(endDate) >= threeDaysAgo) {
+                    cell.parentElement.style.backgroundColor = 'yellow';
+                }
+            });
+        }
+
+        // Function to get color based on progress value
+        function getColorForProgress(progress) {
+            switch (progress) {
+                case 'Not started':
+                    return 'red';
+                case 'Running':
+                    return 'yellow';
+                case 'Finished':
+                    return 'green';
+                default:
+                    return 'transparent';
+            }
+        }
+
+        function isEndDatePast(endDate) {
+            var endDateTime = new Date(endDate); // Convert the end date string to a Date object
+            var today = new Date(); // Get today's date
+            // Set the time to midnight to ensure consistent comparison
+            endDateTime.setHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
+            return endDateTime < today; // Compare end date with today's date
+        }
+
+        function populateProgressDropdowns() {
+            var progressDropdowns = document.querySelectorAll('select[name="progress"]');
+            progressDropdowns.forEach(function(dropdown) {
+                // Check if dropdown already contains options
+                if (dropdown.children.length === 0) {
+                    var options = ['Not started', 'Running', 'Finished'];
+                    options.forEach(function(option) {
+                        var optionElement = document.createElement('option');
+                        optionElement.value = option;
+                        optionElement.textContent = option;
+                        console.log(dropdown);
+                        dropdown.appendChild(optionElement);
+                    });
+                }
+            });
+        }
+
+        function handleUpdate(event) {
+            console.log('Data being sent to backend:');
+            event.preventDefault();
+            
+            var button = event.target; // Get the button that triggered the event
+            var formId = button.dataset.formId; // Get the ID of the associated form from the button's data attribute
+            var form = document.getElementById(formId);
+            if (!form) {
+                console.error('Associated form not found');
+                return;
+            }
+            var formData = new FormData(form);
+            console.log('Data being sent to backend:', formData);
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', form.getAttribute('action'), true);
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    console.log('Update successful');
+                    // You can add further actions here if needed
+                } else {
+                    console.error('Update failed');
+                }
+            };
+            xhr.send(formData);
+        }
+    </script>
+</body>
+</html>

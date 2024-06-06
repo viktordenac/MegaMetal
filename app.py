@@ -270,6 +270,18 @@ class TBA_FIX_DETAJL_PL(db.Model):
     TEZINA = db.Column(db.REAL)
     MJESEC = db.Column(db.INT())
 
+class ACTION_PLAN(db.Model):
+    __tablename__ = 'ACTION_PLAN'
+    ID_PK = db.Column(db.INT(), primary_key=True)
+    ACTIVITY = db.Column(db.CHAR(5000))
+    RESPONSIBLE = db.Column(db.CHAR(50))
+    DEPARTMENT = db.Column(db.CHAR(15))
+    START = db.Column(db.DateTime())
+    END = db.Column(db.DateTime())
+    PROGRESS =  db.Column(db.CHAR(15))
+    STATUS =  db.Column(db.CHAR(15))
+    RESULTS =  db.Column(db.CHAR(2000))
+
 
 @login_manager.user_loader
 def load_user(kartica):
@@ -2227,6 +2239,52 @@ def refresh_fix_plan():
     except Exception as e:
         #write to file batch_file_path and e to see what is the error
         return jsonify({'success': False, 'error_message': str(e)})
+
+
+@app.route('/action_plans')
+def action_plans():
+    stranice_list = session["stranice"]
+    action_plans = ACTION_PLAN.query.order_by(ACTION_PLAN.ID_PK.asc()).all()
+    return render_template('action_plans.html', action_plans=action_plans, stranice_list=stranice_list)
+
+
+@app.route('/update_action_plan/<int:id>', methods=['POST'])
+def update_action_plan(id):
+    print(request.method)
+    action_plan = ACTION_PLAN.query.get_or_404(id)
+    if request.method == 'POST':
+        print(request.form['activity'])
+        action_plan.ACTIVITY = request.form['activity']
+        action_plan.RESPONSIBLE = request.form['responsible']
+        action_plan.DEPARTMENT = request.form['department']
+        action_plan.START = request.form['start']
+        action_plan.END = request.form['end']
+        action_plan.PROGRESS = request.form['progress']
+        action_plan.RESULTS = request.form['results']
+        db.session.commit()
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        return redirect(url_for('action_plans'))
+
+
+@app.route('/add_action_plan', methods=['POST'])
+def add_action_plan():
+
+    if request.method == 'POST':
+        new_plan = ACTION_PLAN(
+            ACTIVITY=request.form['activity'],
+            RESPONSIBLE=request.form['responsible'],
+            DEPARTMENT=request.form['department'],
+            START=request.form['start'],
+            END=request.form['end'],
+            PROGRESS=request.form['progress'],
+            #STATUS=request.form['status'],
+            RESULTS=request.form['results']
+        )
+        print(new_plan)
+
+        db.session.add(new_plan)
+        db.session.commit()
+        return redirect(url_for('action_plans'))
 """--------------------------------------------------------------------"""
 
 @app.route('/administracija', methods=['GET'])

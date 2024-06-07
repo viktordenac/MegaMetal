@@ -72,10 +72,10 @@
     <table id="actionTable">
         <thead>
             <tr>
-                <th>ID</th>
+                <th>ID <input type="text" placeholder="Filter ID"></th>
                 <th>Aktivnost</th>
-                <th>Odgovorni</th>
-                <th>Oddelek</th>
+                <th>Odgovorni <input type="text" placeholder="Filter Odgovorni"></th>
+                <th>Oddelek <input type="text" placeholder="Filter Oddelek"></th>
                 <th>Začetek</th>
                 <th>Konec</th>
                 <th>Status</th>
@@ -173,6 +173,30 @@
             // Toggle finished rows visibility
             var toggleFinishedBtn = document.getElementById('toggleFinishedBtn');
             toggleFinishedBtn.addEventListener('click', toggleFinishedRows);
+
+            // Filter function
+            document.querySelectorAll('input[type="text"]').forEach(function(input) {
+                input.addEventListener('input', function() {
+                    var columnIndex = Array.from(this.parentNode.parentNode.children).indexOf(this.parentNode);
+                    var searchText = this.value.toLowerCase();
+                    var rows = document.querySelectorAll('#actionTable tbody tr');
+
+                    rows.forEach(function(row) {
+                        var cell = row.children[columnIndex];
+                        if (cell) {
+                            var cellText = cell.textContent.toLowerCase();
+                            var inputText = cell.querySelector('input[type="text"]');
+                            if (inputText && inputText.value.toLowerCase().includes(searchText)) {
+                                row.style.display = '';
+                            } else if (cellText.includes(searchText)) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            });
         });
 
         // Function to hide rows where progress is "Finished"

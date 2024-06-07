@@ -272,6 +272,7 @@ class TBA_FIX_DETAJL_PL(db.Model):
 
 class ACTION_PLAN(db.Model):
     __tablename__ = 'ACTION_PLAN'
+    TEMA = db.Column(db.CHAR(5000))
     ID_PK = db.Column(db.INT(), primary_key=True)
     ACTIVITY = db.Column(db.CHAR(5000))
     RESPONSIBLE = db.Column(db.CHAR(50))

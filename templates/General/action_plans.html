@@ -87,7 +87,7 @@
             {% for plan in action_plans %}
             <form id="updateForm{{ plan.ID_PK }}" action="{{ url_for('update_action_plan', id=plan.ID_PK) }}" method="POST">
                 <tr class="expandable" data-progress="{{ plan.PROGRESS }}">
-                    <td>{{ plan.ID_PK }}</td>
+                    <td>{{ plan.TEMA }}</td>
                     <td class="activity" data-plan-id="{{ plan.ID_PK }}">
                         <div contenteditable="true">{{ plan.ACTIVITY }}</div>
                         <input type="text" name="activity" value="{{ plan.ACTIVITY }}" style="display: none;">

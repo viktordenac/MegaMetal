@@ -252,6 +252,7 @@ class TREZ_OEE(db.Model):
     DATUM = db.Column(db.String(10))
     ID_PK = db.Column(db.Integer, primary_key=True)
 
+
 class TBA_FIX_DETAJL_RE(db.Model):
     __tablename__ = 'TBA_FIX_DETALJ_RE'
     ID_PK = db.Column(db.Integer, primary_key=True)
@@ -261,6 +262,7 @@ class TBA_FIX_DETAJL_RE(db.Model):
     TEZINA = db.Column(db.REAL)
     MJESEC = db.Column(db.INT())
 
+
 class TBA_FIX_DETAJL_PL(db.Model):
     __tablename__ = 'TBA_FIX_DETALJ_PL'
     ID_PK = db.Column(db.Integer, primary_key=True)
@@ -269,6 +271,7 @@ class TBA_FIX_DETAJL_PL(db.Model):
     TJEDAN = db.Column(db.INT())
     TEZINA = db.Column(db.REAL)
     MJESEC = db.Column(db.INT())
+
 
 class ACTION_PLAN(db.Model):
     __tablename__ = 'ACTION_PLAN'
@@ -283,6 +286,13 @@ class ACTION_PLAN(db.Model):
     STATUS =  db.Column(db.CHAR(15))
     RESULTS =  db.Column(db.CHAR(2000))
 
+
+class TBA_FAZA(db.Model):
+    __tablename__ = 'TBA_FAZA'
+    KEY = db.Column(db.CHAR(50))
+    VALUE = db.Column(db.CHAR(50))
+    VRSTA = db.Column(db.INT())
+    ID_PK = db.Column(db.Integer, primary_key=True)
 
 @login_manager.user_loader
 def load_user(kartica):
@@ -436,6 +446,70 @@ def add_aktivni_nalog():
     db.session.commit()
 
     return jsonify({'success': True})
+
+
+@app.route("/urejanje_faz")
+def urejanje_faz():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    stranice_list = session["stranice"]
+    query = TBA_FAZA.query.all()
+    return render_template("urejanje_nalogov.html", stranice_list=stranice_list, podatki=query)
+
+
+@app.route("/manipulate_faz", methods=['POST'])
+def manipulate_faz():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+
+    action = request.form.get('action')  # Get the action from the frontend
+
+    if action == 'add':
+        # Add user logic
+        # Retrieve form data for adding user
+        oddelek = request.form.get('oddelek')
+        naziv = request.form.get('naziv')
+        posebna_vrsta = request.form.get('posebnavrsta')
+        # Set posebna_vrsta to None if it's empty
+        if not posebna_vrsta:
+            posebna_vrsta = None
+
+        # Create a new user object and add it to the database
+        new_user = TBA_FAZA(KEY=oddelek, VALUE=naziv, VRSTA=posebna_vrsta)
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify({'success': True})  # Return success response
+
+    elif action == 'edit':
+        # Edit user logic
+        id_pk = request.form.get('id')  # Get the user ID
+        faza = TBA_FAZA.query.filter_by(ID_PK=id_pk).first()  # Retrieve the user object
+
+        # Update user details based on form data
+        faza.KEY = request.form.get('oddelek')
+        faza.VALUE = request.form.get('naziv')
+        faza.VRSTA = request.form.get('posebnavrsta')
+
+        db.session.commit()  # Commit changes to the database
+
+        return jsonify({'success': True})  # Return success response
+
+    elif action == 'delete':
+        # Delete user logic
+        id_pk = request.form.get('id')  # Get the user ID
+        faza = TBA_FAZA.query.filter_by(ID_PK=id_pk).first()  # Retrieve the user object
+
+        if faza:
+            db.session.delete(faza)  # Delete the user from the database
+            db.session.commit()
+            return jsonify({'success': True})  # Return success response
+        else:
+            return jsonify({'success': False, 'message': 'User not found'})  # Return failure response
+
+    else:
+        return jsonify({'success': False, 'message': 'Invalid action'})  # Return failure response for invalid action
+
 
 def format_date(date_str):
     return date_str.strftime('%Y-%m-%d')

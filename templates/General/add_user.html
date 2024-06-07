@@ -162,8 +162,8 @@
                     <th>Combined</th>
                     <th>Password</th>
                     <th>Password Last Updated</th>
-                    <th>Edit</th>
-                    <th>Delete</th>
+                    <th>Uredi</th>
+                    <th>Odstrani</th>
                 </tr>
             </thead>
             <tbody>
@@ -184,21 +184,21 @@
             </tbody>
         </table>
     </div>
-    <button id="add-user-button" onclick="showEditForm('','','','','','','')">Add user</button>
+    <button id="add-user-button" onclick="showEditForm('','','','','','','')">Dodaj uporabnika</button>
 <!-- Edit form container -->
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
-        <h2>Edit User</h2>
+        <h2>Uredi Uporabnika</h2>
         <form action="/add_or_edit_user" method="post" id="editForm">
             <label for="editName">Ime:</label>
             <input type="text" id="editName" name="name" required><br>
-            <label for="editUsername">Username:</label>
+            <label for="editUsername">Uporabniško ime:</label>
             <input type="text" id="editUsername" name="username" required><br>
             <label for="editKartica">Kartica:</label>
             <input type="text" id="editKartica" name="kartica" required><br>
             <label for="editNovaKartica">NOVA KARTICA:</label>
             <input type="text" id="editNovaKartica" name="novaKartica"><br>
-            <label for="editMjesto">Mjesto:</label>
+            <label for="editMjesto">Mesto:</label>
             <input type="text" id="editMjesto" name="mjesto" required><br>
             <label for="editKombinirani">Kombinirani:</label>
             <input type="text" id="editKombinirani" name="kombinirani" required><br>
@@ -208,12 +208,12 @@
             <input type="date" id="editDatexp" name="datexp"><br>
             <!-- Add more input fields for other user attributes -->
 
-            <input type="submit" value="Add or Edit User" onclick="confirmEdit()">
+            <input type="submit" value="Dodaj/Uredi Uporabnika" onclick="confirmEdit()">
         </form>
 
     </div>
 
-    <div id="successMessage">User Altered Successfully!</div>
+    <div id="successMessage">Uporabnik Uspešno Posodobljen!</div>
     </div>
 
 
@@ -242,7 +242,7 @@
             console.log(data)
             if (data.exists) {
                 // User already exists, prompt the user
-                const confirmEdit = confirm("User already exists. Do you want to edit the selected user?");
+                const confirmEdit = confirm("Uporabnik že obstaja. Želite urediti obstoječega uporabnika?");
                 if (confirmEdit) {
                     // Proceed with updating the user
                     formData.append('edit_existing', true);
@@ -294,7 +294,7 @@
     });
 
     function deleteUser(username, kartica) {
-        if (confirm("Are you sure you want to delete user '" + username + "'?" + kartica)) {
+        if (confirm("Ste prepričani, da želite izbrisati '" + username + "' uporabnika z kartico: " + kartica + "?")) {
             // Proceed with deletion
             fetch('/delete_user', {
                 method: 'POST',
@@ -315,7 +315,7 @@
                     }, 2000);
                 } else {
                     // Display an error message if deletion fails
-                    alert("Failed to delete user. Please try again.");
+                    alert("Neuspešno brisanje uporabnika. Poskusite ponovno.");
                 }
             })
             .catch(error => {

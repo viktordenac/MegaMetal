@@ -152,16 +152,16 @@
         <h1>Upravljanje nalogov</h1>
 
     <h2>Nalogi</h2>
-    <input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Enter ID_RN..." autocomplete="off">
+    <input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Vnesi ID_RN..." autocomplete="off">
     <div class="table-container">
         <table id="myTable">
             <thead>
                 <tr>
                     <th>ID_RN</th>
                     <th>Status</th>
-                    <th>Aktivan</th>
-                    <th>Edit</th>
-                    <th>Delete</th>
+                    <th>Aktivni</th>
+                    <th>Uredi</th>
+                    <th>Odstrani</th>
                 </tr>
             </thead>
             <tbody>
@@ -170,32 +170,32 @@
                     <td>{{ nalog.Id_rn }}</td>
                     <td>{{ nalog.Status }}</td>
                     <td>{{ nalog.Aktivan }}</td>
-                    <td><button id="edit-button" onclick="showEditForm(); editNalog('{{ nalog.Id_rn }}', '{{ nalog.Satus }}', '{{ nalog.Aktivan }}')">Edit</button></td> <!-- Add Edit button -->
-                    <td><button id="delete-button" onclick="deleteNalog('{{ nalog.Id_rn }}')">Delete</button></td>
+                    <td><button id="edit-button" onclick="showEditForm(); editNalog('{{ nalog.Id_rn }}', '{{ nalog.Satus }}', '{{ nalog.Aktivan }}')">Uredi</button></td> <!-- Add Edit button -->
+                    <td><button id="delete-button" onclick="deleteNalog('{{ nalog.Id_rn }}')">Odstrani</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <button id="add-nalog-button" onclick="showEditForm('','', '')">Add Nalog</button>
+    <button id="add-nalog-button" onclick="showEditForm('','', '')">Dodaj Nalog</button>
     <!-- Edit form container -->
     <div id="editFormContainer">
-        <button onclick="hideEditForm()">Close</button>
-        <h2>Edit Nalog</h2>
+        <button onclick="hideEditForm()">Zapri</button>
+        <h2>Uredi Nalog</h2>
         <form action="/edit_aktivni_nalogi" method="post" id="editForm">
             <label for="editId_rn">Id_rn:</label>
             <input type="text" id="editId_rn" name="id_rn" required autocomplete="off"><br>
             <label for="editStatus">Status:</label>
             <input type="text" id="editStatus" name="status" required autocomplete="off"><br>
-            <label for="editAktivan">Aktivan:</label>
+            <label for="editAktivan">Aktivni:</label>
             <input type="text" id="editAktivan" name="aktivan" required autocomplete="off"><br>
 
-            <input type="submit" value="Add or Edit Nalog">
+            <input type="submit" value="Dodaj/Uredi Nalog">
         </form>
     </div>
 
-    <div id="successMessage">Nalog updated successfully!</div>
+    <div id="successMessage">Nalog Uspešno Posodobljen!</div>
     </div>
 
 
@@ -210,7 +210,7 @@
         var nalog = document.getElementById("editId_rn").value;
         var obstojeciNalogi = Array.from(document.querySelectorAll("tbody td:first-child")).map(td => td.textContent);
         if (obstojeciNalogi.includes(nalog)) {
-            return confirm("Nalog already exists. Do you want to edit the selected nalog?");
+            return confirm("Nalog že obstaja. Želte urediti obstoječ nalog?");
         }
         return true;
     }

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Upravljanje uporabnikov</title>
+    <title>MM2 Orodja</title>
     <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
         #successMessage {
@@ -148,23 +148,23 @@
 </head>
 <body>
     <div>
-        <h1>Upravljanje Alata</h1>
+        <h1>Upravljanje Orodja</h1>
 
-    <h2>Alati</h2>
-        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Iskanje alata po imenu.." autocomplete="off">
+    <h2>Orodja</h2>
+    <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Iskanje alata po imenu.." autocomplete="off">
     <div class="table-container">
         <table id="myTable">
             <thead>
                 <tr>
-                    <th>Alat</th>
+                    <th>Orodje</th>
                     <th>Identifikacija</th>
                     <th>Lokacija</th>
-                    <th>Številka certifikata</th>
+                    <th>Certifikat</th>
                     <th>Posebnosti</th>
                     <th>Rok trajanja</th>
                     <th>Rok trajanja - mesec</th>
-                    <th>Edit</th>
-                    <th>Delete</th>
+                    <th>Uredi</th>
+                    <th>Izbriši</th>
                 </tr>
             </thead>
             <tbody>
@@ -185,7 +185,7 @@
             </tbody>
         </table>
     </div>
-    <button id="add-user-button" onclick="showEditForm('','','','','','','','')">Add alat</button>
+    <button id="add-user-button" onclick="showEditForm('','','','','','','','')">Dodaj orodje</button>
 <!-- Edit form container -->
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
@@ -368,23 +368,18 @@
     });
 
     function filterTable() {
-        let input, filter, table, tr, td, i, txtValue;
-        input = document.getElementById("inputID_rn");
-        filter = input.value.toUpperCase();
-        table = document.getElementById("myTable");
-        tr = table.getElementsByTagName("tr");
-
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[0]; // Get the first column (ID_RN)
-            if (td) {
-                txtValue = td.textContent || td.innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = ""; // Display the row if ID_RN matches the filter
-                } else {
-                    tr[i].style.display = "none"; // Hide the row if ID_RN does not match the filter
+        const filter = document.getElementById('inputID_rn').value.toLowerCase();
+        const rows = document.querySelectorAll('#myTable tbody tr');
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            let match = false;
+            cells.forEach((cell, index) => {
+                if (index < 7 && cell.textContent.toLowerCase().includes(filter)) {
+                    match = true;
                 }
-            }
-        }
+            });
+            row.style.display = match ? '' : 'none';
+        });
     }
 
 </script>

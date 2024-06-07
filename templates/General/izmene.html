@@ -121,8 +121,8 @@
             <thead>
                 <tr>
                     <th>Oddelek</th>
-                    <th>Izmjena</th>
-                    <th>Edit</th>
+                    <th>Izmena</th>
+                    <th>Uredi</th>
                 </tr>
             </thead>
             <tbody>
@@ -136,16 +136,16 @@
             </tbody>
         </table>
         <div class="download-button-container">
-            <button><a href="{{ url_for('download_evidencaUr') }}" class="download-button">Download TEV EVID Data</a></button>
+            <button><a href="{{ url_for('download_evidencaUr') }}" class="download-button">Prenesi TEV EVID Podatke</a></button>
         </div>
         <div id="editFormContainer">
-            <button onclick="hideEditForm()">Close</button>
-            <h2>Edit User</h2>
+            <button onclick="hideEditForm()">Zapri</button>
+            <h2>Uredi Izmeno</h2>
             <form id="editForm">
                 <input type="hidden" name="ID" id="editID">
                 <label for="editOddelek">Oddelek:</label>
                 <input type="text" name="Oddelek" id="editOddelek" readonly>
-                <label for="editIzmjena">Broj Izmjena:</label>
+                <label for="editIzmjena">Število Izmen:</label>
                 <input type="text" name="Izmjena" id="editIzmjena" required><br>
                 <!-- Add more input fields for other TEV EVID attributes -->
 
@@ -153,7 +153,7 @@
             </form>
         </div>
         <!-- Success message -->
-        <div id="successMessage" style="display: none;">TEV EVID updated successfully!</div>
+        <div id="successMessage" style="display: none;">TEV EVID uspešno posodobljen!</div>
     </div>
 </body>
 <script>

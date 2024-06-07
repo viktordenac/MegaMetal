@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Prijava</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -50,13 +50,13 @@
 </head>
 <body>
     <form action="/" method="post">
-        <h2>Login</h2>
+        <h2>Prijava v MM App</h2>
         {% if error %}
             <p class="error">{{ error }}</p>
         {% endif %}
         <input type="text" name="username" placeholder="Username" required autocomplete="off">
         <input type="password" name="password" placeholder="Password" required autocomplete="off">
-        <input type="submit" value="Login">
+        <input type="submit" value="Prijava">
     </form>
 </body>
 </html>

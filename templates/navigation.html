@@ -6,7 +6,7 @@
         <img src="../../static/style/MEGA-METAL-logotip.jpg" alt="Logo">
     </div>
     <!-- Home link -->
-    <a href="{{ url_for('index') }}">Home</a>
+    <a href="{{ url_for('index') }}">Domov</a>
 
     {% if 'grafi' in stranice_list or 'po_identu' in stranice_list or 'torta' in stranice_list or 'oee' in stranice_list or 'potrosnja_materiala' in stranice_list %}
     <div class="dropdown">
@@ -80,11 +80,11 @@
     {% endif %}
 
     {% if 'mm2Alat' in stranice_list %}
-    <a href="{{ url_for('MM2Alat') }}">MM2 Alati</a>
+    <a href="{{ url_for('MM2Alat') }}">MM2 Orodja</a>
     {% endif %}
     <!-- Add more sections based on user permissions -->
     {% if 'top_user' in stranice_list %}
-    <a href="{{ url_for('action_plans') }}">Action Plan</a>
+    <a href="{{ url_for('action_plans') }}">Akcijski plan</a>
     <div class="dropdown">
         Potrošnja materiala &rarr;
         <!-- Inside Dropdown -->
@@ -124,31 +124,31 @@
     </div>
 
     <a href="{{ url_for('administracija') }}">Administrativna dela &rarr;</a>
-    <a href="{{ url_for('MM2Alat') }}">MM2 Alati</a>
+    <a href="{{ url_for('MM2Alat') }}">MM2 Orodja</a>
 
     <div class="dropdown">
-        Fix Plan &rarr;
+        Fiksni načrt &rarr;
         <!-- Inside Dropdown -->
         <div class="dropdown-dropdown">
-            <a href="{{ url_for('compare_data') }}"><div class="ddDropdown">Po tjednu</div></a>
-            <a href="{{ url_for('compare_data_mj') }}"><div class="ddDropdown">Po Mjesecu</div></a>
+            <a href="{{ url_for('compare_data') }}"><div class="ddDropdown">Tedenski</div></a>
+            <a href="{{ url_for('compare_data_mj') }}"><div class="ddDropdown">Mesečni</div></a>
         </div>
     </div>
     {% endif %}
 
     {% if 'fix_plan' in stranice_list %}
         <div class="dropdown">
-            Fix Plan &rarr;
+            Fiksni načrt &rarr;
             <!-- Inside Dropdown -->
             <div class="dropdown-dropdown">
-                <a href="{{ url_for('compare_data') }}"><div class="ddDropdown">Po tjednu</div></a>
-                 <a href="{{ url_for('compare_data_mj')}}"><div class="ddDropdown">Po Mjesecu</div></a>
+                <a href="{{ url_for('compare_data') }}"><div class="ddDropdown">Tedenski</div></a>
+                 <a href="{{ url_for('compare_data_mj')}}"><div class="ddDropdown">Mesečni</div></a>
             </div>
         </div>
     {% endif %}
 
     <div class="logout-button">
-        <a href="{{ url_for('logout') }}">Sign Out</a>
+        <a href="{{ url_for('logout') }}">Odjava</a>
     </div>
     <!-- Logout link -->
 

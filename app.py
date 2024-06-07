@@ -964,7 +964,7 @@ def potrosnja_materiala_OEE():
     if not is_authenticated():
         return jsonify({"error": "Not authenticated"})
     stranice_list = session["stranice"]
-    return render_template("potrosnja_materiala_OEE.html", stranice_list=stranice_list)
+    return render_template("produktivnost_OEE.html", stranice_list=stranice_list)
 
 @app.route("/fetch_machine_data")
 def fetch_machine_data():
@@ -1580,7 +1580,7 @@ def download_evidencaUr():
     tev_evid_data = TEV_EVID.query.all()
 
     # Convert the data to a Pandas DataFrame
-    df = pd.DataFrame([(item.ID, item.Datum, item.Izmena, item.Faza, item.Opombe, item.Vrijeme, item.Kartica, item.Id_rn) for item in tev_evid_data], columns=['ID', 'Datum', 'Izmena', 'Faza', 'Opombe', 'Vrijeme', 'Kartica', 'Id_rn'])
+    df = pd.DataFrame([(item.ID, item.Ime, item.Kartica, item.Id_rn, item.Datum, item.Izmena, item.Faza, item.Opombe, item.Vrijeme) for item in tev_evid_data], columns=['ID', 'Ime', 'Kartica', 'Id_rn', 'Datum', 'Izmena', 'Faza', 'Opombe', 'Vrijeme'])
 
     # Convert 'Datum' column to datetime if not already
     df['Datum'] = pd.to_datetime(df['Datum'])
@@ -2156,7 +2156,7 @@ def get_table_data():
     # Generate the filter row
     filter_row = generate_filter_row(column_names)
 
-    return render_template('General/compare_data_precise/fix_pl_table_tj.html', table_data=html_table)
+    return render_template('General/compare_data_precise/fix_pl_table_tj.html', table_data=html_table, teden=label)
 
 
 @app.route('/get_table_data_mj', methods=['GET'])
@@ -2180,7 +2180,7 @@ def get_table_data_mj():
     df = df.rename(columns={'realizirana_tezina': 'Mjesec Realizacije'})
 
     html_table = df.to_html(index=False)    # For demonstration, let's just return a sample table data.
-    return render_template('General/compare_data_precise/fix_pl_table_mj.html', table_data=html_table)
+    return render_template('General/compare_data_precise/fix_pl_table_mj.html', table_data=html_table, mesec=label)
 
 
 @app.route("/filter_data", methods=["POST"])

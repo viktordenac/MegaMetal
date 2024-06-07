@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Management</title>
+    <title>Evidenca ur</title>
     <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
         body {
@@ -30,6 +30,7 @@
         }
         th {
             background-color: #f2f2f2;
+            cursor: pointer; /* Add cursor pointer to indicate clickable columns */
         }
         tbody tr:nth-child(even) {
             background-color: #f9f9f9;
@@ -84,7 +85,6 @@
             margin-top: 20px;
             border-radius: 5px;
         }
-        /* Your existing styles */
         #editFormContainer {
             display: none;
             position: absolute;
@@ -113,21 +113,27 @@
         }
         thead {
             table-layout: fixed;
-            background-color: #f8f9fa; /* Background color of floating header */
+            background-color: #f8f9fa;
             position: sticky;
             top: 0;
-            z-index: 1; /* Ensure the floating header stays on top of the table */
+            z-index: 1;
+        }
+        th:hover {
+            background-color: #d9d9d9; /* Change background color on hover */
         }
         #inputID_rn {
-            background-image: url('https://www.w3schools.com/css/searchicon.png'); /* Add a search icon to input */
-            background-position: 10px 12px; /* Position the search icon */
-            background-repeat: no-repeat; /* Do not repeat the icon image */
-            width: 20%; /* Full-width */
-            font-size: 16px; /* Increase font-size */
-            padding: 12px 20px 12px 40px; /* Add some padding */
-            border: 1px solid #ddd; /* Add a grey border */
-            margin-bottom: 12px; /* Add some space below the input */
+            background-image: url('https://www.w3schools.com/css/searchicon.png');
+            background-position: 10px 12px;
+            background-repeat: no-repeat;
+            width: 20%;
+            font-size: 16px;
+            padding: 12px 20px 12px 40px;
+            border: 1px solid #ddd;
+            margin-bottom: 12px;
             margin-left: 15%;
+        }
+        dd {
+            margin-left: 17%;
         }
     </style>
 </head>
@@ -137,41 +143,42 @@
         <h1>Tabela evidenc ur</h1>
 
         <h2>Evidenca ur</h2>
-        <input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Enter ID_RN...">
+        <input type="text" id="inputID_rn" oninput="filterTable()" placeholder="Vnesi ID_RN">
+        <dd>Če želiš filtrirati po čem drugem kakor ID_RN stisni na ta stolpec!</dd>
         <table id="myTable">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Datum</th>
-                    <th>Izmena</th>
-                    <th>Faza</th>
-                    <th>Opombe</th>
-                    <th>Vrijeme</th>
-                    <th>Kartica</th>
-                    <th>Id_rn</th>
-                    <th>Edit</th>
-                    <th>Delete</th>
+                    <th data-column="0">Oseba</th>
+                    <th data-column="1">Kartica</th>
+                    <th data-column="2">Id_rn</th>
+                    <th data-column="3">Datum</th>
+                    <th data-column="4">Izmena</th>
+                    <th data-column="5">Faza</th>
+                    <th data-column="6">Opombe</th>
+                    <th data-column="7">Čas</th>
+                    <th data-column="8">Uredi</th>
+                    <th data-column="9">Izbriši</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in data %}
                 <tr>
-                    <td>{{ item.ID }}</td>
+                    <td>{{ item.Ime }}</td>
+                    <td>{{ item.Kartica }}</td>
+                    <td>{{ item.Id_rn }}</td>
                     <td>{{ item.Datum }}</td>
                     <td>{{ item.Izmena }}</td>
                     <td>{{ item.Faza }}</td>
                     <td>{{ item.Opombe }}</td>
                     <td>{{ item.Vrijeme }}</td>
-                    <td id="ime">{{ item.Ime }}</td>
-                    <td>{{ item.Id_rn }}</td>
-                    <td><button class="edit-button" data-ID="{{ item.ID}}" data-datum="{{ item.Datum }}" data-izmena="{{ item.Izmena }}" data-faza="{{ item.Faza }}" data-opombe="{{ item.Opombe }}" data-vrijeme="{{ item.Vrijeme }}" data-kartica="{{ item.Kartica }}" data-id_rn="{{ item.Id_rn }}">Edit</button></td>
-                    <td><button class="delete-button" data-id="{{ item.Id_rn }}">Delete</button></td> <!-- Delete button -->
+                    <td><button class="edit-button" data-ID="{{ item.ID}}" data-datum="{{ item.Datum }}" data-izmena="{{ item.Izmena }}" data-faza="{{ item.Faza }}" data-opombe="{{ item.Opombe }}" data-vrijeme="{{ item.Vrijeme }}" data-kartica="{{ item.Kartica }}" data-id_rn="{{ item.Id_rn }}">Uredi</button></td>
+                    <td><button class="delete-button" data-id="{{ item.Id_rn }}">Izbriši</button></td> <!-- Delete button -->
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
         <div class="download-button-container">
-            <button><a href="{{ url_for('download_evidencaUr') }}" class="download-button">Download TEV EVID Data</a></button>
+            <button><a href="{{ url_for('download_evidencaUr') }}" class="download-button">Prenesi TEV EVID Podatke</a></button>
         </div>
         <div id="editFormContainer">
             <button onclick="hideEditForm()">Close</button>
@@ -203,7 +210,16 @@
     </div>
 </body>
 <script>
+    let currentColumn = 2; // Default to filter by Id_rn
+
     document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('th').forEach(th => {
+            th.addEventListener('click', function() {
+                currentColumn = this.getAttribute('data-column');
+                document.getElementById('inputID_rn').focus();
+            });
+        });
+
         document.querySelectorAll('.edit-button').forEach(button => {
             button.addEventListener('click', function() {
                 const id = this.dataset.id;
@@ -261,14 +277,12 @@
         document.getElementById('editFormContainer').style.display = 'block';
     }
 
-    // Delete button event listener
     document.querySelectorAll('.delete-button').forEach(button => {
         button.addEventListener('click', function() {
             const id_rn = this.dataset.id;
 
             const confirmDelete = confirm('Are you sure you want to delete this TEV EVID?');
             if (confirmDelete) {
-                // Perform delete action
                 fetch('/delete_tev_evid', {
                     method: 'POST',
                     headers: {
@@ -279,21 +293,17 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        // Display success message
                         document.getElementById('successMessage').textContent = 'TEV EVID deleted successfully!';
                         document.getElementById('successMessage').style.display = 'block';
-                        // Reload the page after 2 seconds
                         setTimeout(function() {
                             location.reload();
                         }, 2000);
                     } else {
                         console.error('Error:', data.message);
-                        // Handle error
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    // Handle error
                 });
             }
         });
@@ -316,14 +326,14 @@
         table = document.getElementById("myTable");
         tr = table.getElementsByTagName("tr");
 
-        for (i = 0; i < tr.length; i++) {
-            td = tr[i].getElementsByTagName("td")[6]; // Get the first column (ID_RN)
+        for (i = 1; i < tr.length; i++) {
+            td = tr[i].getElementsByTagName("td")[currentColumn];
             if (td) {
                 txtValue = td.textContent || td.innerText;
                 if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = ""; // Display the row if ID_RN matches the filter
+                    tr[i].style.display = "";
                 } else {
-                    tr[i].style.display = "none"; // Hide the row if ID_RN does not match the filter
+                    tr[i].style.display = "none";
                 }
             }
         }

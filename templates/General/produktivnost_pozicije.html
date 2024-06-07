@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iskanje identa</title>
+    <title>Produktivnos pozicij</title>
     <link rel="stylesheet" href="../../static/style/smallScreen.css">
     <link rel="stylesheet" href="../../static/style/potrosnja_materiala_grafi.css">
     <link rel="stylesheet" href="../../static/style/produktivnost_pozicije.css">
@@ -12,7 +12,7 @@
     <div class="container">
         <div class="form-container">
             <form class="login-form" id="textForm" onsubmit="fetchDataTopAndSlow(); return false;">
-                <h2>Iskanje bruto identa</h2>
+                <h2>Iskanje pozicije</h2>
                 <div class="dropdownIdNr">
                     <label for="documentID"></label><input type="text" id="documentID" oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown', true)" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
                     <div id="delovniNalogDropdown" class="dropdown-content">
@@ -21,7 +21,7 @@
                         {% endfor %}
                     </div>
                 </div>
-                <input type="submit" value="Submit">
+                <input type="submit" value="Išči">
             </form>
         </div>
     <!-- Add separate div containers for top and bottom tables -->
@@ -37,7 +37,7 @@
                                     <th>Ident - Kos</th>
                                     <th>Vreme</th>
                                     <th>Norma</th>
-                                    <th>Postotak</th>
+                                    <th>Postotek</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -70,11 +70,11 @@
     </div>
     <div id="pozicijeDF">
         <div id="top5" class="data-frame-section">
-            <h3 style="color: #45a049">BEST 5 workers</h3>
+            <h3 style="color: #45a049">Najboljših 5 delavcev</h3>
             <div id="top5Table"></div>
         </div>
         <div id="bottom5" class="data-frame-section">
-            <h3 style="color: red">WORST 5 workers</h3>
+            <h3 style="color: red">Najslabših 5 delavcev</h3>
             <div id="bottom5Table"></div>
         </div>
     </div>

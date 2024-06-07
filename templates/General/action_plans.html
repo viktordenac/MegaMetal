@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Action Plans</title>
+    <title>Akcijski Načrti</title>
     <style>
 	        h1, #toggleFinishedBtn {
             margin-left: 15%;
@@ -67,20 +67,20 @@
 </head>
 <body>
 
-    <h1 id="ActionPlans">Action Plans</h1>
-    <button id="toggleFinishedBtn">Show Finished</button>
+    <h1 id="ActionPlans">Akcijski Načrti</h1>
+    <button id="toggleFinishedBtn">Prikaži dokončane</button>
     <table id="actionTable">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Activity</th>
-                <th>Responsible</th>
-                <th>Department</th>
-                <th>Start</th>
-                <th>End</th>
-                <th>Progress</th>
-                <th>Results</th>
-                <th>Actions</th>
+                <th>Aktivnost</th>
+                <th>Odgovorni</th>
+                <th>Oddelek</th>
+                <th>Začetek</th>
+                <th>Konec</th>
+                <th>Status</th>
+                <th>Rezultati</th>
+                <th>Akcije</th>
             </tr>
         </thead>
         <tbody>
@@ -98,9 +98,9 @@
                     <td><input type="date" name="end" value="{{ plan.END }}"></td>
                     <td>
                         <select name="progress">
-                            <option value="Not started" {% if plan.PROGRESS == 'Not started' %}selected{% endif %}>Not started</option>
-                            <option value="Running" {% if plan.PROGRESS == 'Running' %}selected{% endif %}>Running</option>
-                            <option value="Finished" {% if plan.PROGRESS == 'Finished' %}selected{% endif %}>Finished</option>
+                            <option value="Not started" {% if plan.PROGRESS == 'Not started' %}selected{% endif %}>Ni v poteku</option>
+                            <option value="Running" {% if plan.PROGRESS == 'Running' %}selected{% endif %}>V poteku</option>
+                            <option value="Finished" {% if plan.PROGRESS == 'Finished' %}selected{% endif %}>Dokončano</option>
                         </select>
                     </td>
                     <td class="results" data-plan-id="{{ plan.ID_PK }}">
@@ -108,7 +108,7 @@
                         <input type="text" name="results" value="{{ plan.RESULTS }}" style="display: none;">
                     </td>
                     <td>
-                        <button type="submit" class="update-btn" data-form-id="updateForm{{ plan.ID_PK }}">Save</button>
+                        <button type="submit" class="update-btn" data-form-id="updateForm{{ plan.ID_PK }}">Shrani</button>
                     </td>
                 </tr>
             </form>
@@ -123,9 +123,9 @@
                     <td><input type="date" name="end" required></td>
                     <td>
                         <select name="progress">
-                            <option value="Not started">Not started</option>
-                            <option value="Running">Running</option>
-                            <option value="Finished">Finished</option>
+                            <option value="Not started">Ni v poteku</option>
+                            <option value="Running">V poteku</option>
+                            <option value="Finished">Dokončano</option>
                         </select>
                     </td>
                     <td><input type="text" name="results" required></td>
@@ -187,13 +187,13 @@
         function toggleFinishedRows() {
             var rows = document.querySelectorAll('tr[data-progress="Finished"]');
             var toggleBtn = document.getElementById('toggleFinishedBtn');
-            var show = toggleBtn.textContent === 'Show Finished';
+            var show = toggleBtn.textContent === 'Prikaži dokončane';
 
             rows.forEach(function(row) {
                 row.style.display = show ? '' : 'none';
             });
 
-            toggleBtn.textContent = show ? 'Hide Finished' : 'Show Finished';
+            toggleBtn.textContent = show ? 'Skrij dokončane' : 'Prikaži dokončane';
         }
 
         // Function to update background color of Progress column

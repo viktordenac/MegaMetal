@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compare Data</title>
+    <title>Mesečni fiksni načrt</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .graph-canvas {
@@ -39,12 +39,12 @@
 
 {% include 'navigation.html' %}
 <div id="refresh-container">
-        <button id="refresh-button" type="submit">Refresh</button>
+        <button id="refresh-button" type="submit">Osveži</button>
     </div>
 
 <canvas id="comparisonChart" class="graph-canvas"></canvas>
 <canvas id="comparisonChart2" class="graph-canvas"></canvas>
-<div id="loading" style="display: none;">Loading, please wait...</div>
+<div id="loading" style="display: none;">Nalaganje, prosim počakajte...</div>
 
 <script>
     function loadingScreen(event, script, buttonText) {
@@ -53,7 +53,7 @@
         const text = buttonText.toLowerCase();
 
         loadingDiv.style.display = 'block';
-        loadingDiv.innerText = 'Loading ' + text + ', please wait...';
+        loadingDiv.innerText = 'Nalaganje ' + text + ', prosim počakajte...';
 
         fetch(script, {
             method: 'POST',

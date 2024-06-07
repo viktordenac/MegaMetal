@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fix plan po tjednu</title>
+    <title>Fiksni načrt tedna</title>
     <style>
         /* Reset default margin and padding */
         * {
@@ -30,6 +30,7 @@
             background-color: #f2f2f2;
             font-weight: bold;
             color: #444;
+            width: 10vw
         }
 
         .dataframe tbody tr:nth-child(even) {
@@ -47,17 +48,17 @@
 </head>
 <body>
     <div id="tableContainer">
-        <h1 id="tableHeader">Fix plan po tjednu</h1>
-	    <button id="fetchDataButton">Fetch Data</button>
+        <h1 id="tableHeader">Fiksni načrt po tednu</h1>
+	    <button id="fetchDataButton">Prikaži vse tedne</button>
         <table class="dataframe" id="data_table">
             <thead>
             <tr id="filterRow">
                 <th><input type="text" class="filterInput" data-column="0" placeholder="Filter IDRN..."></th>
                 <th><input type="text" class="filterInput" data-column="1" placeholder="Filter IZNOS..."></th>
-                <th><input type="text" class="filterInput" data-column="2" placeholder="Filter TEZINA..."></th>
-                <th><input type="text" class="filterInput" data-column="3" placeholder="Filter TJEDAN..."></th>
-                <th><input type="text" class="filterInput" data-column="4" placeholder="Filter realizirani_iznos..."></th>
-                <th><input type="text" class="filterInput" data-column="5" placeholder="Filter Tjedan realizacije..."></th>
+                <th><input type="text" class="filterInput" data-column="2" placeholder="Filter TEŽINA..."></th>
+                <th><input type="text" class="filterInput" data-column="3" placeholder="Filter TEDEN..."></th>
+                <th><input type="text" class="filterInput" data-column="4" placeholder="Filter Real. Iznos..."></th>
+                <th><input type="text" class="filterInput" data-column="5" placeholder="Filter Teden Real..."></th>
             </tr>
             </thead>
             <tbody>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Realizacija bruto/neto Torta</title>
+    <title>Produktivnost OEE</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
@@ -46,15 +46,16 @@
     <div class="content">
         <h1>OEE</h1>
         <form id="date_form">
-            <label for="from_date">From:</label>
+            <label for="from_date">OD:</label>
             <input type="date" id="from_date" name="from_date" value="2024-01-01">
-            <label for="to_date">To:</label>
+            <label for="to_date">Do:</label>
             <input type="date" id="to_date" name="to_date" value="2024-12-31">
-            <button type="button" onclick="fetchData()">Select Dates</button>
+            <button type="button" onclick="fetchData()">Prikaži</button>
         </form>
         <hr>
         <div class="table-container">
-            <h2>Machine Data</h2>
+            <h2>Podatki strojev</h2>
+            <br>
             <div id="machine_data_table"></div>
         </div>
         <hr>
@@ -92,7 +93,7 @@
     }
 
     function displayMachineDataTable(data) {
-        var table = "<table><tr><th>Machine name</th><th>Dostupne ure</th><th>Efektivne ure</th><th>Porabljeni čas</th><th>OEU</th><th>OEE</th></tr>";
+        var table = "<table><thead><tr><th>Machine name</th><th>Dostupne ure</th><th>Efektivne ure</th><th>Porabljeni čas</th><th>OEU</th><th>OEE</th></tr></thead>";
         data.forEach(function(row) {
             table += "<tr><td>" + row["Machine name"] + "</td><td>" + row["Dostupne ure"] + "</td><td>" + row["Efektivne ure"] + "</td><td>" + row["Porabljeni čas"] + "</td><td>" + row["OEU"] + "</td><td>" + row["OEE"] + "</td></tr>";
         });

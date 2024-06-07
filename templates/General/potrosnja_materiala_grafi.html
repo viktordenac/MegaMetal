@@ -11,18 +11,20 @@
 <body>
     <!-- Main content -->
     <div class="content">
-        <h1>Realizacija bruto/neto za period</h1>
+        <h1>Realizacija bruto/neto za periodo</h1>
+        <br>
         <form id="date_form">
-            <label for="from_date">From:</label>
+            <label for="from_date">Od:</label>
             <input type="date" id="from_date" name="from_date" value="2024-01-01">
-            <label for="to_date">To:</label>
+            <label for="to_date">Do:</label>
             <input type="date" id="to_date" name="to_date" value="2024-12-31">
-            <button type="button" onclick="fetchData()">Select Dates</button>
+            <button type="button" onclick="fetchData()">Prikaži</button>
         </form>
         <canvas id="myChart"></canvas>
 
         <!-- Table to display DataFrame -->
-        <h2>Data Frame</h2>
+        <h2>Tabela uporabljenih podatkov</h2>
+        <br>
         <div id="dataFrameTable"></div>
     </div>
 

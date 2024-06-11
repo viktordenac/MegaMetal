@@ -180,6 +180,17 @@ class TPRO_PLAN(db.Model):
     STVARNA_ISPORUKA = db.Column(db.DATE())
     DOG_ISPO = db.Column(db.DATE())
     ID_PK = db.Column(db.INT(), primary_key=True)
+
+
+class TBA_SIO(db.Model):
+    __tablename__ = 'TBA_SIO'
+    KEY = db.Column(db.CHAR(50))
+    VALUE1 = db.Column(db.CHAR(50))
+    VALUE2 = db.Column(db.CHAR(50))
+    VALUE3 = db.Column(db.CHAR(50))
+    ID_PK = db.Column(db.INT(), primary_key=True)
+
+
 class TBA_KOS(db.Model):
     __tablename__ = 'TBA_KOS'
     Polizdelek = db.Column(db.CHAR(15))
@@ -1323,6 +1334,8 @@ def planiranjePripravnegaDela():
     # Get the date range from query parameters
     from_date_str = request.args.get('from_date', None)
     to_date_str = request.args.get('to_date', None)
+    checkbox = request.args.get('checkbox', 'false')
+    print(checkbox)
 
     # If dates are not provided, use default values (e.g., current month)
     if from_date_str and to_date_str:
@@ -1341,10 +1354,17 @@ def planiranjePripravnegaDela():
     print(to_date)
 
     # Query to get records within the date range
-    rows = (db.session.query(TPRO_PLAN)
-            .filter(TPRO_PLAN.DAT_ISPO.between(from_date, to_date))
-            .order_by(TPRO_PLAN.DAT_ISPO.asc())
-            .all())
+    if checkbox == "true":
+        rows = (db.session.query(TPRO_PLAN)
+                .filter(TPRO_PLAN.DAT_ISPO.between(from_date, to_date))
+                .order_by(TPRO_PLAN.DAT_ISPO.asc())
+                .all())
+    else:
+        rows = (db.session.query(TPRO_PLAN)
+                .filter(TPRO_PLAN.DAT_ISPO.between(from_date, to_date))
+                .filter(TPRO_PLAN.STVARNA_ISPORUKA.is_(None))  # Check for NULL values
+                .order_by(TPRO_PLAN.DAT_ISPO.asc())
+                .all())
     print(rows)
 
     # Get column names from the SQLAlchemy model
@@ -1369,7 +1389,7 @@ def planiranjePripravnegaDela():
 
     # Create DataFrame from the dictionary
     df = pd.DataFrame(data)
-    print(df)
+    #print(df)
 
     # Sorting
     column_to_sort = request.args.get('sort_by', None)
@@ -1379,7 +1399,7 @@ def planiranjePripravnegaDela():
 
     return render_template('planiranje_pripravnega_dela.html', column_names=df.columns.values,
                            row_data=list(df.values.tolist()), link_column="Patient ID", zip=zip,
-                           column_to_sort=column_to_sort, ascending=ascending, stranice_list=session.get("stranice"))
+                           column_to_sort=column_to_sort, ascending=ascending, stranice_list=session.get("stranice"), checkbox=checkbox)
 
 
 @app.template_filter('is_date')
@@ -1698,6 +1718,9 @@ def update_planiranje_pripravnega_Dela():
         max_date = max(selected_dates)
         modified_record_list[53]= max_date+timedelta(days=1)
         modified_record_list[53] = modified_record_list[53].strftime("%d/%m/%Y")
+    for i in list_to_change_status:
+        modified_record_list[i] = podatki_stranice[i]
+        print(i)
     if 1==1:
         try:
             # Dynamically assign values from the list to model attributes

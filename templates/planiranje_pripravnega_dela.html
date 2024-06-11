@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -60,11 +60,43 @@
             top: 0;
             z-index: 1; /* Ensure the floating header stays on top of the table */
         }
-        .hidePlans {
-            margin-top: 10px;
-            padding: 5px;
-            background-color: lightblue;
-            border-radius: 5px;
+        /* Style for the checkbox */
+        .checkbox-container {
+            display: inline-block;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+
+        .checkbox {
+            display: none;
+        }
+
+        .checkbox-label {
+            position: relative;
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: #eee;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .checkbox-label::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 12px;
+            height: 12px;
+            background-color: #333;
+            border-radius: 2px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        /* Checked state */
+        .checkbox:checked + .checkbox-label::after {
+            transform: translate(-50%, -50%) scale(1);
         }
     </style>
 </head>
@@ -78,10 +110,13 @@
             <label for="to_date_table">Do:</label>
             <input type="month" id="to_date_table" name="to_date_table">
             <button type="button" id="submitButton">Prikaži</button>
+            <p class="warning" id="warningMessage">Datum do mora biti isti ali večji kot datum od.</p>
         </form>
-        <nav id="navigacijaPlaniranja">
-            <button id="hideCompletedButton" class="hidePlans" onclick="hideCompletedPlans()">Hide completed plans</button>
-        </nav>
+        <label class="checkbox-container">Prikaži tudi plane, ki so izstavljeni
+            <input type="checkbox" class="checkbox" {% if checkbox == 'true' %}checked{% endif %}>
+            <span class="checkbox-label"></span>
+        </label>
+
         <div id="table-container">
             <table id="myTable">
                 <thead>
@@ -117,7 +152,7 @@
                             {% for cell in row %}
                                 {% if cell == 'Ni se še začelo' or cell == 'Zamujamo' or cell == 'V fazi priprave' or cell == 'Pripravljeno' %}
                                     <td>
-                                        <select name="progress" disabled>
+                                        <select name="progress" disabled onchange="checkOption(this)">
                                             <option value="Ni se še začelo" {% if cell == 'Ni se še začelo' %}selected{% endif %}>Ni se še začelo</option>
                                             <option value="Zamujamo" {% if cell == 'Zamujamo' %}selected{% endif %}>Zamujamo</option>
                                             <option value="V fazi priprave" {% if cell == 'V fazi priprave' %}selected{% endif %}>V fazi priprave</option>
@@ -139,22 +174,19 @@
     </div>
 <script>
     window.addEventListener('DOMContentLoaded', function() {
-        console.log('loaded:');
-
+        const warningMessage = document.getElementById('warningMessage');
+        warningMessage.style.display = 'none';
+        warningMessage.style.display = 'none';
         updateProgressColumnColor();
     });
     function updateProgressColumnColor() {
-        console.log('progress:');
 
         var progressCells = document.querySelectorAll('select[name="progress"]');
-        console.log(progressCells);
         progressCells.forEach(function(cell) {
             var selectedValue = cell.value;
             var parentRow = cell.parentElement.parentElement; // Parent row of the select element
-            console.log("Parent row:", parentRow)
             var parentChildren = Array.from(parentRow.children); // Convert NodeList to array
             var childNumber = parentChildren.indexOf(cell.parentElement); // Index of the parent element within its parent's children
-            console.log('Child number:', childNumber);
             var dateChild = childNumber - 1;
             var dateCell = parentRow.querySelector('td:nth-child(' + dateChild + ')');
             var valueMat = dateCell.innerHTML;
@@ -163,7 +195,6 @@
             // Check if the value attribute was found and extract the value
             if (valueMatch && valueMatch[1]) {
                 endDateString = valueMatch[1];
-                console.log(endDateString);  // Output: 28/03/2024
             } else {
                 console.log("Value attribute not found");
             }
@@ -177,14 +208,11 @@
             var year = parseInt(dateParts[2], 10);
 
             var endDate = new Date(year, month, day); // Create a Date object
-            console.log(dateParts);
             if(endDate < new Date() && selectedValue !== 'Pripravljeno'){
                 dateCell.style.backgroundColor = 'red';
             }
 
-            console.log('selectedValue:', selectedValue, 'endDate:', endDate);
             //console.log(isEndDatePast(endDate));
-            console.log(endDate);
             const today = new Date();
             const threeDaysAgo = new Date(today);
             threeDaysAgo.setDate(today.getDate() - 3);
@@ -288,145 +316,59 @@
         window.location.href = url.toString();
     }
     // Function to filter the table based on input values
-function filterTable() {
-    const table = document.getElementById("myTable");
-    const tbody = table.querySelector("tbody");
-    const filterInputs = document.querySelectorAll("thead input[type='text']");
-    const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
-
-    for (const row of tbody.rows) {
-        let rowVisible = true;
-
-        for (let i = 0; i < row.cells.length; i++) {
-            const cell = row.cells[i];
-            const filter = filters[i];
-
-            let cellValue = '';
-
-            // Check if the cell contains an input element
-            const input = cell.querySelector('input[type="text"]');
-            const dateInput = cell.querySelector('input[type="date"]');
-            const statusInput = cell.querySelector('select');
-            if (input) {
-                cellValue = input.value.trim().toUpperCase();
-            } else if (dateInput) {
-                cellValue = dateInput.value.trim().toUpperCase();
-
-                // Parse the date string into a Date object
-                var date = new Date(cellValue);
-
-                // Check if the parsed date is valid
-                if (!isNaN(date.getTime())) {
-                    // Format the date as dd/mm/yyyy
-                    cellValue = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
-                } else {
-                    // Handle invalid date input
-                }
-            } else if (statusInput){
-                cellValue = statusInput.value.trim().toUpperCase();
-            }
-
-            // Apply filter only if filter input is not empty
-            if (filter) {
-                // Split the filter value by comma to support multiple criteria
-                const filterValues = filter.split(',');
-                // Check if any of the filter values match the cell content
-                const match = filterValues.some(filterValue => cellValue.includes(filterValue.trim()));
-                if (!match) {
-                    rowVisible = false;
-                    break; // Break if no match is found
-                }
-            }
-        }
-
-        row.style.display = rowVisible ? "" : "none";
-    }
-}
-
-    // Function to get the value of a cell considering input type
-    function getDataValue(cell, dataType) {
-        if (dataType !== 'status') {
-            const cellInput = cell.querySelector('input');
-            dataType = cellInput.getAttribute('type');
-        }
-        if (dataType === 'string') {
-            const input = cell.querySelector('input[type="text"]');
-            if (input !== ""){
-                return input.value.trim();
-            } else{
-                return "AGAGAG";
-            }
-        } else if (dataType === 'date'){
-            const input = cell.querySelector('input[type="date"]');
-            const value = input.value.trim();
-            // Convert date string to a JavaScript Date object
-            const dateParts = value.split("-");
-            const year = parseInt(dateParts[2], 10);
-            const month = parseInt(dateParts[1], 10) - 1; // Months are 0-based in JavaScript Date object
-            const day = parseInt(dateParts[0], 10);
-            return new Date(year, month, day);
-        } else if (dataType === 'status') {
-            return cell.value
-        } else {
-            const input = cell.querySelector('input[type="text"]');
-            return input.value.trim();
-        }
-    }
-
-    function hideCompletedPlans() {
+    function filterTable() {
         const table = document.getElementById("myTable");
         const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.rows);
+        const filterInputs = document.querySelectorAll("thead input[type='text']");
+        const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
 
-        rows.forEach(row => {
-            const isCompleted = isAllColumnsJ(row, 'status');
-            if (isCompleted) {
-                row.style.display = 'none';
+        for (const row of tbody.rows) {
+            let rowVisible = true;
+
+            for (let i = 0; i < row.cells.length; i++) {
+                const cell = row.cells[i];
+                const filter = filters[i];
+
+                let cellValue = '';
+
+                // Check if the cell contains an input element
+                const input = cell.querySelector('input[type="text"]');
+                const dateInput = cell.querySelector('input[type="date"]');
+                const statusInput = cell.querySelector('select');
+                if (input) {
+                    cellValue = input.value.trim().toUpperCase();
+                } else if (dateInput) {
+                    cellValue = dateInput.value.trim().toUpperCase();
+
+                    // Parse the date string into a Date object
+                    var date = new Date(cellValue);
+
+                    // Check if the parsed date is valid
+                    if (!isNaN(date.getTime())) {
+                        // Format the date as dd/mm/yyyy
+                        cellValue = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
+                    } else {
+                        // Handle invalid date input
+                    }
+                } else if (statusInput){
+                    cellValue = statusInput.value.trim().toUpperCase();
+                }
+
+                // Apply filter only if filter input is not empty
+                if (filter) {
+                    // Split the filter value by comma to support multiple criteria
+                    const filterValues = filter.split(',');
+                    // Check if any of the filter values match the cell content
+                    const match = filterValues.some(filterValue => cellValue.includes(filterValue.trim()));
+                    if (!match) {
+                        rowVisible = false;
+                        break; // Break if no match is found
+                    }
+                }
             }
-        });
 
-        // Change button text to "Unhide completed plans"
-        const hideCompletedButton = document.querySelector("#hideCompletedButton");
-        hideCompletedButton.textContent = "Unhide completed plans";
-        hideCompletedButton.removeEventListener("click", hideCompletedPlans);
-        hideCompletedButton.addEventListener("click", unhideCompletedPlans);
-    }
-
-    // Function to unhide completed plans
-    function unhideCompletedPlans() {
-        const table = document.getElementById("myTable");
-        const tbody = table.querySelector("tbody");
-        const rows = Array.from(tbody.rows);
-
-        rows.forEach(row => {
-            row.style.display = ''; // Reset display property to show the row
-        });
-
-        // Change button text back to "Hide completed plans"
-        const hideCompletedButton = document.querySelector("#hideCompletedButton");
-        hideCompletedButton.textContent = "Hide completed plans";
-        hideCompletedButton.removeEventListener("click", unhideCompletedPlans);
-        hideCompletedButton.addEventListener("click", hideCompletedPlans);
-    }
-
-    // Button click event to hide completed plans
-    const hideCompletedButton = document.querySelector("#hideCompletedButton");
-    hideCompletedButton.addEventListener("click", hideCompletedPlans);
-
-
-    // Function to check if all columns in a row have value 'J'
-    function isAllColumnsJ(row, dataType) {
-        let allColumnsJ = true;
-        const statusRow = row.querySelectorAll('select')
-        for (let i = 0; i < statusRow.length; i++) {
-            const cell = statusRow[i];
-            const cellValue = getDataValue(cell, dataType);
-            if (cellValue !== 'J') {
-                allColumnsJ = false;
-                break;
-            }
+            row.style.display = rowVisible ? "" : "none";
         }
-        return allColumnsJ;
     }
 
     function fetchDataTable() {
@@ -436,18 +378,60 @@ function filterTable() {
         // Get the values of the input fields
         const fromDate = document.getElementById('from_date_table').value;
         const toDate = document.getElementById('to_date_table').value;
+        const checkbox = document.querySelector('.checkbox');
+        const warningMessage = document.getElementById('warningMessage');
 
-        // Construct the URL with query parameters
-        const url = new URL("{{ url_for('planiranjePripravnegaDela') }}", window.location.origin);
-        url.searchParams.append('from_date', fromDate);
-        url.searchParams.append('to_date', toDate);
+        if (fromDate && toDate && fromDate > toDate) {
+          // Show the warning message
+          warningMessage.style.display = 'block';
+        } else {
+            // Hide the warning message
+            warningMessage.style.display = 'none';
+            // Construct the URL with query parameters
+            const url = new URL("{{ url_for('planiranjePripravnegaDela') }}", window.location.origin);
+            url.searchParams.append('from_date', fromDate);
+            url.searchParams.append('to_date', toDate);
+            url.searchParams.append('checkbox', checkbox.checked);
 
-        // Redirect to the constructed URL
-        window.location.href = url.toString();
+            // Redirect to the constructed URL
+            window.location.href = url.toString();
+        }
     }
 
     // Attach the fetchDataTable function to the button click event
     document.getElementById('submitButton').onclick = fetchDataTable;
+
+
+    function checkOption(selectElement) {
+        const selectedOption = selectElement.value;
+        const optionToTriggerFunction = 'Pripravljeno';
+
+        if (selectedOption === optionToTriggerFunction) {
+            // Call the function only if "Pripravljeno" option is selected
+            changeDateToToday(selectElement);
+        }
+    }
+
+    function changeDateToToday(selectElement) {
+        // Get the parent row
+        const row = selectElement.parentElement.parentElement;
+        var parentChildren = Array.from(row.children); // Convert NodeList to array
+        var childNumber = parentChildren.indexOf(selectElement.parentElement); // Index of the parent element within its parent's children
+        var dateChild = childNumber - 1;
+        var dateCell = row.querySelector('td:nth-child(' + dateChild + ')');
+        var dateInput = dateCell.querySelector('input[type="text"]');
+        console.log(dateCell)
+        const danes = new Date();
+        const leto = danes.getFullYear();
+        const mesec = (danes.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
+        const dan = danes.getDate().toString().padStart(2, '0');
+        const formattedDate = `${dan}/${mesec}/${leto}`;
+        console.log(formattedDate);
+        dateInput.value = formattedDate; // Set the content of the cell
+        selectElement.parentElement.style.backgroundColor = 'green';
+    }
+
+
 
     //window.onload = hideCompletedPlans;
 </script>

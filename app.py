@@ -1314,22 +1314,42 @@ def delete_tev_evid():
             # Return a message indicating that the TEV EVID entry does not exist
             return jsonify({'success': False, 'error': 'TEV EVID entry not found.'}), 404
 
+
 @app.route('/planiranjePripravnegaDela')
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-    # Get the current year and month
-    now = datetime.now()
-    current_year = now.year
-    current_month = now.month
 
-    # Query to get records from the current month
+    # Get the date range from query parameters
+    from_date_str = request.args.get('from_date', None)
+    to_date_str = request.args.get('to_date', None)
+
+    # If dates are not provided, use default values (e.g., current month)
+    if from_date_str and to_date_str:
+        from_date = datetime.strptime(from_date_str, "%Y-%m")
+        to_date = datetime.strptime(to_date_str, "%Y-%m")
+        # Adjust to_date to the end of the month
+        to_date = datetime(to_date.year, to_date.month + 1, 1) - timedelta(days=1)
+    else:
+        # Default date range: current year
+        now = datetime.now()
+        current_year = now.year
+        from_date = datetime(current_year, 5, 1)
+        to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
+
+    print(from_date)
+    print(to_date)
+
+    # Query to get records within the date range
     rows = (db.session.query(TPRO_PLAN)
-            .filter(extract('year', TPRO_PLAN.KONSTRUKCIJA_OD) == current_year)
-            .filter(extract('month', TPRO_PLAN.KONSTRUKCIJA_OD) == current_month)
-            .order_by(TPRO_PLAN.ID_PK.asc())
-            .all())    # Get column names from the SQLAlchemy model
+            .filter(TPRO_PLAN.DAT_ISPO.between(from_date, to_date))
+            .order_by(TPRO_PLAN.DAT_ISPO.asc())
+            .all())
+    print(rows)
+
+    # Get column names from the SQLAlchemy model
     columns = [column.key for column in TPRO_PLAN.__table__.columns]
+
     # Convert the rows to a dictionary
     data = []
 
@@ -1346,9 +1366,11 @@ def planiranjePripravnegaDela():
                 value = reformat_date(value)
             row_data[column] = value
         data.append(row_data)
+
     # Create DataFrame from the dictionary
     df = pd.DataFrame(data)
     print(df)
+
     # Sorting
     column_to_sort = request.args.get('sort_by', None)
     ascending = request.args.get('ascending', 'true').lower() == 'true'
@@ -1357,7 +1379,7 @@ def planiranjePripravnegaDela():
 
     return render_template('planiranje_pripravnega_dela.html', column_names=df.columns.values,
                            row_data=list(df.values.tolist()), link_column="Patient ID", zip=zip,
-                           column_to_sort=column_to_sort, ascending=ascending, stranice_list=session["stranice"])
+                           column_to_sort=column_to_sort, ascending=ascending, stranice_list=session.get("stranice"))
 
 
 @app.template_filter('is_date')
@@ -1494,11 +1516,15 @@ def get_next_valid_date(start_date, add_days=None):
     return next_day
 
 
+def validate_and_format_date(date_str):
+    if date_str in [None, 'None', '']:
+        return '01/01/1900'
+
 @app.route('/planiranjePripravnegaDelaUpdate', methods=['POST'])
 def update_planiranje_pripravnega_Dela():
     import datetime
     updated_data = request.json
-    print(updated_data)
+    #print(updated_data)
     podatki_stranice = updated_data['data']
     id_rn = updated_data['data'][6]
     record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
@@ -1518,9 +1544,17 @@ def update_planiranje_pripravnega_Dela():
                 modified_record_list.append(item.strftime('%m/%d/%Y'))  # Format date
         else:
             modified_record_list.append(item)
-    print(modified_record_list)
+    #print(modified_record_list)
     differences = [i for i, (x, y) in enumerate(zip(podatki_stranice, modified_record_list)) if str(x) != str(y)]
-    print("Indexes with different values:", differences)
+    #print("Indexes with different values:", differences)
+    converted_records = []
+    for date_str in modified_record_list:
+        try:
+            converted_records.append(datetime.datetime.strptime(date_str, "%d/%m/%Y"))
+        except Exception as e:
+            # If the string cannot be converted to datetime, append None
+            converted_records.append(date_str)
+    modified_record_list = converted_records
     for index in differences[:]:  # using [:] to create a copy of the list to avoid modifying it while iterating
         if str(podatki_stranice[index]) == '':
             differences.remove(index)
@@ -1532,11 +1566,17 @@ def update_planiranje_pripravnega_Dela():
     list_dani=[11,15,19,23,27,31,35,39,43,47,51,53]
     list_to_change_status = [12,16,20,24,28,32,36,40,44,48,52,54]
     mjenjan=0
-    indexes = [9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42,45,46]
+    indexes = [9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42,45,46,49,50]
     date_format = "%d/%m/%Y"
     # Ako je izmjenjen STATUS
     if differences[0] in list_to_change_status:
-        modified_record_list=podatki_stranice
+        modified_record_list = []
+        for value in podatki_stranice:
+            formatted_value = validate_and_format_date(value)
+            modified_record_list.append(formatted_value if formatted_value else value)
+        #modified_record_list=podatki_stranice
+        #print(modified_record_list)
+        print("RRRRRRRRRRRRRRRRRRRRRRRRRR")
     # Ako je izmjenjen datum OD
     if differences[0] in list_to_change_od:
         for i in filtered_list_od:
@@ -1547,9 +1587,9 @@ def update_planiranje_pripravnega_Dela():
                 continue
             if counter==0:
                 try:
-                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], date_format)+ timedelta(modified_record_list[i+2]-1)
+                    new_date_object_do=datetime.datetime.strptime(str(podatki_stranice[i]), date_format)+ timedelta(modified_record_list[i+2]-1)
                 except:
-                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], "%m/%d/%Y")+ timedelta(modified_record_list[i+2]-1)
+                    new_date_object_do=datetime.datetime.strptime(str(podatki_stranice[i]), "%m/%d/%Y")+ timedelta(modified_record_list[i+2]-1)
                 while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
                     new_date_object_do += timedelta(days=1)
                 modified_record_list[i]=podatki_stranice[i]
@@ -1594,23 +1634,43 @@ def update_planiranje_pripravnega_Dela():
                 modified_record_list[i]=new_date_object_do
                 counter+=1
     # Ako je izmjenjen datum DOSTAVE
+
     if differences[0]==53:
         mjenjan=1
         modified_record_list[53]=podatki_stranice[53]
         for i in reversed(indexes):
+            #print("i,",i)
             if i % 2 == 0:
-                try:
-                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i+3], date_format)-timedelta(days=1)
-                except:
-                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i+3], "%m/%d/%Y")-timedelta(days=1)
+                print("==0")
+                if str(modified_record_list[i+3])=='None':
+                    new_date_object_do=datetime.datetime.strptime(modified_record_list[i+7], date_format)-timedelta(days=1)
+                    #print(new_date_object_do)
+                    podatki_stranice[i]=new_date_object_do
+                    #print(i)
+                if str(modified_record_list[i + 3]) != 'None':
+                    #print("!=NONE")
+                    #print(modified_record_list[i+3])
+                    try:
+                        new_date_object_do=modified_record_list[i+3]-timedelta(days=1)
+                    except:
+                        new_date_object_do=datetime.datetime.strptime(modified_record_list[i + 3], date_format)
+                    #print(new_date_object_do)
+                    podatki_stranice[i]=new_date_object_do
+                    #print(i)
                 while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
                     new_date_object_do -= timedelta(days=1)
                 modified_record_list[i] =new_date_object_do
             if i % 2 == 1:
-                new_date_object_od=modified_record_list[i+1] - timedelta(modified_record_list[i+2]-1)
-                while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
-                    new_date_object_od -= timedelta(days=1)
-                modified_record_list[i] = new_date_object_od
+                if str(modified_record_list[i+1])!='None':
+                    #print("aaaasdasdasdasdasdasd")
+                    #print(i)
+                    #print(modified_record_list[i+1])
+                    #print(modified_record_list[i+2]-1)
+                    new_date_object_od=modified_record_list[i+1] - timedelta(modified_record_list[i+2]-1)
+                    #print(new_date_object_od)
+                    while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
+                        new_date_object_od -= timedelta(days=1)
+                    modified_record_list[i] = new_date_object_od
 
     zeros_positions = []
 
@@ -1626,22 +1686,24 @@ def update_planiranje_pripravnega_Dela():
     # update datum isporuke
     if mjenjan==0:
         for idx in indexes:
-            print(idx)
-            print(modified_record_list[idx])
             try:
-                modified_record_list[idx] = datetime.datetime.strptime(modified_record_list[idx], '%d/%m/%Y')
-            except Exception as e:
-                print(e)
+                modified_record_list[idx] = datetime.datetime.strptime(str(modified_record_list[idx]),'%Y-%m-%d %H:%M:%S')
+            except:
+                try:
+                    modified_record_list[idx] = datetime.datetime.strptime(str(modified_record_list[idx]), '%d/%m/%Y')
+                except Exception as e:
+                    print(e)
         selected_dates = [modified_record_list[i] for i in filtered_indexes if isinstance(modified_record_list[i], datetime.datetime)]
         # Find the maximum date
         max_date = max(selected_dates)
-        modified_record_list[53]=max_date+timedelta(days=1)
-
+        modified_record_list[53]= max_date+timedelta(days=1)
+        modified_record_list[53] = modified_record_list[53].strftime("%d/%m/%Y")
     if 1==1:
         try:
             # Dynamically assign values from the list to model attributes
             for attr, value in zip(TPRO_PLAN.__table__.columns.keys(), modified_record_list):
                 setattr(record, attr, value)
+                #print(value)
             db.session.commit()
         except Exception as e:
             print(e)

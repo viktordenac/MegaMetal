@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style/navigation.css">
     <title>Dates Data</title>
 	<style>
         #table-container {
-            max-height: 600px; /* Adjust as needed */
+            max-height: 84vh; /* Adjust as needed */
             overflow-y: auto;
-            margin-left: 14%;
-            width: 86%;
         }
         table {
             width: 100%;
@@ -28,19 +27,16 @@
             border: 0.5px solid #ddd;
             text-align: center;
         }
+        tbody tr:nth-child(even) {
+            background-color: #bdbdbd;
+        }
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
             background-color: rgb(220, 220, 220);
         }
         h1, h2 {
             text-align: center;
             margin-top: 20px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
         }
         input[type="text"], input[type="date"] {
             width: 7vw;
@@ -65,7 +61,6 @@
             z-index: 1; /* Ensure the floating header stays on top of the table */
         }
         .hidePlans {
-            margin-left: 14%;
             margin-top: 10px;
             padding: 5px;
             background-color: lightblue;
@@ -74,9 +69,16 @@
     </style>
 </head>
 <body>
-    <div>
+    <div class="content">
         {% include 'navigation.html' %}
         <h2>Plani</h2>
+        <form class="date_form">
+            <label for="from_date_table">Od:</label>
+            <input type="month" id="from_date_table" name="from_date_table">
+            <label for="to_date_table">Do:</label>
+            <input type="month" id="to_date_table" name="to_date_table">
+            <button type="button" id="submitButton">Prikaži</button>
+        </form>
         <nav id="navigacijaPlaniranja">
             <button id="hideCompletedButton" class="hidePlans" onclick="hideCompletedPlans()">Hide completed plans</button>
         </nav>
@@ -113,7 +115,18 @@
                     {% for row in row_data %}
                         <tr>
                             {% for cell in row %}
-                                <td><input type="text" value="{{ cell }}" disabled></td>
+                                {% if cell == 'Ni se še začelo' or cell == 'Zamujamo' or cell == 'V fazi priprave' or cell == 'Pripravljeno' %}
+                                    <td>
+                                        <select name="progress" disabled>
+                                            <option value="Ni se še začelo" {% if cell == 'Ni se še začelo' %}selected{% endif %}>Ni se še začelo</option>
+                                            <option value="Zamujamo" {% if cell == 'Zamujamo' %}selected{% endif %}>Zamujamo</option>
+                                            <option value="V fazi priprave" {% if cell == 'V fazi priprave' %}selected{% endif %}>V fazi priprave</option>
+                                            <option value="Pripravljeno" {% if cell == 'Pripravljeno' %}selected{% endif %}>Pripravljeno</option>
+                                        </select>
+                                    </td>
+                                {% else %}
+                                    <td><input type="text" value="{{ cell }}" disabled></td>
+                                {% endif %}
                             {% endfor %}
                             <td class="edit-column">
                                 <button onclick="toggleEditState(this.parentElement.parentElement, this)">Edit</button>
@@ -125,9 +138,75 @@
         </div>
     </div>
 <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        console.log('loaded:');
+
+        updateProgressColumnColor();
+    });
+    function updateProgressColumnColor() {
+        console.log('progress:');
+
+        var progressCells = document.querySelectorAll('select[name="progress"]');
+        console.log(progressCells);
+        progressCells.forEach(function(cell) {
+            var selectedValue = cell.value;
+            var parentRow = cell.parentElement.parentElement; // Parent row of the select element
+            console.log("Parent row:", parentRow)
+            var parentChildren = Array.from(parentRow.children); // Convert NodeList to array
+            var childNumber = parentChildren.indexOf(cell.parentElement); // Index of the parent element within its parent's children
+            console.log('Child number:', childNumber);
+            var dateChild = childNumber - 1;
+            var dateCell = parentRow.querySelector('td:nth-child(' + dateChild + ')');
+            var valueMat = dateCell.innerHTML;
+            var valueMatch = valueMat.match(/value="([^"]*)"/);
+            var endDateString = ""
+            // Check if the value attribute was found and extract the value
+            if (valueMatch && valueMatch[1]) {
+                endDateString = valueMatch[1];
+                console.log(endDateString);  // Output: 28/03/2024
+            } else {
+                console.log("Value attribute not found");
+            }
+
+            var dateValue = endDateString.trim(); // Get end date from cell text
+
+            // Assume the date is in the format "DD-MM-YYYY"
+            var dateParts = dateValue.split('/');
+            var day = parseInt(dateParts[0], 10);
+            var month = parseInt(dateParts[1], 10) - 1; // Months are zero-based in JavaScript
+            var year = parseInt(dateParts[2], 10);
+
+            var endDate = new Date(year, month, day); // Create a Date object
+            console.log(dateParts);
+            if(endDate < new Date() && selectedValue !== 'Pripravljeno'){
+                dateCell.style.backgroundColor = 'red';
+            }
+
+            console.log('selectedValue:', selectedValue, 'endDate:', endDate);
+            //console.log(isEndDatePast(endDate));
+            console.log(endDate);
+            const today = new Date();
+            const threeDaysAgo = new Date(today);
+            threeDaysAgo.setDate(today.getDate() - 3);
+            if (selectedValue === 'Pripravljeno') {
+                cell.parentElement.style.backgroundColor = 'green';
+            }
+            if (selectedValue === 'V fazi priprave') {
+                cell.parentElement.style.backgroundColor = 'yellow';
+            }
+            if (selectedValue === 'Zamujamo') {
+                cell.parentElement.style.backgroundColor = 'red';
+            }
+        });
+    }
+
     function submitRowData(row, button) {
-        const updatedRowData = Array.from(row.querySelectorAll('input')).map(input => {
-            return input.value;
+        const updatedRowData = Array.from(row.querySelectorAll('input, select')).map(element => {
+            if (element.tagName === 'INPUT') {
+                return element.value;
+            } else if (element.tagName === 'SELECT') {
+                return element.options[element.selectedIndex].value;
+            }
         });
         const updatedData = { row: row.rowIndex, data: updatedRowData };
         fetch('/planiranjePripravnegaDelaUpdate', {
@@ -137,13 +216,14 @@
         })
         .then(response => {
             if (response.ok) {
-                toggleEditState(row, button); // Switch back to non-editing mode
+                console.log('Success:', response);
             } else {
                 console.error('Error:', response);
             }
         })
         .catch(error => console.error('Error:', error));
     }
+
 
     function toggleEditState(row, button) {
         // Determine if we are entering or exiting edit mode
@@ -154,9 +234,13 @@
         for (const cell of row.cells) {
             if (cell.cellIndex >= 9 && cell.cellIndex <= 52) {
                 const input = cell.querySelector('input');
+                const select = cell.querySelector('select');
                 if (input) {
                     input.disabled = !isEditing;
                 }
+                else if (select){
+                        select.disabled = !isEditing;
+                    }
             }
         }
 
@@ -344,6 +428,26 @@ function filterTable() {
         }
         return allColumnsJ;
     }
+
+    function fetchDataTable() {
+        // Get the form element
+        const form = document.getElementById('dateForm');
+
+        // Get the values of the input fields
+        const fromDate = document.getElementById('from_date_table').value;
+        const toDate = document.getElementById('to_date_table').value;
+
+        // Construct the URL with query parameters
+        const url = new URL("{{ url_for('planiranjePripravnegaDela') }}", window.location.origin);
+        url.searchParams.append('from_date', fromDate);
+        url.searchParams.append('to_date', toDate);
+
+        // Redirect to the constructed URL
+        window.location.href = url.toString();
+    }
+
+    // Attach the fetchDataTable function to the button click event
+    document.getElementById('submitButton').onclick = fetchDataTable;
 
     //window.onload = hideCompletedPlans;
 </script>

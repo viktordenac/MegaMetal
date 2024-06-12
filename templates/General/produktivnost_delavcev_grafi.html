@@ -25,9 +25,9 @@
         <h1>Produktivnost delavcev za periodo</h1>
         <form class="date_form">
             <label for="from_date_graf">Od:</label>
-            <input type="date" id="from_date_graf" name="from_date" value="2024-01-01">
+            <input type="month" id="from_date_graf" name="from_date" value="2024-01-01">
             <label for="to_date_graf">Do:</label>
-            <input type="date" id="to_date_graf" name="to_date" value="2024-12-31">
+            <input type="month" id="to_date_graf" name="to_date" value="2024-12-31">
             <button type="button" onclick="fetchData()">Prikaži</button>
         </form>
         <!-- Graph -->
@@ -100,6 +100,8 @@
             const fromMonth = `${year}-01`;
             const toMonth = `${year}-${month}`;
 
+            document.getElementById('from_date_graf').value = fromMonth;
+            document.getElementById('to_date_graf').value = toMonth;
             document.getElementById('from_date_table').value = toMonth;
             document.getElementById('to_date_table').value = toMonth;
             document.getElementById('from_delavec_date_table').value = fromMonth;
@@ -113,8 +115,17 @@
         var delavecChart; // Declare the chart variable globally
 
     function fetchData() {
-        var from_date = document.getElementById('from_date_graf').value;
-        var to_date = document.getElementById('to_date_graf').value;
+        var from_selectedMonth = document.getElementById('from_date_graf').value;
+        var from_year = from_selectedMonth.split('-')[0];
+        var from_month = from_selectedMonth.split('-')[1];
+        var to_selectedMonth = document.getElementById('to_date_graf').value;
+        var to_year = to_selectedMonth.split('-')[0];
+        var to_month = to_selectedMonth.split('-')[1];
+        var from_firstDayOfMonth = new Date(from_year, from_month - 1, 1);
+        var to_lastDayOfMonth = new Date(to_year, to_month, 1);
+        var from_date = from_firstDayOfMonth.toISOString().split('T')[0];
+        var to_date = to_lastDayOfMonth.toISOString().split('T')[0];
+
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/produktivnost_grafi_load?from_date=' + from_date + '&to_date=' + to_date);
         xhr.onload = function() {

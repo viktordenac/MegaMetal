@@ -110,8 +110,8 @@
             <label for="to_date_table">Do:</label>
             <input type="month" id="to_date_table" name="to_date_table">
             <button type="button" id="submitButton">Prikaži</button>
-            <p class="warning" id="warningMessage">Datum do mora biti isti ali večji kot datum od.</p>
         </form>
+        <div><label class="warning" id="warningMessage" style="display: none;">Datum do mora biti isti ali večji kot datum od.</label></div>
         <label class="checkbox-container">Prikaži tudi plane, ki so izstavljeni
             <input type="checkbox" class="checkbox" {% if checkbox == 'true' %}checked{% endif %}>
             <span class="checkbox-label"></span>
@@ -173,10 +173,8 @@
         </div>
     </div>
 <script>
+    document.getElementById('warningMessage').style.display = 'none';
     window.addEventListener('DOMContentLoaded', function() {
-        const warningMessage = document.getElementById('warningMessage');
-        warningMessage.style.display = 'none';
-        warningMessage.style.display = 'none';
         updateProgressColumnColor();
     });
     function updateProgressColumnColor() {
@@ -380,8 +378,9 @@
         const toDate = document.getElementById('to_date_table').value;
         const checkbox = document.querySelector('.checkbox');
         const warningMessage = document.getElementById('warningMessage');
+        console.log(fromDate," : ", toDate)
 
-        if (fromDate && toDate && fromDate > toDate) {
+        if (fromDate !== "" && toDate !=="" && fromDate > toDate) {
           // Show the warning message
           warningMessage.style.display = 'block';
         } else {

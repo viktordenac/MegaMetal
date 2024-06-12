@@ -6,6 +6,7 @@ from collections import defaultdict, OrderedDict
 from datetime import datetime, date, timedelta
 import calendar
 import glob
+from decimal import Decimal
 
 import holidays
 import msoffcrypto
@@ -1347,7 +1348,8 @@ def planiranjePripravnegaDela():
         # Default date range: current year
         now = datetime.now()
         current_year = now.year
-        from_date = datetime(current_year, 5, 1)
+        #from_date = datetime(current_year, 5, 1)
+        from_date = datetime(current_year, 1, 1)
         to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
 
     print(from_date)
@@ -2180,9 +2182,19 @@ def compare_data_mj():
         TBA_FIX_REAL.KW.is_(None)
     ).all()
 
+    neki_data = [
+        (Decimal('1'), 0.0, 0.0),
+        (Decimal('2'), 0.0, 0.0),
+        (Decimal('3'), 0.0, 0.0),
+        (Decimal('4'), 0.0, 0.0),
+        (Decimal('5'), 210553, 210553),
+        (Decimal('6'), 0.0, 0.0)
+    ]
+
     # Sort data by KW values
     pl_data.sort(key=lambda x: x[0])
     real_data.sort(key=lambda x: x[0])
+    neki_data.sort(key=lambda x: x[0])
 
     # Extract KW, IZNOS, and TEZINA values from both tables
     pl_kw_values = [item[0] for item in pl_data]
@@ -2193,10 +2205,19 @@ def compare_data_mj():
     real_iznos_values = [item[1] for item in real_data]
     real_tezina_values = [item[2] for item in real_data]
 
+    neki_kw_values = [item[0] for item in neki_data]
+    neki_iznos_values = [item[1] for item in neki_data]
+    neki_tezina_values = [item[2] for item in neki_data]
+
+    print(neki_kw_values)
+    print(neki_iznos_values)
+    print(neki_tezina_values)
+
     stranice_list = session["stranice"]
-    return render_template("General/compare_data_mj.html", pl_kw_values=pl_kw_values, pl_iznos_values=pl_iznos_values,
-                           pl_tezina_values=pl_tezina_values, real_kw_values=real_kw_values,
-                           real_iznos_values=real_iznos_values, real_tezina_values=real_tezina_values,
+    return render_template("General/compare_data_mj.html",
+                           pl_kw_values=pl_kw_values, pl_iznos_values=pl_iznos_values, pl_tezina_values=pl_tezina_values,
+                           real_kw_values=real_kw_values, real_iznos_values=real_iznos_values, real_tezina_values=real_tezina_values,
+                           neki_kw_values=neki_kw_values, neki_iznos_values=neki_iznos_values, neki_tezina_values=neki_tezina_values,
                            stranice_list=stranice_list)
 
 
@@ -2213,9 +2234,13 @@ def filter_data_mj():
     real_data = db.session.query(TBA_FIX_REAL.MJESEC, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
         TBA_FIX_REAL.KW.is_(None)    ).all()
 
+    neki_data = db.session.query(TBA_FIX_REAL.MJESEC, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
+        TBA_FIX_REAL.KW.is_(None)).all()
+
     # Sort data by KW values
     pl_data.sort(key=lambda x: x[0])
     real_data.sort(key=lambda x: x[0])
+    neki_data.sort(key=lambda x: x[0])
 
     # Extract KW, IZNOS, and TEZINA values from both tables
     pl_kw_values = [item[0] for item in pl_data]
@@ -2226,13 +2251,22 @@ def filter_data_mj():
     real_iznos_values = [item[1] for item in real_data]
     real_tezina_values = [item[2] for item in real_data]
 
+    neki_kw_values = [item[0] for item in neki_data]
+    neki_iznos_values = [item[1] for item in neki_data]
+    neki_tezina_values = [item[2] for item in neki_data]
+
+    print(neki_kw_values)
+    print(neki_iznos_values)
+    print(neki_tezina_values)
+
     # Construct JSON response
     filtered_data = {
         "labels": pl_kw_values,  # Use KW values as labels
         "plIznosValues": pl_iznos_values,
         "realIznosValues": real_iznos_values,
         "plTezinaValues": pl_tezina_values,
-        "realTezinaValues": real_tezina_values
+        "realTezinaValues": real_tezina_values,
+        "nekiIznosValues": neki_iznos_values
     }
 
     return jsonify(filtered_data)

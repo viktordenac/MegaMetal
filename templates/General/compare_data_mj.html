@@ -119,6 +119,7 @@
     var realKwValues = {{ real_kw_values|tojson }};
     var realIznosValues = {{ real_iznos_values|tojson }};
     var realTezinaValues = {{ real_tezina_values|tojson }};
+    var avansIznosValues = {{ neki_iznos_values|tojson }};
 
     var ctx = document.getElementById('comparisonChart').getContext('2d');
     var comparisonChart = new Chart(ctx, {
@@ -130,13 +131,21 @@
                 data: plIznosValues,
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
-                borderWidth: 1
+                borderWidth: 1,
             }, {
                 label: 'REALIZIRANI IZNOS',
                 data: realIznosValues,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
-                borderWidth: 1
+                borderWidth: 1,
+                stack: 'combined'
+            }, {
+                label: 'AVANS',
+                data: avansIznosValues,
+                backgroundColor: 'rgb(255,234,0)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                stack: 'combined'
             }]
         },
         options: {
@@ -149,10 +158,19 @@
                         size: 18 // Adjust the font size as needed
                     }
                 }
+            },
+            scales: {
+                x: {
+                    stacked: true // Enable stacking for the x-axis
+                },
+                y: {
+                    stacked: true // Enable stacking for the y-axis
+                }
             }
-            // Customize chart options as needed
+            // Customize other chart options as needed
         }
     });
+
 
     var ctx2 = document.getElementById('comparisonChart2').getContext('2d');
     var comparisonChart2 = new Chart(ctx2, {

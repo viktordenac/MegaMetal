@@ -2481,6 +2481,115 @@ def add_action_plan():
         return redirect(url_for('action_plans'))
 """--------------------------------------------------------------------"""
 
+@app.route('/direktor', methods=['GET'])
+def direktor():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    stranice_list = session["stranice"]
+
+    return render_template('direktor.html', stranice_list=stranice_list)
+
+
+@app.route('/direktorLoadGrafi', methods=['GET'])
+def direktorLoadGrafi():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    # Get the current year and month
+    current_year = datetime.now().year
+    current_month = datetime.now().month
+    monthOrWeek = request.args.get('monthOrWeek')
+    from_week = request.args.get('from')  # Default to week 1 if 'from' is not provided
+    to_week = request.args.get('to')  # Default to week 52 if 'to' is not provided
+    print("From:", from_week)
+    print("To:", to_week)
+
+    # Calculate the start and end weeks of the current month
+    start_week = datetime(current_year, current_month, 1).isocalendar()[1]
+    end_week = datetime(current_year, current_month, 1).replace(day=28).isocalendar()[1]
+    if from_week is not None and to_week is not None:
+        try:
+            from_week = int(from_week)
+            to_week = int(to_week)
+            start_week = from_week
+            end_week = to_week
+        except ValueError:
+            # Calculate the start and end weeks of the current month
+            start_week = datetime(current_year, current_month, 1).isocalendar()[1]
+            end_week = datetime(current_year, current_month, 1).replace(day=28).isocalendar()[1]
+    if monthOrWeek == 'month':
+        # Query data from TBA_FIX_PL where MJESEC is null and KW is between start_week and end_week
+        pl_data = db.session.query(TBA_FIX_PL.MJESEC, TBA_FIX_PL.IZNOS, TBA_FIX_PL.TEZINA).filter(
+            TBA_FIX_PL.KW.is_(None)
+        ).all()
+
+        # Query data from TBA_FIX_REAL where MJESEC is null and KW is between start_week and end_week
+        real_data = db.session.query(TBA_FIX_REAL.MJESEC, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
+            TBA_FIX_REAL.KW.is_(None)
+        ).all()
+    else:
+        # Query data from TBA_FIX_PL where MJESEC is null and KW is between start_week and end_week
+        pl_data = db.session.query(TBA_FIX_PL.KW, TBA_FIX_PL.IZNOS, TBA_FIX_PL.TEZINA).filter(
+            TBA_FIX_PL.MJESEC.is_(None),
+            TBA_FIX_PL.KW.between(start_week, end_week)
+        ).all()
+
+        # Query data from TBA_FIX_REAL where MJESEC is null and KW is between start_week and end_week
+        real_data = db.session.query(TBA_FIX_REAL.KW, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
+            TBA_FIX_REAL.MJESEC.is_(None),
+            TBA_FIX_REAL.KW.between(start_week, end_week)
+        ).all()
+
+    neki_data = [
+        (Decimal('1'), 0.0, 0.0),
+        (Decimal('2'), 0.0, 0.0),
+        (Decimal('3'), 0.0, 0.0),
+        (Decimal('4'), 0.0, 0.0),
+        (Decimal('5'), 210553, 210553),
+        (Decimal('6'), 0.0, 0.0)
+    ]
+
+    # Sort data by KW values
+    pl_data.sort(key=lambda x: x[0])
+    real_data.sort(key=lambda x: x[0])
+    neki_data.sort(key=lambda x: x[0])
+
+    # Extract KW, IZNOS, and TEZINA values from both tables
+    pl_kw_values = [item[0] for item in pl_data]
+    pl_iznos_values = [item[1] for item in pl_data]
+    pl_tezina_values = [item[2] for item in pl_data]
+
+    real_kw_values = [item[0] for item in real_data]
+    real_iznos_values = [item[1] for item in real_data]
+    real_tezina_values = [item[2] for item in real_data]
+
+    neki_kw_values = [item[0] for item in neki_data]
+    neki_iznos_values = [item[1] for item in neki_data]
+    neki_tezina_values = [item[2] for item in neki_data]
+
+    return jsonify({'pl_kw_values': pl_kw_values, 'pl_iznos_values': pl_iznos_values, 'pl_tezina_values': pl_tezina_values,
+                    'real_kw_values': real_kw_values, 'real_iznos_values': real_iznos_values, 'real_tezina_values': real_tezina_values,
+                    'neki_kw_values': neki_kw_values, 'neki_iznos_values': neki_iznos_values, 'neki_tezina_values': neki_tezina_values})
+
+
+def get_start_and_end_date_of_week(year, week):
+    # Find the first day of the year
+    first_day_of_year = datetime(year, 1, 1)
+
+    # Get the ISO calendar tuple of the first day of the year
+    first_day_iso = first_day_of_year.isocalendar()
+
+    # Find the first Monday of the year (ISO calendar week starts on Monday)
+    first_monday_of_year = first_day_of_year + timedelta(days=(0 - first_day_iso[2]))
+
+    # Calculate the start date of the given week number
+    start_date = first_monday_of_year + timedelta(weeks=week - 1)
+
+    # Calculate the end date of the given week number (Sunday of the week)
+    end_date = start_date + timedelta(days=6)
+
+    return start_date, end_date
+
+
 @app.route('/administracija', methods=['GET'])
 def administracija():
     if not is_authenticated():
@@ -2493,5 +2602,5 @@ def replace_nan(data):
 if __name__ == "__main__":
     #from waitress import serve
     #serve(app, host='192.168.100.216', port=5000)
-    app.run(host='192.168.100.37', port=5000)
+    app.run(host='127.0.0.1', port=5000)
     app.run(debug=True)

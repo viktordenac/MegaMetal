@@ -28,11 +28,11 @@
             <input type="month" id="from_date_graf" name="from_date" value="2024-01-01">
             <label for="to_date_graf">Do:</label>
             <input type="month" id="to_date_graf" name="to_date" value="2024-12-31">
-            <button type="button" onclick="fetchData()">Prikaži</button>
+            <button type="button" onclick="fetchProduktivnostData()">Prikaži</button>
         </form>
         <!-- Graph -->
         <div>
-            <canvas id="myChart"></canvas>
+            <canvas id="oddelkiProduktivnostChart" class="graph-canvas"></canvas>
         </div>
         <hr>
         <form class="date_form">
@@ -62,36 +62,11 @@
         </form>
         <h2 id="workerChartTitle"></h2>
         <div>
-            <canvas id="delavecChart" width="200" height="200"></canvas>
+            <canvas id="delavecChart" class="graph-canvas"></canvas>
         </div>
     </div>
 
     <script>
-        // Get today's date
-        var today = new Date();
-        var startingDate = new Date();
-        startingDate.setDate(1)
-
-        // Check if today is Monday (0 index for Sunday, 1 for Monday, and so on)
-        if (today.getDay() === 1) { // If today is Monday
-            today.setDate(today.getDate() - 3); // Set to previous Friday
-        } else {
-            today.setDate(today.getDate() - 1); // Set to yesterday
-        }
-
-        // Format the date as 'YYYY-MM-DD' for input[type=date]
-        var yyyy = today.getFullYear();
-        var mm = String(today.getMonth() + 1).padStart(2, '0');
-        var dd = String(today.getDate()).padStart(2, '0');
-        var formattedDate = yyyy + '-' + mm + '-' + dd;
-        var yyyy = startingDate.getFullYear();
-        var mm = String(startingDate.getMonth() + 1).padStart(2, '0');
-        var dd = String(startingDate.getDate()).padStart(2, '0');
-        var formattedStartingDate = yyyy + '-' + mm + '-' + dd;
-
-        // Set the 'from_date' and 'to_date' input values to the calculated date
-        document.getElementById('from_date_graf').value = formattedStartingDate;
-        document.getElementById('to_date_graf').value = formattedDate;
         function setDefaultMonths() {
             const now = new Date();
             const year = now.getFullYear();
@@ -108,13 +83,13 @@
             document.getElementById('to_delavec_date_table').value = toMonth;
         }
         setDefaultMonths();
-        fetchData(); // Fetch data when the page loads initially
+        fetchProduktivnostData(); // Fetch data when the page loads initially
         fetchDataTable();
 
         var myChart; // Declare the chart variable globally
         var delavecChart; // Declare the chart variable globally
 
-    function fetchData() {
+    function fetchProduktivnostData() {
         var from_selectedMonth = document.getElementById('from_date_graf').value;
         var from_year = from_selectedMonth.split('-')[0];
         var from_month = from_selectedMonth.split('-')[1];
@@ -132,7 +107,7 @@
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
                 console.log(response);
-                displayChart(response);
+                displayOddelkiProduktivnostChart(response);
             } else {
                 console.error('Request failed. Status: ' + xhr.status);
             }
@@ -170,7 +145,7 @@
         xhr.send();
     }
 
-    function displayChart(response) {
+    function displayOddelkiProduktivnostChart(response) {
         if (myChart) {
             myChart.destroy();
         }
@@ -195,7 +170,7 @@
         });
 
         // Create chart using Chart.js
-        const ctx = document.getElementById('myChart').getContext('2d');
+        const ctx = document.getElementById('oddelkiProduktivnostChart').getContext('2d');
         myChart = new Chart(ctx, {
             type: 'bar',
             data: {
@@ -331,24 +306,18 @@
         console.log("Displaying chart for: " + delavecName);
     }
 
-
-
-
-
-
-
     function formatDate(dateString) {
-    const months = [
-        "Januar", "Februar", "Marec", "April", "Maj", "Junij",
-        "Julij", "Avgust", "September", "Oktober", "November", "December"
-    ];
+        const months = [
+            "Januar", "Februar", "Marec", "April", "Maj", "Junij",
+            "Julij", "Avgust", "September", "Oktober", "November", "December"
+        ];
 
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = months[date.getMonth()];
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = months[date.getMonth()];
 
-    return year + " " + month;
-}
+        return year + " " + month;
+    }
 
     </script>
 </body>

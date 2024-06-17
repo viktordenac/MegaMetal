@@ -7,7 +7,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="../../static/style/navigation.css">
     <style>
-        #myChart {
+        #oddelkiProduktivnostChart {
 			margin-left: 20px;
 			max-height: 50vh;
         }
@@ -59,7 +59,7 @@
             <div id="machine_data_table"></div>
         </div>
         <hr>
-        <canvas id="myChart" class="myChart"></canvas>
+        <canvas id="oddelkiProduktivnostChart" class="myChart"></canvas>
     </div>
 
 <script>
@@ -218,7 +218,7 @@
         }
 
         // Create new Chart.js instance
-        var ctx = document.getElementById('myChart').getContext('2d');
+        var ctx = document.getElementById('oddelkiProduktivnostChart').getContext('2d');
         myChart = new Chart(ctx, chartConfig);
     }
 

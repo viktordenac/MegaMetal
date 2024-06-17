@@ -377,9 +377,9 @@ def produktivnost_pozicije():
     if not is_authenticated():
         return redirect(url_for("login"))
     stranice_list = session["stranice"]
-    identi = TREZ_KALK.query.with_entities(TREZ_KALK.Ident).distinct().all()
-    identi = [row[0] for row in identi]
-    return render_template("produktivnost_pozicije.html", radniNalogi=identi, stranice_list=stranice_list)
+    identi = TBA_REAL_IDENT.query.with_entities(TBA_REAL_IDENT.IDENT).distinct().all()
+    processed_identi = set(row[0].rsplit('-', 1)[0] for row in identi)
+    return render_template("produktivnost_pozicije.html", radniNalogi=processed_identi, stranice_list=stranice_list)
 
 
 @app.route("/aktivni_nalogi")

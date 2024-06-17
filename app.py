@@ -746,7 +746,7 @@ def grupiranje_materiala_table():
                             sum(distinct("NORMA"))/sum("VREME") as postotak, TBA_REAL_IDENT."IDENT" 
                             from public."TBA_RAD" as TBA_RAD,
                             public."TBA_REAL_IDENT" as TBA_REAL_IDENT 
-                            WHERE UPPER(TBA_REAL_IDENT."DELAVEC") = UPPER(TBA_RAD."Ime")
+                            WHERE UPPER(TBA_REAL_IDENT."DELAVEC") = UPPER(TBA_RAD."Ime") and "VREME" != 0
                             group by(TBA_REAL_IDENT."DELAVEC"),TBA_RAD."Mjesto",TBA_REAL_IDENT."IDENT" 
                             """
 

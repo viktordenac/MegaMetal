@@ -245,7 +245,7 @@
         .then(response => response.json())
         .then(data => {
             console.log(data)
-            if (data.exists) {
+            if (data.sucess === "false") {
                 // User already exists, prompt the user
                 const confirmEdit = confirm("Alat already exists. Do you want to edit the selected alat?");
                 if (confirmEdit) {

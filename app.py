@@ -1337,6 +1337,8 @@ def planiranjePripravnegaDela():
     to_date_str = request.args.get('to_date', None)
     checkbox = request.args.get('checkbox', 'false')
     print(checkbox)
+    print(from_date_str)
+    print(to_date_str)
 
     # If dates are not provided, use default values (e.g., current month)
     if from_date_str and to_date_str:
@@ -1350,7 +1352,7 @@ def planiranjePripravnegaDela():
         current_year = now.year
         #from_date = datetime(current_year, 5, 1)
         from_date = datetime(current_year, 1, 1)
-        to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
+        to_date = datetime(current_year, 12, 31)
 
     print(from_date)
     print(to_date)

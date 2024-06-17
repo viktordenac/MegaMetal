@@ -175,8 +175,21 @@
 <script>
     document.getElementById('warningMessage').style.display = 'none';
     window.addEventListener('DOMContentLoaded', function() {
+        setDefaultMonths();
         updateProgressColumnColor();
     });
+
+    function setDefaultMonths() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Adding 1 since getMonth() returns 0-11
+
+        const fromMonth = `${year}-01`;
+        const toMonth = `${year}-12`;             // End of the current year (December)
+
+        document.getElementById('from_date_table').value = fromMonth;
+        document.getElementById('to_date_table').value = toMonth;
+    }
     function updateProgressColumnColor() {
 
         var progressCells = document.querySelectorAll('select[name="progress"]');
@@ -258,7 +271,7 @@
 
         // Toggle the disabled state of inputs in the specified range
         for (const cell of row.cells) {
-            if (cell.cellIndex >= 9 && cell.cellIndex <= 52) {
+            if (cell.cellIndex >= 9 && cell.cellIndex <= 53) {
                 const input = cell.querySelector('input');
                 const select = cell.querySelector('select');
                 if (input) {

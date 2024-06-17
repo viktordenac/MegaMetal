@@ -1,0 +1,32 @@
+/* Adjust chart container size */
+canvas {
+    width: 100%;
+    max-height: 680px;
+    margin: 0 auto; /* Center the container */
+    height: auto; /* Maintain canvas aspect ratio */
+}
+
+/* Style for the data table */
+#data_table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Style for table header */
+#data_table th {
+    background-color: #bdbdbd;
+    padding: 8px;
+    text-align: center;
+    border-bottom: 3px solid #000000;
+}
+
+/* Style for table rows */
+#data_table td {
+    padding: 5px;
+    border-bottom: 1px solid #000000;
+}
+
+/* Hover effect */
+#data_table tr:hover {
+    background-color: #ddd;
+}

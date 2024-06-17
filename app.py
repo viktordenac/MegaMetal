@@ -357,8 +357,8 @@ def potrosnja_materiala_torta():
 def grupiranje_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
-    identi = TREZ_KALK.query.with_entities(TREZ_KALK.Ident).distinct().all()
-    identi = [row[0] for row in identi]
+    identi = TBA_REAL_IDENT.query.with_entities(TBA_REAL_IDENT.IDENT).distinct().all()
+    identi = set(row[0].rsplit('-', 1)[0] for row in identi)
     stranice_list = session["stranice"]
 
     return render_template("grupiranje_materiala.html", radniNalogi=identi, stranice_list=stranice_list)
@@ -746,7 +746,7 @@ def grupiranje_materiala_table():
                             sum(distinct("NORMA"))/sum("VREME") as postotak, TBA_REAL_IDENT."IDENT" 
                             from public."TBA_RAD" as TBA_RAD,
                             public."TBA_REAL_IDENT" as TBA_REAL_IDENT 
-                            WHERE UPPER(TBA_REAL_IDENT."DELAVEC") = UPPER(TBA_RAD."Ime") and "VREME" != 0
+                            WHERE UPPER(TBA_REAL_IDENT."DELAVEC") = UPPER(TBA_RAD."Ime")
                             group by(TBA_REAL_IDENT."DELAVEC"),TBA_RAD."Mjesto",TBA_REAL_IDENT."IDENT" 
                             """
 
@@ -1951,10 +1951,11 @@ def MM2Alat():
 def add_or_edit_alat():
     # Get data from the form submission
     pk = request.form.get('PK')
-
+    print(pk)
     # Check if a user with the provided Kartica already exists
     try:
         existing_alat = TBA_ALAT.query.filter_by(PK=pk).first()
+        print(existing_alat)
         if existing_alat:
             return jsonify({'success': False, 'error': 'User already exists.'})
     except:

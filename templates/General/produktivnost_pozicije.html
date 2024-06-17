@@ -96,7 +96,7 @@
                     const response = JSON.parse(xhr.responseText);
                     console.log('Response:', response); // Log the response for debugging
                     displayTopAndSlowData(response.response_data);
-                    if(response.document_id_ident && response.document_id_ident !== ""){
+                    if(response.document_id_ident !== ""){
                         displayData(response)
                     }
                 } catch (error) {

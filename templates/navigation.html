@@ -146,8 +146,9 @@
             </div>
         </div>
     {% endif %}
-
-    <a href="{{ url_for('direktor') }}">G. Osmanović</a>
+    {% if 'direktor' in stranice_list %}
+        <a href="{{ url_for('direktor') }}">G. Osmanović</a>
+    {% endif %}
 
     <div class="logout-button">
         <a href="{{ url_for('logout') }}">Odjava</a>

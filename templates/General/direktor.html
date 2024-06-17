@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../../static/style/potrosnja_materiala_torta.css">
     <link rel="stylesheet" href="../../static/style/navigation.css">
     <link rel="stylesheet" href="../../static/style/potrosnja_materiala_grafi.css">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         #prikazButton {
@@ -30,6 +31,7 @@
     </style>
 </head>
 <body>
+    <div class="content">
         <!-- fiksni_načrti -->
         <h1>Fiksni načrt</h1>
         <button id="prikazButton" onclick="switchDisplay(this)">Prikaz po tednih</button>
@@ -46,7 +48,7 @@
         </div>
         <canvas id="fiksniNacrtCanvas" class="graph-canvas"></canvas>
         <hr>
-<div class="content">
+
         <!-- potrosnja_materiala_torta -->
         <h1>Realizacija bruto/neto za periodo</h1>
         <br>
@@ -57,7 +59,7 @@
             <input type="date" id="to_date" name="to_date" value="2024-12-31">
             <button type="button" onclick="fetchData()">Prikaži</button>
         </form>
-        <canvas id="potrosnjaMaterialaTortaCanvas"></canvas>
+        <canvas id="potrosnjaMaterialaTortaCanvas" class="graph-canvas"></canvas>
         <div id="legendPMT"></div>
         <form id="month_form">
             <label for="from_month">Od: </label>
@@ -66,9 +68,7 @@
             <input type="month" id="to_month" name="to_month">
             <button type="button" onclick="fetchMonthlyData()">Prikaži</button>
         </form>
-        <div>
-            <canvas id="monthlyChartPMTCanvas"></canvas>
-        </div>
+        <canvas id="monthlyChartPMTCanvas" class="graph-canvas"></canvas>
         <hr>
 
         <!-- Produktivnost delavcev za periodo -->
@@ -81,9 +81,7 @@
             <button type="button" onclick="fetchProduktivnostData()">Prikaži</button>
         </form>
         <!-- Graph -->
-        <div>
-            <canvas id="oddelkiProduktivnostChart"></canvas>
-        </div>
+        <canvas id="oddelkiProduktivnostChart" class="graph-canvas"></canvas>
         <form class="date_form">
             <label for="from_date_table">Tabela za obdobje od:</label>
             <input type="month" id="from_date_table" name="from_date_table">
@@ -113,6 +111,12 @@
         <h2 id="workerChartTitle"></h2>
         <div>
             <canvas id="delavecChart" width="200" height="200"></canvas>
+        </div>
+        <br>
+        <div id="container">
+            <h1>Prikaz verzug liste</h1>
+            <div id="sheets"></div>
+            <div id="table-container"></div>
         </div>
     </div>
 <script>
@@ -237,7 +241,7 @@
 
     function switchDisplay(button) {
         if (button.innerHTML === "Prikaz po tednih") {
-            button.innerHTML = "Prikaz po mjesecima";
+            button.innerHTML = "Prikaz po mesecu";
             var currentDate = new Date();
             var startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
             var endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
@@ -297,8 +301,8 @@
     var mm = String(startingDate.getMonth() + 1).padStart(2, '0');
     var dd = String(startingDate.getDate()).padStart(2, '0');
     var formattedStartingDate = yyyy + '-' + mm + '-' + dd;
-    console.log('Starting date:', formattedStartingDate)
-    console.log('Today:', yesterdayFormated)
+    // console.log('Starting date:', formattedStartingDate)
+    // console.log('Today:', yesterdayFormated)
 
     // Set the 'from_date' and 'to_date' input values to yesterday's date
     document.getElementById('from_date').value = weekAgoFormatted;
@@ -333,8 +337,8 @@
     function fetchData() {
         var from_date = document.getElementById('from_date').value;
         var to_date = document.getElementById('to_date').value;
-        console.log('From date TORTA:', from_date)
-        console.log('To date TORTA:', to_date)
+        // console.log('From date TORTA:', from_date)
+        // console.log('To date TORTA:', to_date)
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/potrošnja_materiala_grafi?from_date=' + from_date + '&to_date=' + to_date);
         xhr.onload = function() {
@@ -463,15 +467,15 @@
         var to_lastDayOfMonth = new Date(to_year, to_month, 1);
         var from_date = from_firstDayOfMonth.toISOString().split('T')[0];
         var to_date = to_lastDayOfMonth.toISOString().split('T')[0];
-        console.log('From date:', from_date)
-        console.log('To date:', to_date)
+        // console.log('From date:', from_date)
+        // console.log('To date:', to_date)
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/potrosnja_materiala_mj?from_date=' + from_date + '&to_date=' + to_date);
         xhr.onload = function() {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
                 displayChart(response);
-                console.log("Response: ", response);
+                // console.log("Response: ", response);
             } else {
                 console.error('Request failed. Status: ' + xhr.status);
             }
@@ -580,12 +584,12 @@
         var from_year = from_selectedMonth.split('-')[0];
         var from_month = from_selectedMonth.split('-')[1];
         var to_selectedMonth = document.getElementById('to_date_graf').value;
-        console.log('To date:', to_selectedMonth)
+        // console.log('To date:', to_selectedMonth)
         var to_year = to_selectedMonth.split('-')[0];
         var to_month = to_selectedMonth.split('-')[1];
         var from_firstDayOfMonth = new Date(from_year, from_month - 1, 1);
         var to_lastDayOfMonth = new Date(to_year, to_month, 1);
-        console.log('From date:', from_firstDayOfMonth)
+        // console.log('From date:', from_firstDayOfMonth)
         var from_date = from_firstDayOfMonth.toISOString().split('T')[0];
         var to_date = to_lastDayOfMonth.toISOString().split('T')[0];
 
@@ -594,7 +598,7 @@
         xhr.onload = function() {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
-                console.log(response);
+                // console.log(response);
                 displayOddelkiProduktivnostChart(response);
             } else {
                 console.error('Request failed. Status: ' + xhr.status);
@@ -673,8 +677,8 @@
                 var response = JSON.parse(xhr.responseText);
                 var top_five = response.table_data_top;
                 var bottom_five = response.table_data_bottom;
-                console.log("TABLE" + top_five);
-                console.log("TABLE" + bottom_five);
+                // console.log("TABLE" + top_five);
+                // console.log("TABLE" + bottom_five);
                 displayTable(top_five, 'top5Table');
                 displayTable(bottom_five, 'bottom5Table');
                 //displayDataFrame(response.df); // Pass the DataFrame JSON to displayDataFrame function
@@ -700,7 +704,8 @@
 
     function displayTable(data, tableId) {
         var tableHtml = '';
-        console.log("NEKJ", data.length)
+        console.log("TABLE", tableId)
+        console.log("NEKJ", data)
 
         if (data.length === 0) {
             tableHtml = '<p>No info to show</p>';
@@ -717,6 +722,7 @@
             data.forEach(function(item) {
                 tableHtml += '<tr>';
                 for (var key in item) {
+                    console.log("KEY", key.index)
                     // Check if the value is a date and format it if necessary
                     if (key === 'MJESEC_GODINA') {
                         tableHtml += '<td>' + formatDate(item[key]) + '</td>';
@@ -746,7 +752,7 @@
         xhr.onload = function() {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
-                console.log(response);
+                // console.log(response);
 
                 // Extract data from the response
                 var delavecPodatki = response.delavecPodatki;
@@ -804,7 +810,71 @@
             console.error('Request error');
         };
         xhr.send();
-        console.log("Displaying chart for: " + delavecName);
+        // console.log("Displaying chart for: " + delavecName);
+    }
+
+
+    fetch('/verzugsListaLoad')
+        .then(response => response.json())
+        .then(data => {
+            const sheetNames = data.sheet_names;
+            const sheetsData = data.data;
+
+            const sheetsDiv = document.getElementById('sheets');
+            const tableContainer = document.getElementById('table-container');
+
+            sheetNames.forEach(sheetName => {
+                if (sheetName === 'Kasni kupcu') {
+                    const button = document.createElement('button');
+                button.textContent = sheetName;
+                console.log('Sheet name:', sheetName)
+                button.addEventListener('click', () => {
+                    const sheetData = sheetsData[sheetName];
+                    const table = document.createElement('table');
+                    table.classList.add('excel-table');
+                    const thead = table.createTHead();
+                    const headerRow = thead.insertRow();
+                    sheetData[0].forEach(column => {
+                        const th = document.createElement('th');
+                        th.textContent = column;
+                        headerRow.appendChild(th);
+                    });
+                    const tbody = table.createTBody();
+                    sheetData.slice(1).forEach(rowData => {
+                        const row = tbody.insertRow();
+                        rowData.forEach((cellData, index) => {
+                            const cell = row.insertCell();
+                            if (sheetData[0][index] === 'Status') {
+                                const statusClass = getStatusColorClass(cellData);
+                                if (statusClass) {
+                                    cell.classList.add(statusClass);
+                                }
+                            }
+                            cell.textContent = cellData;
+                        });
+                    });
+                    tableContainer.innerHTML = '';
+                    tableContainer.appendChild(table);
+                });
+                sheetsDiv.appendChild(button);
+                }
+            });
+        })
+        .catch(error => console.error('Error:', error));
+
+    function getStatusColorClass(status) {
+        switch (status) {
+            case 'J':
+                return 'green';
+            case 'K':
+                return 'yellow';
+            case 'L':
+                return 'red';
+            case 'I':
+                return 'gray';
+            default:
+                return ''; // Return an empty string if status doesn't match any case
+        }
     }
 </script>
 </body>

@@ -73,6 +73,7 @@
     window.onload = setDefaultMonths;
     fetchData(); // Fetch data when the page loads initially
     var myChart; // Declare the chart variable globally
+    var specificChart;
 
     function fetchData() {
         var from_date = document.getElementById('from_date').value;
@@ -99,8 +100,9 @@
         var colors = ['red', 'yellow', 'green'];
 
         // Destroy the existing chart instance if it exists
-        if (myChart) {
+        if (myChart || specificChart) {
             myChart.destroy();
+            specificChart.destroy();
         }
 
         var ctx = document.getElementById('myChart').getContext('2d');
@@ -224,10 +226,13 @@
         };
         xhr.send();
     }
+
+	var categories;
+
     function displayChart(response) {
         const graphData = response.data;
         const labels = [...new Set(graphData.map(item => item.YearMonth))];
-        const categories = [...new Set(graphData.map(item => item.kate))];
+        categories = [...new Set(graphData.map(item => item.kate))];
 
         const dataMap = {};
 		if (monthlyChart) {
@@ -318,6 +323,203 @@
             }
         });
     }
+
+    function parseClickedPercentage(clickedPercentage) {
+        if (clickedPercentage.includes('-')) {
+            // Handle range case (e.g., "0-49")
+            const [start, end] = clickedPercentage.split('-').map(Number);
+            return function(x) {
+                return start <= x && x <= end;
+            };
+        } else if (clickedPercentage.includes('>')) {
+            // Handle "greater than" case (e.g., ">70")
+            const number = Number(clickedPercentage.split('>')[1]);
+            return function(x) {
+                return x > number;
+            };
+        } else if (clickedPercentage.includes('<')) {
+            // Handle "less than" case (e.g., "<50")
+            const number = Number(clickedPercentage.split('<')[1]);
+            return function(x) {
+                return x < number;
+            };
+        } else {
+            throw new Error("Input string format not recognized. Expected 'start-end', '>number', or '<number'.");
+        }
+    }
+
+    function comparePostotak(rowPostotak, clickedPercentage) {
+        // Parse the clickedPercentage to get a comparison function
+        const comparisonFn = parseClickedPercentage(clickedPercentage);
+        // Compare rowPostotak using the comparison function
+        return comparisonFn(rowPostotak);
+    }
+
+    var labels;
+    function displaySpecificsChart(response, clickedPercentage) {
+        var data = response.data;
+        data = data.filter(function(row) {
+            if(comparePostotak(row.Postotak, clickedPercentage))
+                return row;
+        });
+        console.log('Data:', data)
+        labels = data.map(function(row) {
+            return row.JobCode;
+        });
+
+        var postotakData = data.map(function(row, index) {
+            var color = row.Postotak > 100 ? 'rgb(255,165,0, 0.8)': row.Postotak < 50 ? 'rgba(213,20,20, 0.4)': row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0, 0.8)' : (index % 2 === 0 ? 'rgba(0,255,0,0.4)' : 'rgba(0,255,0,0.2)');
+            var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)': row.Postotak < 50 ? 'rgba(0,0,0)' : row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0)' : (index % 2 === 0 ? 'rgb(0,255,0)' : 'rgb(0,255,0)');
+
+            return {
+                value: row.Postotak,
+                color: color,
+                borderColor: borderColor
+            };
+        });
+
+        // Destroy the existing chart instance if it exists
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        specificChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Postotak',
+                    data: postotakData.map(function(item) {
+                        return item.value;
+                    }),
+                    backgroundColor: postotakData.map(function(item) {
+                        return item.color;
+                    }),
+                    borderColor: postotakData.map(function(item) {
+                        return item.borderColor;
+                    }),
+                    borderWidth: 1,
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 105,
+                        ticks: {
+                            stepSize: 10,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        titleFont: { // Set the font size for the tooltip header
+                            size: 18 // Adjust the font size as needed
+                        },
+                         bodyFont: { // Set the font size for the tooltip
+                            size: 18 // Adjust the font size as needed
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + '%';
+                                }
+                                if (context.dataset.label === 'Postotak') {
+                                    var dataPoint = data[context.dataIndex];
+                                    label += '\nBruto: ' + dataPoint.Bruto;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    document.getElementById('myChart').addEventListener('click', function(event) {
+        // Get the chart instance
+        var chartInstance = myChart; // Assuming myChart is your Chart.js instance
+        var chartSpecificInstance = specificChart;
+
+        if (chartInstance) {
+            // Get the active points from the event
+            try {
+                var activePoints = chartInstance.getElementsAtEventForMode(event, 'nearest', {intersect: true}, false);
+            } catch (error) {
+                // Get the chart instance
+                var chartInstance = chartSpecificInstance; // Assuming myChart is your Chart.js instance
+
+                // Get the active points from the event
+                var activePoints = chartInstance.getElementsAtEventForMode(event, 'nearest', {intersect: true}, false);
+
+                // If there are active points
+                if (activePoints.length > 0) {
+                    // Get the index of the clicked column
+                    var dataIndex = activePoints[0].index;
+
+                    // Get the 'JobCode' associated with the clicked column
+                    var clickedJobCode = labels[dataIndex];
+
+                    console.log(clickedJobCode); // Log the clicked 'JobCode'
+                    fetch('/get_pdf', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({label: clickedJobCode})
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.pdfBase64) {
+                                // Open the PDF in a new tab
+                                window.open('data:application/pdf;base64,' + data.pdfBase64, '_blank');
+                            } else {
+                                console.error('PDF not found for the clicked label:', clickedJobCode);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error fetching PDF:', error);
+                        });
+                    // Rest of your code...
+                }
+            }
+
+            // If there are active points
+            if (activePoints.length > 0) {
+                // Get the index of the clicked column
+                var dataIndex = activePoints[0].index;
+
+                // Get the 'JobCode' associated with the clicked column
+                var clickedPercentage = categories[dataIndex];
+
+                console.log(clickedPercentage); // Log the clicked 'JobCode'
+                var from_date = document.getElementById('from_date').value;
+                var to_date = document.getElementById('to_date').value;
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', '/potrošnja_materiala_grafi?from_date=' + from_date + '&to_date=' + to_date);
+                xhr.onload = function () {
+                    if (xhr.status === 200) {
+                        var response = JSON.parse(xhr.responseText);
+                        displaySpecificsChart(response, clickedPercentage);
+                    } else {
+                        console.error('Request failed. Status: ' + xhr.status);
+                    }
+                };
+                xhr.send();
+            }
+        }else{
+            console.log("DELA")
+        }
+    });
 </script>
 </body>
 </html>

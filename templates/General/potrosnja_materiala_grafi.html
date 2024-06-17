@@ -73,88 +73,88 @@ var labels;
     }
 	var labels;
     function displayChart(response) {
-	var data = response.data;
-	labels = data.map(function(row) {
-		return row.JobCode;
-	});
+        var data = response.data;
+        labels = data.map(function(row) {
+            return row.JobCode;
+        });
 
-    var postotakData = data.map(function(row, index) {
-        var color = row.Postotak > 100 ? 'rgb(255,165,0, 0.8)': row.Postotak < 50 ? 'rgba(213,20,20, 0.4)': row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0, 0.8)' : (index % 2 === 0 ? 'rgba(0,255,0,0.4)' : 'rgba(0,255,0,0.2)');
-        var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)': row.Postotak < 50 ? 'rgba(0,0,0)' : row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0)' : (index % 2 === 0 ? 'rgb(0,255,0)' : 'rgb(0,255,0)');
+        var postotakData = data.map(function(row, index) {
+            var color = row.Postotak > 100 ? 'rgb(255,165,0, 0.8)': row.Postotak < 50 ? 'rgba(213,20,20, 0.4)': row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0, 0.8)' : (index % 2 === 0 ? 'rgba(0,255,0,0.4)' : 'rgba(0,255,0,0.2)');
+            var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)': row.Postotak < 50 ? 'rgba(0,0,0)' : row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0)' : (index % 2 === 0 ? 'rgb(0,255,0)' : 'rgb(0,255,0)');
 
-        return {
-            value: row.Postotak,
-            color: color,
-            borderColor: borderColor
-        };
-    });
+            return {
+                value: row.Postotak,
+                color: color,
+                borderColor: borderColor
+            };
+        });
 
-    // Destroy the existing chart instance if it exists
-    if (myChart) {
-        myChart.destroy();
-    }
+        // Destroy the existing chart instance if it exists
+        if (myChart) {
+            myChart.destroy();
+        }
 
-    var ctx = document.getElementById('myChart').getContext('2d');
-    myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Postotak',
-                data: postotakData.map(function(item) {
-                    return item.value;
-                }),
-                backgroundColor: postotakData.map(function(item) {
-                    return item.color;
-                }),
-                borderColor: postotakData.map(function(item) {
-                    return item.borderColor;
-                }),
-                borderWidth: 1,
-            }]
-        },
-        options: {
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 105,
-                    ticks: {
-                        stepSize: 10,
-                        callback: function(value) {
-                            return value + '%';
+        var ctx = document.getElementById('myChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Postotak',
+                    data: postotakData.map(function(item) {
+                        return item.value;
+                    }),
+                    backgroundColor: postotakData.map(function(item) {
+                        return item.color;
+                    }),
+                    borderColor: postotakData.map(function(item) {
+                        return item.borderColor;
+                    }),
+                    borderWidth: 1,
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 105,
+                        ticks: {
+                            stepSize: 10,
+                            callback: function(value) {
+                                return value + '%';
+                            }
                         }
                     }
-                }
-            },
-            plugins: {
-                tooltip: {
-                    titleFont: { // Set the font size for the tooltip header
-                        size: 18 // Adjust the font size as needed
-                    },
-                     bodyFont: { // Set the font size for the tooltip
-                        size: 18 // Adjust the font size as needed
-                    },
-                    callbacks: {
-                        label: function(context) {
-                            var label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
+                },
+                plugins: {
+                    tooltip: {
+                        titleFont: { // Set the font size for the tooltip header
+                            size: 18 // Adjust the font size as needed
+                        },
+                         bodyFont: { // Set the font size for the tooltip
+                            size: 18 // Adjust the font size as needed
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + '%';
+                                }
+                                if (context.dataset.label === 'Postotak') {
+                                    var dataPoint = data[context.dataIndex];
+                                    label += '\nBruto: ' + dataPoint.Bruto;
+                                }
+                                return label;
                             }
-                            if (context.parsed.y !== null) {
-                                label += context.parsed.y + '%';
-                            }
-                            if (context.dataset.label === 'Postotak') {
-                                var dataPoint = data[context.dataIndex];
-                                label += '\nBruto: ' + dataPoint.Bruto;
-                            }
-                            return label;
                         }
                     }
                 }
             }
-        }
-    });
-}
+        });
+    }
 
 
     function displayDataFrame(data) {

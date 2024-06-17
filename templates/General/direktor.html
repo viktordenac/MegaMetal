@@ -114,7 +114,7 @@
         </div>
         <br>
         <div id="container">
-            <h1>Prikaz verzug liste</h1>
+            <h1>Verzug lista - Zamuja kupcu</h1>
             <div id="sheets"></div>
             <div id="table-container"></div>
         </div>
@@ -826,7 +826,7 @@
             sheetNames.forEach(sheetName => {
                 if (sheetName === 'Kasni kupcu') {
                     const button = document.createElement('button');
-                button.textContent = sheetName;
+                button.textContent = 'Zamuja kupcu';
                 console.log('Sheet name:', sheetName)
                 button.addEventListener('click', () => {
                     const sheetData = sheetsData[sheetName];
@@ -857,6 +857,7 @@
                     tableContainer.appendChild(table);
                 });
                 sheetsDiv.appendChild(button);
+                button.click();
                 }
             });
         })

@@ -782,6 +782,16 @@ def grupiranje_materiala_table():
         delavec_result = db.session.execute(text(vsi_delavci))
         delavec_columns = delavec_result.keys()
         delavec_data = pd.DataFrame(delavec_result.fetchall(), columns=delavec_columns)
+        delavec_data['Mjesto'] = delavec_data['Mjesto'].replace({
+            'Varenje': 'Varjenje',
+            'Zarenje': 'Zarjenje',
+            'Sastavljanje': 'Sestavljanje',
+            'Pjeskarenje i Bojanje': 'Peskanje in barvanje',
+            'Kontrola i ravnanje': 'Kontrola in ravnanje',
+            'Sastava': 'Sestava',
+            'Mehanska': 'Mehanska obdelava',
+        })
+
         delavec_data['postotak'] = ((delavec_data['postotak'])*100).round(2)
 
         # Creating a DataFrame from the SQL rezultat_vseh_identov
@@ -876,7 +886,7 @@ def produktivnost_grafi_load():
     # Prepare data for the table
     table_data = [
         {
-            'MJESEC_GODINA': data[0] if data[0] else "",
+            'DATUM': data[0] if data[0] else "",
             'MJESTO': data[1],
             'average_produktivnost': data[2] if not np.isnan(data[2]) else 0
         }
@@ -2346,9 +2356,15 @@ def get_table_data():
     rezultat_vseh_identov = db.session.execute(text(fix_select), {'label': label})
     columns_vseh_identov = rezultat_vseh_identov.keys()
     df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
-    df = df.rename(columns={'realizirana_tezina': 'Tjedan Realizacije'})
+    df = df.rename(columns={
+        'realizirana_tezina': 'TEDEN REALIZACIJE',
+        'IZNOS': 'ZNESEK',
+        'TEZINA': 'TEŽINA',
+        'TJEDAN': 'TEDEN',
+        'realizirani_iznos': 'REALIZIRAN ZNESEK'
+    })
     html_table = df.to_html(index=False)    # For demonstration, let's just return a sample table data.
-    column_names = ["IDRN", "IZNOS", "TEZINA", "TJEDAN", "realizirani_iznos", "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"]
+    column_names = ["IDRN", "ZNESEK", "TEŽINA", "TEDEN", "REALIZIRAN ZNESEK", "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"]
 
     # Generate the filter row
     filter_row = generate_filter_row(column_names)
@@ -2374,7 +2390,13 @@ def get_table_data_mj():
     rezultat_vseh_identov = db.session.execute(text(fix_select), {'label': label})
     columns_vseh_identov = rezultat_vseh_identov.keys()
     df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
-    df = df.rename(columns={'realizirana_tezina': 'Mjesec Realizacije'})
+    df = df.rename(columns={
+        'realizirana_tezina': 'MESEC REALIZACIJE',
+        'IZNOS': 'ZNESEK',
+        'TEZINA': 'TEŽINA',
+        'MJESEC': 'MESEC',
+        'realizirani_iznos': 'REALIZIRAN ZNESEK'
+    })
 
     html_table = df.to_html(index=False)    # For demonstration, let's just return a sample table data.
     return render_template('General/compare_data_precise/fix_pl_table_mj.html', table_data=html_table, mesec=label)

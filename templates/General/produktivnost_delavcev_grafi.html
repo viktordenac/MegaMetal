@@ -208,7 +208,13 @@
             tableHtml = '<table border="1">';
             tableHtml += '<tr>';
             for (var key in data[0]) {
-                tableHtml += '<th>' + key + '</th>';
+                if (key === 'MJESEC_GODINA') {
+                    tableHtml += '<th>' + "DATUM" + '</th>';
+                }else if (key === 'average_produktivnost') {
+                    tableHtml += '<th>' + "POVPREČNA PRODUKTIVNOST" + '</th>';
+                } else {
+                    tableHtml += '<th>' + key + '</th>';
+                }
             }
             tableHtml += '</tr>';
 
@@ -216,6 +222,7 @@
             data.forEach(function(item) {
                 tableHtml += '<tr>';
                 for (var key in item) {
+                    console.log("KEY", key)
                     // Check if the value is a date and format it if necessary
                     if (key === 'MJESEC_GODINA') {
                         tableHtml += '<td>' + formatDate(item[key]) + '</td>';

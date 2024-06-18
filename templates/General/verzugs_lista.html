@@ -33,7 +33,7 @@
 <body>
 
     <div id="container">
-        <h1>Prikaz verzug liste</h1>
+        <h1>Prikaz verzug seznama</h1>
         <div id="sheets"></div>
         <div id="table-container"></div>
     </div>
@@ -85,14 +85,15 @@
         .catch(error => console.error('Error:', error));
 
     function getStatusColorClass(status) {
+        console.log(status)
         switch (status) {
             case 'J':
                 return 'green';
-            case 'K':
+            case 'V fazi priprave':
                 return 'yellow';
             case 'L':
                 return 'red';
-            case 'I':
+            case 'Ni se še začelo':
                 return 'gray';
             default:
                 return ''; // Return an empty string if status doesn't match any case

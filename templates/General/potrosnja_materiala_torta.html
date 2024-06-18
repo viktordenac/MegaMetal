@@ -188,7 +188,7 @@
 
 
     function displayDataTable(tableData) {
-        var table = "<table><tr><th>Group</th><th>Average</th></tr>";
+        var table = "<table><tr><th>Skupina</th><th>Povprečje</th></tr>";
         for (var key in tableData) {
             if (tableData.hasOwnProperty(key)) {
                 table += "<tr style='background-color: " + tableData[key].color + "'><td>" + key + "</td><td>" + tableData[key].percentage + "%</td></tr>";

@@ -100,7 +100,7 @@ var labels;
             data: {
                 labels: labels,
                 datasets: [{
-                    label: 'Postotak',
+                    label: 'Postotek',
                     data: postotakData.map(function(item) {
                         return item.value;
                     }),
@@ -143,7 +143,7 @@ var labels;
                                 if (context.parsed.y !== null) {
                                     label += context.parsed.y + '%';
                                 }
-                                if (context.dataset.label === 'Postotak') {
+                                if (context.dataset.label === 'Postotek') {
                                     var dataPoint = data[context.dataIndex];
                                     label += '\nBruto: ' + dataPoint.Bruto;
                                 }

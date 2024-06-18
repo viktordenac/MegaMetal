@@ -25,12 +25,12 @@
         <h1>Upravljanje uporabnikov</h1>
 
         <h2>Uporabniki</h2>
-        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Search for usernames.." autocomplete="off">
+        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Iskanje uporabniškega imena.." autocomplete="off">
         <div class="table-container">
             <table id="myTable">
                 <thead>
                     <tr>
-                        <th>Username</th>
+                        <th>Uporabniško ime</th>
                         <th>grafi</th>
                         <th>po_identu</th>
                         <th>torta</th>
@@ -50,7 +50,7 @@
                         <th>produktivnost_pozicije</th>
                         <th>top_user</th>
                         <th>direktor</th>
-                        <th class="edit-column">Edit</th>
+                        <th class="edit-column">Uredi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -60,7 +60,7 @@
                         {% for privilege in ['grafi', 'po_identu', 'torta','oee', 'planiranje_proizvodnje', 'normativi', 'verzug_lista', 'kapaciteta', 'izmene', 'evidenca_ur', 'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi', 'mm2Alat', 'fix_plan','produktivnost', 'produktivnost_pozicije', 'top_user','direktor'] %}
                         <td><label for="{{ privilege }}"></label><input id="{{ privilege }}" type="checkbox" {% if user.Stranice is not none and privilege in user.Stranice %}checked{% endif %} disabled></td>
                         {% endfor %}
-                        <td class="edit-column"><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Edit</button></td>
+                        <td class="edit-column"><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Uredi</button></td>
                     </tr>
                     {% endfor %}
                 </tbody>

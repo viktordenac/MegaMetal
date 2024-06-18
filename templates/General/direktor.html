@@ -11,12 +11,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        #prikazButton {
-            margin-left: 15vw;
-        }
-        #form-container {
-            margin-left: 15vw;
-        }
+
         h1 {
             margin-left: 15vw;
         }
@@ -114,7 +109,7 @@
         </div>
         <br>
         <div id="container">
-            <h1>Verzug lista - Zamuja kupcu</h1>
+            <h1>Verzug seznam - Zamuja kupcu</h1>
             <div id="sheets"></div>
             <div id="table-container"></div>
         </div>
@@ -156,13 +151,13 @@
                 var chartData = {
                     labels: data.pl_kw_values,
                     datasets: [{
-                        label: 'PLANIRANI IZNOS',
+                        label: 'PLANIRANI ZNESEK',
                         data: data.pl_iznos_values,
                         backgroundColor: 'rgba(255, 99, 132, 0.2)',
                         borderColor: 'rgba(255, 99, 132, 1)',
                         borderWidth: 1,
                     }, {
-                        label: 'REALIZIRANI IZNOS',
+                        label: 'REALIZIRANI ZNESEK',
                         data: data.real_iznos_values,
                         backgroundColor: 'rgba(54, 162, 235, 0.2)',
                         borderColor: 'rgba(54, 162, 235, 1)',
@@ -238,6 +233,19 @@
             xhr.send();
         }
     });
+
+    function displayHTMLTableInNewTab(htmlContent) {
+        // Open a new tab with the HTML content
+        var newTab = window.open();
+
+        // Modify the HTML content to make it prettier and remove the first column
+        var modifiedHtmlContent = htmlContent.replace('<table border="1">', '<table style="border-collapse: collapse; width: 100%;">')
+                                             .replace(/<th>0<\/th>/g, '') // Remove the first column header
+                                             .replace(/<td>0<\/td>/g, ''); // Remove the first column values
+
+        newTab.document.write(modifiedHtmlContent);
+        newTab.document.close();
+    }
 
     function switchDisplay(button) {
         if (button.innerHTML === "Prikaz po tednih") {

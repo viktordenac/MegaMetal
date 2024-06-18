@@ -93,7 +93,7 @@
     }
 
     function displayMachineDataTable(data) {
-        var table = "<table><thead><tr><th>Machine name</th><th>Dostupne ure</th><th>Efektivne ure</th><th>Porabljeni čas</th><th>OEU</th><th>OEE</th></tr></thead>";
+        var table = "<table><thead><tr><th>Ime naprave</th><th>Dostopne ure</th><th>Efektivne ure</th><th>Porabljeni čas</th><th>OEU</th><th>OEE</th></tr></thead>";
         data.forEach(function(row) {
             table += "<tr><td>" + row["Machine name"] + "</td><td>" + row["Dostupne ure"] + "</td><td>" + row["Efektivne ure"] + "</td><td>" + row["Porabljeni čas"] + "</td><td>" + row["OEU"] + "</td><td>" + row["OEE"] + "</td></tr>";
         });

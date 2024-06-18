@@ -6,17 +6,20 @@
     <title>Mesečni fiksni načrt</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="../../static/style/fix-plan.css">
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+
 </head>
 <body>
+    {% include 'navigation.html' %}
+    <div class="content">
+        <div id="refresh-container">
+            <button id="refresh-button" type="submit">Osveži</button>
+        </div>
 
-{% include 'navigation.html' %}
-<div id="refresh-container">
-        <button id="refresh-button" type="submit">Osveži</button>
+        <canvas id="comparisonChart" class="graph-canvas"></canvas>
+        <canvas id="comparisonChart2" class="graph-canvas"></canvas>
+        <div id="loading" style="display: none;">Nalaganje, prosim počakajte...</div>
     </div>
-
-<canvas id="comparisonChart" class="graph-canvas"></canvas>
-<canvas id="comparisonChart2" class="graph-canvas"></canvas>
-<div id="loading" style="display: none;">Nalaganje, prosim počakajte...</div>
 
 <script>
     function loadingScreen(event, script, buttonText) {
@@ -99,13 +102,13 @@
         data: {
             labels: plKwValues,
             datasets: [{
-                label: 'PLANIRANI IZNOS',
+                label: 'PLANIRAN ZNESEK',
                 data: plIznosValues,
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1,
             }, {
-                label: 'REALIZIRANI IZNOS',
+                label: 'REALIZIRAN ZNESEK',
                 data: realIznosValues,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',
@@ -150,13 +153,13 @@
         data: {
             labels: plKwValues,
             datasets: [{
-                label: 'PLANIRANA TEZINA',
+                label: 'PLANIRANA TEŽINA',
                 data: plTezinaValues,
                 backgroundColor: 'rgba(255, 99, 132, 0.2)',
                 borderColor: 'rgba(255, 99, 132, 1)',
                 borderWidth: 1
             }, {
-                label: 'REALIZIRANA TEZINA',
+                label: 'REALIZIRANA TEŽINA',
                 data: realTezinaValues,
                 backgroundColor: 'rgba(54, 162, 235, 0.2)',
                 borderColor: 'rgba(54, 162, 235, 1)',

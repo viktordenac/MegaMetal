@@ -150,18 +150,18 @@
         <h1>Upravljanje uporabnikov</h1>
 
     <h2>Uporabniki</h2>
-        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Search for usernames.." autocomplete="off">
+        <label for="inputID_rn"></label><input type="text" id="inputID_rn" onkeyup="filterTable()" placeholder="Iskanje imen.." autocomplete="off">
     <div class="table-container">
         <table id="myTable">
             <thead>
                 <tr>
                     <th>Ime</th>
-                    <th>Username</th>
+                    <th>Uporabniško ime</th>
                     <th>Kartica</th>
-                    <th>Mjesto</th>
-                    <th>Combined</th>
-                    <th>Password</th>
-                    <th>Password Last Updated</th>
+                    <th>Mesto</th>
+                    <th>Združeno</th>
+                    <th>Geslo</th>
+                    <th>Geslo posodobljeno</th>
                     <th>Uredi</th>
                     <th>Odstrani</th>
                 </tr>
@@ -176,19 +176,19 @@
                     <td>{{ user.Kombinirani }}</td>
                     <td>{{ user.Password }}</td>
                     <td>{{ user.Datexp }}</td>
-                    <td><button id="edit-button" onclick="showEditForm(); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}','{{ user.Kartica_value }}', '{{ user.Mjesto }}', '{{ user.Kombinirani }}', '{{ user.Password }}', '{{ user.Datexp }}')">Edit</button></td> <!-- Add Edit button -->
-                    <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}', '{{ user.Kartica }}')">Delete</button></td>
+                    <td><button id="edit-button" onclick="showEditForm('Uredi Uporabnika'); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}','{{ user.Kartica_value }}', '{{ user.Mjesto }}', '{{ user.Kombinirani }}', '{{ user.Password }}', '{{ user.Datexp }}')">Uredi</button></td> <!-- Add Edit button -->
+                    <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}', '{{ user.Kartica }}')">Izbriši</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <button id="add-user-button" onclick="showEditForm('','','','','','','')">Dodaj uporabnika</button>
+    <button id="add-user-button" onclick="showEditForm('Dodaj Uporabnika','','','','','','','')">Dodaj uporabnika</button>
 <!-- Edit form container -->
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
-        <h2>Uredi Uporabnika</h2>
+        <h2 id="formTitle"></h2>
         <form action="/add_or_edit_user" method="post" id="editForm">
             <label for="editName">Ime:</label>
             <input type="text" id="editName" name="name" required><br>
@@ -208,7 +208,7 @@
             <input type="date" id="editDatexp" name="datexp"><br>
             <!-- Add more input fields for other user attributes -->
 
-            <input type="submit" value="Dodaj/Uredi Uporabnika" onclick="confirmEdit()">
+            <input type="submit" value="POTRDI" onclick="confirmEdit()">
         </form>
 
     </div>
@@ -327,8 +327,9 @@
 
 
     // Function to show edit form and populate fields
-    function showEditForm(name, username, kartica, novaKartica, mjesto, password, datexp) {
+    function showEditForm(title, name, username, kartica, novaKartica, mjesto, password, datexp) {
         // Populate form fields
+        document.getElementById("formTitle").textContent = title;
         document.getElementById("editName").value = name;
         document.getElementById("editUsername").value = username;
         document.getElementById("editKartica").value = kartica;

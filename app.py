@@ -545,7 +545,6 @@ def potrosnja_materiala_grafi():
 
     if result:
         data = []
-        #print("Rows found for date range:", from_date_str, "to", to_date_str)
         # Formatting the results
         for row in result:
             try:
@@ -558,7 +557,6 @@ def potrosnja_materiala_grafi():
                 "Postotak": row.Postotak,
                 "Bruto": row.Bruto,
             })
-            #print(row.JobCode, row.DateCreated, row.Postotak)
         result_dicts = [obj.__dict__ for obj in result]
         df = pd.DataFrame(result_dicts)
         df = df.drop('_sa_instance_state', axis=1)
@@ -584,7 +582,6 @@ def potrosnja_materiala_grafi():
         new_df = pd.concat([new_df, new_row], ignore_index=True)
         return jsonify({"data": data, "df": new_df.to_json(orient='records')})
     else:
-        #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
 
 def file_to_base64(file_path):
@@ -601,7 +598,6 @@ def get_pdf():
     number = filename.split('.')[0]
     pattern = os.path.join(pdf_directory, f'*{number}*.pdf')
     matching_files = glob.glob(pattern)
-    print(matching_files[0])
 
     if matching_files:
         # Assuming you want to read the first matching file and encode it to base64
@@ -613,7 +609,6 @@ def get_pdf():
         return jsonify({'error': 'PDF not found for the label'}), 404
 
 def categorize_postotak(value):
-    print(value)
     try:
         if value < 49:
             return '0-49'
@@ -641,10 +636,8 @@ def potrosnja_materiala_mj():
     result = TREZ_TIME.query.filter(TREZ_TIME.DateCreated.between(from_date, to_date)).all()
     if result:
         data = []
-        #print("Rows found for date range:", from_date_str, "to", to_date_str)
         # Formatting the results
         for row in result:
-            #print(row)
             try:
                 row.Postotak = int(row.Postotak * 100)
             except:
@@ -655,7 +648,6 @@ def potrosnja_materiala_mj():
                 "Postotak": row.Postotak,
                 "Bruto": row.Bruto,
             })
-            #print(row.JobCode, row.DateCreated, row.Postotak)
         result_dicts = [obj.__dict__ for obj in result]
         df = pd.DataFrame(result_dicts)
         df = df.drop('_sa_instance_state', axis=1)
@@ -702,11 +694,9 @@ def potrosnja_materiala_mj():
         #grouped_df['AveragePostotak']=grouped_df['SumBruto1']/grouped_df['SumBruto']
         grouped_df = grouped_df.drop('SumBruto1', axis=1)
         grouped_df = grouped_df.drop('SumBruto', axis=1)
-        print(grouped_df)
         json_data = grouped_df.to_dict(orient='records')
         return jsonify({"data": json_data})
     else:
-        #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
 
 
@@ -716,7 +706,6 @@ def grupiranje_materiala_table():
         return jsonify({"error": "Not authenticated"})
 
     documentId = request.form.get('documentInput')
-    print("AAAAAA", documentId)
 
     try:
         # Fetch data from the database
@@ -760,19 +749,15 @@ def grupiranje_materiala_table():
             columns_vseh_identov = rezultat_vseh_identov.keys()
             df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
             df1 = pd.DataFrame(rezultat_delov_identov.fetchall(), columns=columns_delov_identov)
-            print("Initial df:", df)
             df1['parent_ident'] = df1['IDENT'].apply(lambda x: '-'.join(x.split('-')[:2]) if len(x.split('-')) > 1 else x)
             filtered_df = df1[df1['parent_ident'] == documentId]
             filtered_df_parent = df[df['ident'] == documentId]
-            print("Filtered df:", filtered_df)
-            print("Filtered df parent:", filtered_df_parent)
             document_id_ident = filtered_df.sort_values(by='postotak', ascending=False)
             document_id_ident['postotak'] = ((document_id_ident['postotak'])*100).round(2)
             document_id_ident = document_id_ident.to_dict(orient='records')
             sum_document_id_ident = filtered_df_parent
             sum_document_id_ident.loc[:, 'produktivnost'] = (sum_document_id_ident['produktivnost'] * 100).round(2)
             sum_document_id_ident = sum_document_id_ident.to_dict(orient='records')
-            print("Selected ident:", filtered_df)
 
         rezultat_delov_identov = db.session.execute(text(vsi_deli_identov))
         columns_delov_identov = rezultat_delov_identov.keys()
@@ -866,7 +851,6 @@ def produktivnost_grafi_load():
     # Convert date strings to datetime objects
     from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
     to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
-    print(from_date)
     import numpy as np
     grouped_data = (db.session.query(
         TBA_REAL.MJESEC_GODINA,
@@ -880,9 +864,6 @@ def produktivnost_grafi_load():
     ).order_by(
         TBA_REAL.MJESEC_GODINA
     ).all())
-    for entry in grouped_data:
-        print(
-            f"DATE: {entry.MJESEC_GODINA}, Place: {entry.MJESTO}, Average Productivity: {entry.average_produktivnost}")
     # Prepare data for the table
     table_data = [
         {
@@ -892,7 +873,6 @@ def produktivnost_grafi_load():
         }
         for data in grouped_data
     ]
-    print("Table data:", table_data)
 
     # Prepare data for the graph
     graph_data = {}
@@ -922,14 +902,9 @@ def produktivnost_grafi_load():
 
         # Get unique labels for the graph
         labels = list(graph_data.keys())
-        print(labels)
-        print(graph_data)
-        print(table_data)
-        print("COLORS: ", unique_places)
 
         return jsonify({"table_data": table_data, "graph_data": graph_data, "colors": colors, "labels": labels})
     else:
-        #print("No rows found for date range:", from_date_str, "to", to_date_str)
         return jsonify({"error": "No data found"})
 
 
@@ -956,10 +931,7 @@ def produktivnost_table_load():
     # Convert date strings to datetime objects
     from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
     to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
-    print("AAAAA")
-    print(from_date)
-    print(to_date)
-    print("AAAAA")
+
     import numpy as np
     # Assuming TBA_REAL is your model and db is your SQLAlchemy session
     grouped_data = db.session.query(
@@ -971,9 +943,9 @@ def produktivnost_table_load():
     ).order_by(
         TBA_REAL.PRODUKTIVNOST_GRUPE.desc()
     ).all()
-    print("Table data:")
-    for data in grouped_data:
-        print(str(data).encode('utf-8'))
+    # print za encode
+    # for data in grouped_data:
+    #     print(str(data).encode('utf-8'))
 
     df = pd.DataFrame(grouped_data, columns=['MJESEC_GODINA', 'DELAVEC', 'PRODUKTIVNOST_GRUPE'])
     df_grouped = df.groupby(['MJESEC_GODINA', 'DELAVEC'])['PRODUKTIVNOST_GRUPE'].mean().reset_index()
@@ -1011,8 +983,6 @@ def produktivnost_grafi_delavec_load():
     to_date_temp = datetime.strptime(to_date_str, '%Y-%m')
     last_day_of_month = calendar.monthrange(to_date_temp.year, to_date_temp.month)[1]
     to_date = to_date_temp.replace(day=last_day_of_month)
-    print(from_date)
-    print(to_date)
 
     import numpy as np
     # Assuming TBA_REAL is your model and db is your SQLAlchemy session
@@ -1025,12 +995,6 @@ def produktivnost_grafi_delavec_load():
     ).order_by(
         TBA_REAL.PRODUKTIVNOST_GRUPE.desc()
     ).all()
-
-    nekaj = "DELAVEC: " + delavec
-    print(str(nekaj).encode('utf-8'))
-    print("Table data:")
-    for data in grouped_data:
-        print(str(data).encode('utf-8'))
 
     df = pd.DataFrame(grouped_data, columns=['MJESEC_GODINA', 'DELAVEC', 'PRODUKTIVNOST_GRUPE'])
     df_grouped = df.groupby(['MJESEC_GODINA', 'DELAVEC'])['PRODUKTIVNOST_GRUPE'].mean().reset_index()
@@ -1046,9 +1010,6 @@ def produktivnost_grafi_delavec_load():
         }
         for index, row in filtered_df.iterrows()
     ]
-    print("Table data:")
-    for data in table_data:
-        print(str(data).encode('utf-8'))
 
     if table_data:
         return jsonify({"delavecPodatki": table_data})
@@ -1172,11 +1133,9 @@ def add_or_edit_user():
     # Check if a user with the provided Kartica already exists
     existing_user = TBA_RAD.query.filter_by(Kartica=kartica).first()
     if existing_user:
-        # print(existing_user.Username)
         # User already exists, return a JSON response indicating the existence and providing the username
         return jsonify({'exists': True, 'username': existing_user.Username})
     else:
-        # print("User does not exist.")
         # User does not exist, proceed with adding the user
         return jsonify({'exists': False})
 
@@ -1232,7 +1191,6 @@ def edit_user():
             user.Datexp = request.form.get('datexp')
         else:
             user.Datexp = None
-        print(user.Kombinirani)
         db.session.commit()
         return jsonify({'success': True})
     else:
@@ -1346,9 +1304,6 @@ def planiranjePripravnegaDela():
     from_date_str = request.args.get('from_date', None)
     to_date_str = request.args.get('to_date', None)
     checkbox = request.args.get('checkbox', 'false')
-    print(checkbox)
-    print(from_date_str)
-    print(to_date_str)
 
     # If dates are not provided, use default values (e.g., current month)
     if from_date_str and to_date_str:
@@ -1364,8 +1319,6 @@ def planiranjePripravnegaDela():
         from_date = datetime(current_year, 1, 1)
         to_date = datetime(current_year, 12, 31)
 
-    print(from_date)
-    print(to_date)
 
     # Query to get records within the date range
     if checkbox == "true":
@@ -1379,7 +1332,6 @@ def planiranjePripravnegaDela():
                 .filter(TPRO_PLAN.STVARNA_ISPORUKA.is_(None))  # Check for NULL values
                 .order_by(TPRO_PLAN.DAT_ISPO.asc())
                 .all())
-    print(rows)
 
     # Get column names from the SQLAlchemy model
     columns = [column.key for column in TPRO_PLAN.__table__.columns]
@@ -1403,7 +1355,6 @@ def planiranjePripravnegaDela():
 
     # Create DataFrame from the dictionary
     df = pd.DataFrame(data)
-    #print(df)
 
     # Sorting
     column_to_sort = request.args.get('sort_by', None)
@@ -1480,9 +1431,6 @@ def planiranjePripravnegaDelaLoad():
                     surfix = parts[0]
                 column_groups.append({'prefix': prefix, 'columns': [surfix]})
 
-        # for group in column_groups:
-        #     print(group['prefix'], group['columns'])
-
         # Fetch rows from the TPRO_PLAN table
         rows = TPRO_PLAN.query.order_by(asc(TPRO_PLAN.ID_PK)).all()
         user_role = session["role"]
@@ -1504,7 +1452,6 @@ def planiranjePripravnegaDelaLoad():
 
         end_time = time.time()  # Record the end time
         execution_time = end_time - start_time  # Calculate the execution time
-        print(f"Execution time: {execution_time:.4f} seconds")  # Print the execution time
 
         # Return the JSON response with column groups
         return jsonify({'column_groups': column_groups, 'data': data, 'role': user_role, 'execution_time': execution_time})
@@ -1558,7 +1505,6 @@ def validate_and_format_date(date_str):
 def update_planiranje_pripravnega_Dela():
     import datetime
     updated_data = request.json
-    #print(updated_data)
     podatki_stranice = updated_data['data']
     id_rn = updated_data['data'][6]
     record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
@@ -1578,9 +1524,7 @@ def update_planiranje_pripravnega_Dela():
                 modified_record_list.append(item.strftime('%m/%d/%Y'))  # Format date
         else:
             modified_record_list.append(item)
-    #print(modified_record_list)
     differences = [i for i, (x, y) in enumerate(zip(podatki_stranice, modified_record_list)) if str(x) != str(y)]
-    #print("Indexes with different values:", differences)
     converted_records = []
     for date_str in modified_record_list:
         try:
@@ -1608,9 +1552,7 @@ def update_planiranje_pripravnega_Dela():
         for value in podatki_stranice:
             formatted_value = validate_and_format_date(value)
             modified_record_list.append(formatted_value if formatted_value else value)
-        #modified_record_list=podatki_stranice
-        #print(modified_record_list)
-        print("RRRRRRRRRRRRRRRRRRRRRRRRRR")
+
     # Ako je izmjenjen datum OD
     if differences[0] in list_to_change_od:
         for i in filtered_list_od:
@@ -1673,35 +1615,22 @@ def update_planiranje_pripravnega_Dela():
         mjenjan=1
         modified_record_list[53]=podatki_stranice[53]
         for i in reversed(indexes):
-            #print("i,",i)
             if i % 2 == 0:
-                print("==0")
                 if str(modified_record_list[i+3])=='None':
                     new_date_object_do=datetime.datetime.strptime(modified_record_list[i+7], date_format)-timedelta(days=1)
-                    #print(new_date_object_do)
                     podatki_stranice[i]=new_date_object_do
-                    #print(i)
                 if str(modified_record_list[i + 3]) != 'None':
-                    #print("!=NONE")
-                    #print(modified_record_list[i+3])
                     try:
                         new_date_object_do=modified_record_list[i+3]-timedelta(days=1)
                     except:
                         new_date_object_do=datetime.datetime.strptime(modified_record_list[i + 3], date_format)
-                    #print(new_date_object_do)
                     podatki_stranice[i]=new_date_object_do
-                    #print(i)
                 while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
                     new_date_object_do -= timedelta(days=1)
                 modified_record_list[i] =new_date_object_do
             if i % 2 == 1:
                 if str(modified_record_list[i+1])!='None':
-                    #print("aaaasdasdasdasdasdasd")
-                    #print(i)
-                    #print(modified_record_list[i+1])
-                    #print(modified_record_list[i+2]-1)
                     new_date_object_od=modified_record_list[i+1] - timedelta(modified_record_list[i+2]-1)
-                    #print(new_date_object_od)
                     while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
                         new_date_object_od -= timedelta(days=1)
                     modified_record_list[i] = new_date_object_od
@@ -1734,13 +1663,11 @@ def update_planiranje_pripravnega_Dela():
         modified_record_list[53] = modified_record_list[53].strftime("%d/%m/%Y")
     for i in list_to_change_status:
         modified_record_list[i] = podatki_stranice[i]
-        print(i)
     if 1==1:
         try:
             # Dynamically assign values from the list to model attributes
             for attr, value in zip(TPRO_PLAN.__table__.columns.keys(), modified_record_list):
                 setattr(record, attr, value)
-                #print(value)
             db.session.commit()
         except Exception as e:
             print(e)
@@ -1887,8 +1814,6 @@ def user_roles():
     # If there are new usernames, you may need to insert them into TBA_RAD
 
     # Log to verify the new usernames
-    print("Old Usernames:", old_usernames)
-    print("New Usernames:", new_usernames)
     for username in new_usernames:
         new_entry = TBA_PRAVA(Username=username)
         db.session.add(new_entry)
@@ -1961,11 +1886,9 @@ def MM2Alat():
 def add_or_edit_alat():
     # Get data from the form submission
     pk = request.form.get('PK')
-    print(pk)
     # Check if a user with the provided Kartica already exists
     try:
         existing_alat = TBA_ALAT.query.filter_by(PK=pk).first()
-        print(existing_alat)
         if existing_alat:
             return jsonify({'success': False, 'error': 'User already exists.'})
     except:
@@ -2222,10 +2145,6 @@ def compare_data_mj():
     neki_iznos_values = [item[1] for item in neki_data]
     neki_tezina_values = [item[2] for item in neki_data]
 
-    print(neki_kw_values)
-    print(neki_iznos_values)
-    print(neki_tezina_values)
-
     stranice_list = session["stranice"]
     return render_template("General/compare_data_mj.html",
                            pl_kw_values=pl_kw_values, pl_iznos_values=pl_iznos_values, pl_tezina_values=pl_tezina_values,
@@ -2267,10 +2186,6 @@ def filter_data_mj():
     neki_kw_values = [item[0] for item in neki_data]
     neki_iznos_values = [item[1] for item in neki_data]
     neki_tezina_values = [item[2] for item in neki_data]
-
-    print(neki_kw_values)
-    print(neki_iznos_values)
-    print(neki_tezina_values)
 
     # Construct JSON response
     filtered_data = {
@@ -2469,10 +2384,8 @@ def action_plans():
 
 @app.route('/update_action_plan/<int:id>', methods=['POST'])
 def update_action_plan(id):
-    print(request.method)
     action_plan = ACTION_PLAN.query.get_or_404(id)
     if request.method == 'POST':
-        print(request.form['activity'])
         action_plan.ACTIVITY = request.form['activity']
         action_plan.RESPONSIBLE = request.form['responsible']
         action_plan.DEPARTMENT = request.form['department']
@@ -2481,7 +2394,6 @@ def update_action_plan(id):
         action_plan.PROGRESS = request.form['progress']
         action_plan.RESULTS = request.form['results']
         db.session.commit()
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         return redirect(url_for('action_plans'))
 
 
@@ -2499,7 +2411,6 @@ def add_action_plan():
             #STATUS=request.form['status'],
             RESULTS=request.form['results']
         )
-        print(new_plan)
 
         db.session.add(new_plan)
         db.session.commit()
@@ -2525,8 +2436,6 @@ def direktorLoadGrafi():
     monthOrWeek = request.args.get('monthOrWeek')
     from_week = request.args.get('from')  # Default to week 1 if 'from' is not provided
     to_week = request.args.get('to')  # Default to week 52 if 'to' is not provided
-    print("From:", from_week)
-    print("To:", to_week)
 
     # Calculate the start and end weeks of the current month
     start_week = datetime(current_year, current_month, 1).isocalendar()[1]

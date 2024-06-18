@@ -100,8 +100,10 @@
         var colors = ['red', 'yellow', 'green'];
 
         // Destroy the existing chart instance if it exists
-        if (myChart || specificChart) {
+        if (myChart) {
             myChart.destroy();
+        }
+        if (specificChart){
             specificChart.destroy();
         }
 

@@ -196,7 +196,7 @@
             <div class="dropdownIdNr">
                 <label for="documentID"></label><input type="text" id="documentID" oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown', true)" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
                 <div id="delovniNalogDropdown" class="dropdown-content">
-                    {% for idRadnogNaloga in radniNalogi %}
+                    {% for idRadnogNaloga in radniNalogiKG %}
                         <a class="dropdown-option-id-rn" onclick="selectOption('{{ idRadnogNaloga }}', 'documentID', 'delovniNalogDropdown')">{{ idRadnogNaloga }}</a>
                     {% endfor %}
                 </div>

@@ -65,9 +65,20 @@
     <a href="#">Normativi</a>
     {% endif %}
 
-    <!-- Kapaciteta link -->
-    {% if 'uprava' in stranice_list %}
-    <a href="{{ url_for('produktivnost_grafi') }}">Produktivnost</a>
+    {% if 'produktivnost' in stranice_list %}
+    <div class="dropdown">
+        Produktivnost &rarr;
+        <!-- Inside Dropdown -->
+        <div class="dropdown-dropdown">
+            <a href="{{ url_for('produktivnost_delavcev_grafi') }}"><div class="ddDropdown">Delavcev</div></a>
+            <a href="{{ url_for('potrosnja_materiala_OEE') }}"><div class="ddDropdown">OEE</div></a>
+            <a href="{{ url_for('produktivnost_pozicije') }}"><div class="ddDropdown">Pozicije</div></a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if 'produktivnost_pozicije' in stranice_list %}
+        <a href="{{ url_for('produktivnost_pozicije') }}"><div class="ddDropdown">Pozicije</div></a>
     {% endif %}
 
     {% if 'evidenca_ur' in stranice_list %}

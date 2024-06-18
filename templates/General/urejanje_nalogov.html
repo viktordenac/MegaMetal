@@ -160,7 +160,7 @@
                         <td>{{ data.KEY }}</td>
                         <td>{{ data.VALUE }}</td>
                         <td>{{ data.VRSTA }}</td>
-                        <td><button id="edit-button" onclick="showEditForm('{{ data.ID_PK }}', '{{ data.KEY }}','{{ data.VALUE }}', '{{ data.VRSTA }}')">Uredi</button></td>
+                        <td><button id="edit-button" onclick="showEditForm('Uredi fazo','{{ data.ID_PK }}', '{{ data.KEY }}','{{ data.VALUE }}', '{{ data.VRSTA }}')">Uredi</button></td>
                         <td><button id="delete-button" onclick="deleteUser('{{ data.ID_PK }}')">Odstrani</button></td>
                         <!-- Add more columns here as needed -->
                     </tr>
@@ -168,12 +168,12 @@
                 </tbody>
             </table>
         </div>
-        <button id="add-user-button" onclick="showEditForm('','','','')">Dodaj fazo</button>
+        <button id="add-user-button" onclick="showEditForm('Dodaj fazo','','','','')">Dodaj fazo</button>
 
         <!-- Edit form container -->
         <div id="editFormContainer">
             <button onclick="hideEditForm()">Close</button>
-            <h2>Edit User</h2>
+            <h2 id="formHeader"></h2>
             <form id="editForm">
                 <input type="hidden" name="id" id="editId">
                 <label for="editOddelek">Oddelek:</label>
@@ -182,7 +182,7 @@
                 <input type="text" id="editNaziv" name="naziv" required><br>
                 <label for="editPV">Posebna vrsta:</label>
                 <input type="text" id="editPV" name="posebnavrsta"><br>
-                <input type="submit" value="Add or Edit User">
+                <input type="submit" value="POTRDI">
             </form>
         </div>
 
@@ -202,8 +202,9 @@
             });
         });
         // Function to show edit form and populate fields
-        function showEditForm(id_pk, name, username, kartica) {
+        function showEditForm(naslov, id_pk, name, username, kartica) {
             // Populate form fields
+            document.getElementById("formHeader").textContent = naslov;
             document.getElementById("editId").value = id_pk;
             document.getElementById("editOddelek").value = name;
             document.getElementById("editNaziv").value = username;

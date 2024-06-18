@@ -21,7 +21,7 @@ import json
 from flask import Flask, render_template, redirect, url_for, send_file, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, select, exists, text, asc, extract
+from sqlalchemy import func, select, exists, text, asc, extract, String
 from io import BytesIO
 from sqlalchemy.exc import IntegrityError
 from realizirano import Realizirano
@@ -580,6 +580,16 @@ def potrosnja_materiala_grafi():
 
         # Append the new row to the DataFrame
         new_df = pd.concat([new_df, new_row], ignore_index=True)
+        new_df = new_df.rename(columns={
+            'JobCode': 'ŠTEVILKA REZANJA',
+            'DateCreated': 'DATUM',
+            'Postotak': 'PROCENT',
+            'Bruto': 'BRUTO',
+            'Neto': 'NETO',
+            'Udio': 'DELEŽ',
+            'Postotak*udio': 'PROCENT*DELEŽ'
+        })
+        print(new_df.columns)
         return jsonify({"data": data, "df": new_df.to_json(orient='records')})
     else:
         return jsonify({"error": "No data found"})

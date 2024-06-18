@@ -170,7 +170,7 @@
                     <td>{{ nalog.Id_rn }}</td>
                     <td>{{ nalog.Status }}</td>
                     <td>{{ nalog.Aktivan }}</td>
-                    <td><button id="edit-button" onclick="showEditForm(); editNalog('{{ nalog.Id_rn }}', '{{ nalog.Satus }}', '{{ nalog.Aktivan }}')">Uredi</button></td> <!-- Add Edit button -->
+                    <td><button id="edit-button" onclick="showEditForm('Uredi nalog'); editNalog('{{ nalog.Id_rn }}', '{{ nalog.Satus }}', '{{ nalog.Aktivan }}')">Uredi</button></td> <!-- Add Edit button -->
                     <td><button id="delete-button" onclick="deleteNalog('{{ nalog.Id_rn }}')">Odstrani</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
@@ -178,11 +178,11 @@
             </tbody>
         </table>
     </div>
-    <button id="add-nalog-button" onclick="showEditForm('','', '')">Dodaj Nalog</button>
+    <button id="add-nalog-button" onclick="showEditForm('Dodaj nalog','','', '')">Dodaj Nalog</button>
     <!-- Edit form container -->
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Zapri</button>
-        <h2>Uredi Nalog</h2>
+        <h2 id="formHeader"></h2>
         <form action="/edit_aktivni_nalogi" method="post" id="editForm">
             <label for="editId_rn">Id_rn:</label>
             <input type="text" id="editId_rn" name="id_rn" required autocomplete="off"><br>
@@ -191,7 +191,7 @@
             <label for="editAktivan">Aktivni:</label>
             <input type="text" id="editAktivan" name="aktivan" required autocomplete="off"><br>
 
-            <input type="submit" value="Dodaj/Uredi Nalog">
+            <input type="submit" value="POTRDI">
         </form>
     </div>
 
@@ -303,8 +303,9 @@
     }
 
     // Function to show edit form and populate fields
-    function showEditForm(Id_rn, Status, Aktivan) {
+    function showEditForm(Naslov, Id_rn, Status, Aktivan) {
         // Populate form fields
+        document.getElementById("formHeader").textContent = Naslov;
         document.getElementById("editId_rn").value = Id_rn;
         document.getElementById("editStatus").value = Status;
         document.getElementById("editAktivan").value = Aktivan;

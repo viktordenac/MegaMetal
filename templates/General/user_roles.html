@@ -36,7 +36,7 @@
                         <th>torta</th>
                         <th>oee</th>
                         <th>planiranje_proizvodnje</th>
-                        <th>normativi</th>
+                        <th>norme</th>
                         <th>verzug_lista</th>
                         <th>kapaciteta</th>
                         <th>izmene</th>
@@ -57,7 +57,7 @@
                     {% for user in data %}
                     <tr>
                         <td class="username-column">{{ user.Username }}</td>
-                        {% for privilege in ['grafi', 'po_identu', 'torta','oee', 'planiranje_proizvodnje', 'normativi', 'verzug_lista', 'kapaciteta', 'izmene', 'evidenca_ur', 'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi', 'mm2Alat', 'fix_plan','produktivnost', 'produktivnost_pozicije', 'top_user','direktor'] %}
+                        {% for privilege in ['grafi', 'po_identu', 'torta','oee', 'planiranje_proizvodnje', 'norme', 'verzug_lista', 'kapaciteta', 'izmene', 'evidenca_ur', 'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi', 'mm2Alat', 'fix_plan','produktivnost', 'produktivnost_pozicije', 'top_user','direktor'] %}
                         <td><label for="{{ privilege }}"></label><input id="{{ privilege }}" type="checkbox" {% if user.Stranice is not none and privilege in user.Stranice %}checked{% endif %} disabled></td>
                         {% endfor %}
                         <td class="edit-column"><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Uredi</button></td>

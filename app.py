@@ -306,6 +306,59 @@ class TBA_FAZA(db.Model):
     VRSTA = db.Column(db.INT())
     ID_PK = db.Column(db.Integer, primary_key=True)
 
+
+class TBA_NORME(db.Model):
+    __tablename__ = 'TBA_NORME'
+    #SourceName = db.Column(db.String(100))
+    ANGEBOT = db.Column(db.String(100))
+    #ArtikelNr = db.Column(db.String(100))
+    Artikelbezeichnung = db.Column(db.String(100))
+    Konstruktion = db.Column(db.String(100))
+    Brennschneiden = db.Column(db.Float)
+    Vorbereitung = db.Column(db.Float)
+    Biegen = db.Column(db.Float)
+    Sage = db.Column(db.Float)
+    Fasenschneiden = db.Column(db.Float)
+    MechVorb = db.Column(db.Float)
+    Zusammenbau = db.Column(db.Float)
+    Schweissen = db.Column(db.Float)
+    SchweissenROBOT = db.Column(db.Float)
+    Gluehen = db.Column(db.Float)
+    Verputzen = db.Column(db.Float)
+    Sandstrahlen = db.Column(db.Float)
+    Grundieren = db.Column(db.Float)
+    SandstrahlenundGrundieren = db.Column(db.Float)
+    Lackieren = db.Column(db.Float)
+    Richten = db.Column(db.Float)
+    Kontrolle = db.Column(db.Float)
+    Programmieren = db.Column(db.Float)
+    Vorbereitung2 = db.Column(db.Float)
+    KuhlundSchmiermittel = db.Column(db.Float)
+    Schleifmaschine = db.Column(db.Float)
+    Karussell1 = db.Column(db.Float)
+    Karussell2 = db.Column(db.Float)
+    Kekeisen = db.Column(db.Float)
+    Maxima = db.Column(db.Float)
+    MTE = db.Column(db.Float)
+    KleinesKarussell = db.Column(db.Float)
+    Drehmaschine = db.Column(db.Float)
+    WHN = db.Column(db.Float)
+    WHQ105 = db.Column(db.Float)
+    WHQ1381 = db.Column(db.Float)
+    WHQ1382 = db.Column(db.Float)
+    WHQ1383 = db.Column(db.Float)
+    WRD = db.Column(db.Float)
+    ZPS = db.Column(db.Float)
+    Lackieren2 = db.Column(db.Float)
+    VerputzenBohren = db.Column(db.Float)
+    Kontrolle2 = db.Column(db.Float)
+    Kontrolle3 = db.Column(db.Float)
+    BrutoGewicht = db.Column(db.Float)
+    SHW = db.Column(db.Float)
+    NetoGewicht = db.Column(db.Float)
+    ID_PK = db.Column(db.Integer, primary_key=True)
+
+
 @login_manager.user_loader
 def load_user(kartica):
     employee = TBA_RAD.query.filter_by(Kartica=kartica).first()
@@ -359,9 +412,11 @@ def grupiranje_materiala():
         return redirect(url_for("login"))
     identi = TBA_REAL_IDENT.query.with_entities(TBA_REAL_IDENT.IDENT).distinct().all()
     identi = set(row[0].rsplit('-', 1)[0] for row in identi)
+    identiKG = TREZ_KALK.query.with_entities(TREZ_KALK.Id_rn).distinct().all()
+    identiKG = set(row[0].rsplit('-', 1)[0] for row in identiKG)
     stranice_list = session["stranice"]
 
-    return render_template("grupiranje_materiala.html", radniNalogi=identi, stranice_list=stranice_list)
+    return render_template("grupiranje_materiala.html", radniNalogiKG=identiKG, radniNalogi=identi, stranice_list=stranice_list)
 
 
 @app.route("/produktivnost_delavcev_grafi")
@@ -2539,6 +2594,27 @@ def administracija():
     if not is_authenticated():
         return redirect(url_for("login"))
     return render_template('administracija.html', stranice_list=session["stranice"])
+
+
+@app.route('/norme', methods=['GET'])
+def norme():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+
+    norme = TBA_NORME.query.order_by(TBA_NORME.ID_PK.asc()).all()
+    columns = [column.key for column in TBA_NORME.__table__.columns]
+    display_names = {column.key: column.key.replace('_', ' ').title() for column in TBA_NORME.__table__.columns}
+
+    data = []
+    for row in norme:
+        row_data = {}
+        for column in columns:
+            value = getattr(row, column)
+            row_data[column] = value
+        data.append(row_data)
+    print(columns)
+    return render_template('norme.html', row_data=data[:50], columns=columns, display_names=display_names,
+                           stranice_list=session["stranice"])
 
 def replace_nan(data):
     return [[cell if not pd.isna(cell) else None for cell in row] for row in data]

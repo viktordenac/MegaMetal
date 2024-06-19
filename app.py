@@ -1,4 +1,5 @@
 import base64
+import inspect
 import io
 import os
 import re
@@ -21,7 +22,7 @@ import json
 from flask import Flask, render_template, redirect, url_for, send_file, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import func, select, exists, text, asc, extract, String
+from sqlalchemy import func, select, exists, text, asc, extract, String, desc
 from io import BytesIO
 from sqlalchemy.exc import IntegrityError
 from realizirano import Realizirano
@@ -396,6 +397,10 @@ def login():
 def potrosnja_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
+    print(inspect.currentframe().f_code.co_name)
+    print(session["stranice"])
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     stranice_list = session["stranice"]
     return render_template("potrosnja_materiala_grafi.html", stranice_list=stranice_list)
 
@@ -403,6 +408,8 @@ def potrosnja_materiala():
 def potrosnja_materiala_torta():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     stranice_list = session["stranice"]
     return render_template("potrosnja_materiala_torta.html", stranice_list=stranice_list)
 
@@ -410,6 +417,8 @@ def potrosnja_materiala_torta():
 def grupiranje_materiala():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     identi = TBA_REAL_IDENT.query.with_entities(TBA_REAL_IDENT.IDENT).distinct().all()
     identi = set(row[0].rsplit('-', 1)[0] for row in identi)
     identiKG = TREZ_KALK.query.with_entities(TREZ_KALK.Id_rn).distinct().all()
@@ -423,6 +432,8 @@ def grupiranje_materiala():
 def produktivnost_delavcev_grafi():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     stranice_list = session["stranice"]
     return render_template("produktivnost_delavcev_grafi.html", stranice_list=stranice_list)
 
@@ -431,6 +442,8 @@ def produktivnost_delavcev_grafi():
 def produktivnost_pozicije():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     stranice_list = session["stranice"]
     identi = TBA_REAL_IDENT.query.with_entities(TBA_REAL_IDENT.IDENT).distinct().all()
     processed_identi = set(row[0].rsplit('-', 1)[0] for row in identi)
@@ -1086,6 +1099,8 @@ def produktivnost_grafi_delavec_load():
 def potrosnja_materiala_OEE():
     if not is_authenticated():
         return jsonify({"error": "Not authenticated"})
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     stranice_list = session["stranice"]
     return render_template("produktivnost_OEE.html", stranice_list=stranice_list)
 
@@ -1179,6 +1194,8 @@ def home():
 def user():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     # Query all data
     data = TBA_RAD.query.all()
 
@@ -1287,7 +1304,8 @@ def delete_user():
 def tev_evid():
     if not is_authenticated():
         return redirect(url_for("login"))
-
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     # Query all data
     data = TEV_EVID.query.all()
 
@@ -1364,7 +1382,8 @@ def delete_tev_evid():
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     # Get the date range from query parameters
     from_date_str = request.args.get('from_date', None)
     to_date_str = request.args.get('to_date', None)
@@ -1452,6 +1471,8 @@ def format_date_for_input(value):
 def planiranjePripravnegaDelaPravice():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     return render_template('planiranje_pripravnega_dela_PRAVICE.html', stranice_list=session["stranice"])
 
 
@@ -1833,6 +1854,8 @@ def download_izmene():
 @app.route('/verzugsLista', methods=['GET'])
 def verzugsLista():
     stranice_list = session["stranice"]
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     return render_template('verzugs_lista.html', stranice_list=stranice_list)
 
 @app.route('/verzugsListaLoad', methods=['GET'])
@@ -1857,6 +1880,8 @@ def verzugsListaLoad():
 def user_roles():
     if not is_authenticated():
         return redirect(url_for("login"))
+    # if not inspect.currentframe().f_code.co_name in session["stranice"]:
+    #     return render_template('unauthorized.html', stranice_list=session["stranice"])
 
     unique_values = {}
 
@@ -1898,7 +1923,7 @@ def user_roles():
             # Handle if the username already exists (optional)
             db.session.rollback()
 
-    data = TBA_PRAVA.query.filter(TBA_PRAVA.Username != "None").all()
+    data = TBA_PRAVA.query.filter(TBA_PRAVA.Username != "None").order_by(asc(TBA_PRAVA.Username)).all()
 
     unique_values = {}
     for column in TBA_PRAVA.__table__.columns:
@@ -1906,6 +1931,9 @@ def user_roles():
         unique_values[column_name] = [getattr(row, column_name) for row in data if getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
+    for row in data:
+        if row.Username == "denac":
+            print(row.Stranice)
     return render_template('user_roles.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
 
 @app.route('/update_privileges', methods=['POST'])
@@ -1935,7 +1963,9 @@ def edit_user_role():
 def MM2Alat():
     if not is_authenticated():
         return redirect(url_for("login"))
-        # Query all data
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
+    # Query all data
     data = TBA_ALAT.query.order_by(TBA_ALAT.DATUMPEXP).all()
 
     unique_values = {}
@@ -2267,6 +2297,11 @@ def filter_data_mj():
 
 @app.route("/compare_data")
 def compare_data():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
+
     # Get the current year and month
     current_year = datetime.now().year
     current_month = datetime.now().month
@@ -2443,6 +2478,10 @@ def refresh_fix_plan():
 @app.route('/action_plans')
 def action_plans():
     stranice_list = session["stranice"]
+
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=stranice_list)
+
     action_plans = ACTION_PLAN.query.order_by(ACTION_PLAN.ID_PK.asc()).all()
     return render_template('action_plans.html', action_plans=action_plans, stranice_list=stranice_list)
 
@@ -2487,6 +2526,8 @@ def direktor():
     if not is_authenticated():
         return redirect(url_for("login"))
     stranice_list = session["stranice"]
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
 
     return render_template('direktor.html', stranice_list=stranice_list)
 
@@ -2593,6 +2634,9 @@ def get_start_and_end_date_of_week(year, week):
 def administracija():
     if not is_authenticated():
         return redirect(url_for("login"))
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
+    print(session["stranice"])
     return render_template('administracija.html', stranice_list=session["stranice"])
 
 
@@ -2600,7 +2644,8 @@ def administracija():
 def norme():
     if not is_authenticated():
         return redirect(url_for("login"))
-
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     norme = TBA_NORME.query.order_by(TBA_NORME.ID_PK.asc()).all()
     columns = [column.key for column in TBA_NORME.__table__.columns]
     display_names = {column.key: column.key.replace('_', ' ').title() for column in TBA_NORME.__table__.columns}

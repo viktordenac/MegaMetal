@@ -38,7 +38,7 @@
                 <thead>
                     <tr>
                         <th>Uporabniško ime</th>
-                        <th>action_plan</th>
+                        <th>action_plans</th>
                         <th>grafi</th>
                         <th>po_identu</th>
                         <th>torta</th>
@@ -56,13 +56,17 @@
                         <th>izmene</th>
                         <th>evidenca_ur</th>
 
-                        <th>upravljanje_uporabnikov</th>
+                        <th>administracija</th>
+                        <th>urejanje_uporabnika</th>
+                        <th>dostop_uporabnika</th>
+                        <th>skripte</th>
                         <th>aktivni_nalogi</th>
                         <th>neaktivni_nalogi</th>
 
                         <th>mm2Alat</th>
 
-                        <th>fix_plan</th>
+                        <th>fix_plan_teden</th>
+                        <th>fix_plan_mesec</th>
 
                         <th>direktor</th>
                         <th class="edit-column">Uredi</th>
@@ -72,13 +76,13 @@
                     {% for user in data %}
                     <tr>
                         <td class="username-column">{{ user.Username }}</td>
-                        {% for privilege in ['action_plan', 'grafi', 'po_identu', 'torta',
-                        'produktivnost', 'produktivnost_oee', 'produktivnost_pozicije',
-                        'planiranje_proizvodnje', 'planiranje_proizvodnje_omejeno', 'verzug_lista', 'norme', 'kapaciteta',
-                        'izmene', 'evidenca_ur',
-                        'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi',
-                        'mm2Alat',
-                        'fix_plan',
+                        {% for privilege in ['action_plans', 'potrosnja_materiala', 'grupiranje_materiala', 'potrosnja_materiala_torta',
+                        'produktivnost_delavcev_grafi', 'potrosnja_materiala_OEE', 'produktivnost_pozicije',
+                        'planiranjePripravnegaDela', 'planiranjePripravnegaDelaPravice', 'verzugsLista', 'norme', 'kapaciteta',
+                        'izmene', 'tev_evid',
+                        'administracija', 'user', 'user_roles', 'skripte', 'aktivni_nalogi', 'neaktivni_nalogi',
+                        'MM2Alat',
+                        'compare_data', 'compare_data_mj',
                         'direktor'] %}
                         <td><label for="{{ privilege }}"></label><input id="{{ privilege }}" type="checkbox" {% if user.Stranice is not none and privilege in user.Stranice %}checked{% endif %} disabled></td>
                         {% endfor %}

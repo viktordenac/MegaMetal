@@ -15,32 +15,41 @@
       <nav>
         <ul class="primary">
             <li>
-            <a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Realizacija</a>
+                {% if 'skripte' in stranice_list %}
+                <a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Realizacija</a>
                 <ul class="sub">
                     <li><a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Fix Plan</a></li>
                     <li><a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Produktivnost</a></li>
                     <li><a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Recylce</a></li>
                 </ul>
+                {% endif %}
             </li>
             <li>
-            <a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Proizvodnja</a>
+                {% if 'skripte' in stranice_list %}
+                <a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Proizvodnja</a>
                 <ul class="sub">
                     <li><a href="#" onclick="submitForm(event, '/refresh_fix_plan', this.innerText)">Datum Isporuke</a></li>
                 </ul>
+                {% endif %}
+            </li>
             <li>
+                {% if 'user' in stranice_list %}
                 <a>Uporabnik</a>
                 <ul class="sub">
                     <li><a href="{{ url_for('user') }}">Urejanje</a></li>
                     <li><a href="{{ url_for('user_roles') }}">Vloge</a></li>
                 </ul>
+                {% endif %}
             </li>
             <li>
+                {% if 'aktivni_nalogi' in stranice_list or 'neaktivni_nalogi' in stranice_list %}
                 <a>Nalogi</a>
                 <ul class="sub">
                     <li><a href="{{ url_for('urejanje_faz') }}">Urejanje</a></li>
                     <li><a href="{{ url_for('aktivni_nalogi', status='1') }}">Aktivni</a></li>
                     <li><a href="{{ url_for('aktivni_nalogi', status='0') }}">Neaktivni</a></li>
                 </ul>
+                {% endif %}
             </li>
         </ul>
       </nav>

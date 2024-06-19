@@ -18,6 +18,13 @@
             left: 0;
             z-index: 0; /* Ensure it's above other cells */
         }
+        #myTable {
+            border-collapse: collapse; /* Ensures borders don't double up */
+        }
+        #myTable, #myTable th, #myTable td {
+            border: 1px solid black; /* Adjust the border thickness */
+            padding: 8px; /* Optional: adds padding for better readability */
+        }
     </style>
 </head>
 <body>
@@ -31,24 +38,32 @@
                 <thead>
                     <tr>
                         <th>Uporabniško ime</th>
+                        <th>action_plan</th>
                         <th>grafi</th>
                         <th>po_identu</th>
                         <th>torta</th>
-                        <th>oee</th>
+
+                        <th>produktivnost</th>
+                        <th>produktivnost_oee</th>
+                        <th>produktivnost_pozicije</th>
+
                         <th>planiranje_proizvodnje</th>
-                        <th>norme</th>
+                        <th>planiranje_proizvodnje_omejeno</th>
                         <th>verzug_lista</th>
+                        <th>norme</th>
                         <th>kapaciteta</th>
+
                         <th>izmene</th>
                         <th>evidenca_ur</th>
+
                         <th>upravljanje_uporabnikov</th>
                         <th>aktivni_nalogi</th>
                         <th>neaktivni_nalogi</th>
+
                         <th>mm2Alat</th>
+
                         <th>fix_plan</th>
-                        <th>produktivnost</th>
-                        <th>produktivnost_pozicije</th>
-                        <th>top_user</th>
+
                         <th>direktor</th>
                         <th class="edit-column">Uredi</th>
                     </tr>
@@ -57,7 +72,14 @@
                     {% for user in data %}
                     <tr>
                         <td class="username-column">{{ user.Username }}</td>
-                        {% for privilege in ['grafi', 'po_identu', 'torta','oee', 'planiranje_proizvodnje', 'norme', 'verzug_lista', 'kapaciteta', 'izmene', 'evidenca_ur', 'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi', 'mm2Alat', 'fix_plan','produktivnost', 'produktivnost_pozicije', 'top_user','direktor'] %}
+                        {% for privilege in ['action_plan', 'grafi', 'po_identu', 'torta',
+                        'produktivnost', 'produktivnost_oee', 'produktivnost_pozicije',
+                        'planiranje_proizvodnje', 'planiranje_proizvodnje_omejeno', 'verzug_lista', 'norme', 'kapaciteta',
+                        'izmene', 'evidenca_ur',
+                        'upravljanje_uporabnikov', 'aktivni_nalogi', 'neaktivni_nalogi',
+                        'mm2Alat',
+                        'fix_plan',
+                        'direktor'] %}
                         <td><label for="{{ privilege }}"></label><input id="{{ privilege }}" type="checkbox" {% if user.Stranice is not none and privilege in user.Stranice %}checked{% endif %} disabled></td>
                         {% endfor %}
                         <td class="edit-column"><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Uredi</button></td>
@@ -76,14 +98,64 @@
             });
 
             const editButton = row.querySelector('.edit-button');
-            if (editButton.innerHTML === 'Edit') {
-                editButton.innerHTML = 'Submit';
+            if (editButton.innerHTML === 'Uredi') {
+                editButton.innerHTML = 'Potrdi';
+                // Add "Check All" button
+                addCheckAllButton(row);
             } else {
-                editButton.innerHTML = 'Edit';
+                editButton.innerHTML = 'Uredi';
                 // Handle submission of edited privileges (you can implement this)
                 submitEditedPrivileges(row);
+                // Remove "Check All" button
+                removeCheckAllButton(row);
             }
         }
+
+        function addCheckAllButton(row) {
+            const checkAllButton = document.createElement('button');
+            checkAllButton.innerHTML = 'Check All';
+            checkAllButton.classList.add('check-all-button');
+            checkAllButton.onclick = function() {
+                toggleCheckAllCheckboxes(row, checkAllButton);
+            };
+            row.appendChild(checkAllButton);
+        }
+
+        function removeCheckAllButton(row) {
+            const checkAllButton = row.querySelector('.check-all-button');
+            if (checkAllButton) {
+                row.removeChild(checkAllButton);
+            }
+        }
+
+        function toggleCheckAllCheckboxes(row, button) {
+            if (button.innerHTML === 'Check All') {
+                checkAllCheckboxes(row);
+                button.innerHTML = 'Uncheck All';
+            } else {
+                uncheckAllCheckboxes(row);
+                button.innerHTML = 'Check All';
+            }
+        }
+
+        function checkAllCheckboxes(row) {
+            const checkboxes = row.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(function(checkbox) {
+                if (checkbox.id !== 'direktor' && !checkbox.disabled) {
+                    checkbox.checked = true;
+                }
+            });
+        }
+
+        function uncheckAllCheckboxes(row) {
+            const checkboxes = row.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(function(checkbox) {
+                if (checkbox.id !== 'direktor' && !checkbox.disabled) {
+                    checkbox.checked = false;
+                }
+            });
+        }
+
 
         function submitEditedPrivileges(row) {
             const username = row.cells[0].innerHTML; // Get the username from the first cell of the row

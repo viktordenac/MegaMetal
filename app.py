@@ -2677,6 +2677,54 @@ def get_table_data():
     return render_template('General/compare_data_precise/fix_pl_table_tj.html', table_data=html_table, teden=label)
 
 
+@app.route('/compare_data/download', methods=['GET'])
+def tjedan_compare_download():
+    label = request.args.get('label')
+    # Here, you can perform any processing based on the label,
+    # such as querying a database or performing some calculations
+    # to get the table data.
+    fix_select = """
+                    SELECT (TBA_FIX_DETALJ_PL."IDRN"), TBA_FIX_DETALJ_PL."IZNOS",TBA_FIX_DETALJ_PL."TEZINA",
+                           TBA_FIX_DETALJ_PL."TJEDAN",TBA_FIX_DETALJ_RE."IZNOS" as REALIZIRANI_IZNOS,TBA_FIX_DETALJ_RE."TJEDAN" as REALIZIRANA_TEZINA
+                    FROM public."TBA_FIX_DETALJ_PL" as TBA_FIX_DETALJ_PL 
+                    LEFT JOIN public."TBA_FIX_DETALJ_RE" as TBA_FIX_DETALJ_RE 
+                    ON TBA_FIX_DETALJ_PL."IDRN" = TBA_FIX_DETALJ_RE."IDRN" 
+                    WHERE (TBA_FIX_DETALJ_PL."TJEDAN"::TEXT LIKE :label or TBA_FIX_DETALJ_RE."TJEDAN"::TEXT LIKE :label)
+
+                            """
+
+    rezultat_vseh_identov = db.session.execute(text(fix_select), {'label': label})
+    columns_vseh_identov = rezultat_vseh_identov.keys()
+    df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
+    df = df.rename(columns={
+        'realizirana_tezina': 'TEDEN REALIZACIJE',
+        'IZNOS': 'ZNESEK',
+        'TEZINA': 'TEŽINA',
+        'TJEDAN': 'TEDEN',
+        'realizirani_iznos': 'REALIZIRAN ZNESEK'
+    })
+
+    # Create an output stream
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+    if label != "%":
+        naziv = "FIX_PLAN_TEDEN_" + label + ".xlsx"
+    else:
+        naziv = "FIX_PLAN_TEDEN_VSI.xlsx"
+    # Write the DataFrame to Excel
+    df.to_excel(writer, index=False, sheet_name=naziv)
+
+    # Close the Pandas Excel writer
+    writer.close()
+
+    # Go back to the beginning of the stream
+    output.seek(0)
+
+    # Return the Excel file as a downloadable attachment
+    return send_file(output, download_name=naziv, as_attachment=True)
+
+
 @app.route('/get_table_data_mj', methods=['GET'])
 def get_table_data_mj():
     label = request.args.get('label')
@@ -2703,9 +2751,58 @@ def get_table_data_mj():
         'realizirani_iznos': 'REALIZIRAN ZNESEK'
     })
 
-    html_table = df.to_html(index=False)    # For demonstration, let's just return a sample table data.
-    return render_template('General/compare_data_precise/fix_pl_table_mj.html', table_data=html_table, mesec=label)
+    html_table = df.to_html(index=False, table_id='rendered_table')    # For demonstration, let's just return a sample table data.
+    # Save DataFrame to Excel
+    excel_file_path = 'output.xlsx'
+    df.to_excel(excel_file_path, index=False)
+    return render_template('General/compare_data_precise/fix_pl_table_mj.html', table_data=html_table, mesec=label, data=df)
 
+
+@app.route('/compare_data_mj/download', methods=['GET'])
+def mjesec_compare_download():
+    label = request.args.get('label')
+    # Here, you can perform any processing based on the label,
+    # such as querying a database or performing some calculations
+    # to get the table data.
+    fix_select = """
+                    SELECT TBA_FIX_DETALJ_PL."IDRN", TBA_FIX_DETALJ_PL."IZNOS",TBA_FIX_DETALJ_PL."TEZINA",
+                           TBA_FIX_DETALJ_PL."MJESEC",TBA_FIX_DETALJ_RE."IZNOS" as REALIZIRANI_IZNOS,TBA_FIX_DETALJ_RE."MJESEC" as REALIZIRANA_TEZINA
+                    FROM public."TBA_FIX_DETALJ_PL" as TBA_FIX_DETALJ_PL 
+                    LEFT JOIN public."TBA_FIX_DETALJ_RE" as TBA_FIX_DETALJ_RE 
+                    ON TBA_FIX_DETALJ_PL."IDRN" = TBA_FIX_DETALJ_RE."IDRN" 
+                    WHERE (TBA_FIX_DETALJ_PL."MJESEC"::TEXT LIKE :label or TBA_FIX_DETALJ_RE."MJESEC"::TEXT LIKE :label)
+                    """
+
+    rezultat_vseh_identov = db.session.execute(text(fix_select), {'label': label})
+    columns_vseh_identov = rezultat_vseh_identov.keys()
+    df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
+    df = df.rename(columns={
+        'realizirana_tezina': 'MESEC REALIZACIJE',
+        'IZNOS': 'ZNESEK',
+        'TEZINA': 'TEŽINA',
+        'MJESEC': 'MESEC',
+        'realizirani_iznos': 'REALIZIRAN ZNESEK'
+    })
+
+    # Create an output stream
+    output = BytesIO()
+    writer = pd.ExcelWriter(output, engine='xlsxwriter')
+
+    if label != "%":
+        naziv = "FIX_PLAN_MESEC_" + label + ".xlsx"
+    else:
+        naziv = "FIX_PLAN_MESEC_VSI.xlsx"
+    # Write the DataFrame to Excel
+    df.to_excel(writer, index=False, sheet_name=naziv)
+
+    # Close the Pandas Excel writer
+    writer.close()
+
+    # Go back to the beginning of the stream
+    output.seek(0)
+
+    # Return the Excel file as a downloadable attachment
+    return send_file(output, download_name=naziv, as_attachment=True)
 
 @app.route("/filter_data", methods=["POST"])
 def filter_data():

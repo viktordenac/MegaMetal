@@ -50,7 +50,7 @@
     <div id="tableContainer">
         <h1 id="tableHeader">Fiksni načrt po mesecu</h1>
         <button id="fetchDataButton">Prikaži vse podatke</button>
-        <button id="downloadExcelButton">Prenesi kot Excel</button>
+        <button id="downloadButton">Prenesi kot Excel</button>
         <table class="dataframe" id="data_table">
             <thead>
             <tr id="filterRow">
@@ -71,6 +71,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script>
+        var label = "{{ mesec }}";
         // Function to set filter input width to match column header width
         function setFilterInputWidth() {
             var bodyCells = document.querySelectorAll('#data_table tbody tr:first-child td');
@@ -111,8 +112,10 @@
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('tableContainer').innerHTML = html;
+                    label = "%"
                     setFilterInputWidth(); // Reset filter input width based on new table content
                     attachFilterEvents(); // Reattach filter events to the new inputs
+                    downloadEventListener();
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
@@ -132,20 +135,27 @@
         window.addEventListener('DOMContentLoaded', function() {
             setFilterInputWidth();
             attachFilterEvents();
+            downloadEventListener();
         });
 
-        // Function to download table data as Excel file
-        function downloadExcel() {
-            var table = document.getElementById("data_table");
-            var wb = XLSX.utils.book_new();
-            var ws = XLSX.utils.table_to_sheet(table);
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+        function downloadEventListener() {
+            document.getElementById('downloadButton').addEventListener('click', function() {
+                // Replace 'label_value' with the actual label value you want to pass
+                var labelValue =  label;
 
-            // Debug: Log the worksheet object to the console
-            console.log(ws);
+                // Construct the URL with the label as a query parameter
+                var url = `/compare_data_mj/download?label=${encodeURIComponent(labelValue)}`;
 
-            XLSX.writeFile(wb, "Fiksni_nacrt_meseca.xlsx");
+                // Create an anchor element to trigger the download
+                var link = document.createElement('a');
+                link.href = url;
+                link.download = 'FIX_PLAN_TEDEN.xlsx'; // Specify the filename for download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
         }
+
 
         // Attach event listener to the download Excel button
         document.getElementById('downloadExcelButton').addEventListener('click', downloadExcel);

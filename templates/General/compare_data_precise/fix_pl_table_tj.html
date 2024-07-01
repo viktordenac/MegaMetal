@@ -50,6 +50,7 @@
     <div id="tableContainer">
         <h1 id="tableHeader">Fiksni načrt po tednu</h1>
 	    <button id="fetchDataButton">Prikaži vse tedne</button>
+        <button id="downloadButton">Prenesi kot Excel</button>
         <table class="dataframe" id="data_table">
             <thead>
             <tr id="filterRow">
@@ -70,6 +71,7 @@
 
 
     <script>
+        var label = "{{ teden }}";
         // Function to set filter input width to match column header width
         function setFilterInputWidth() {
             var bodyCells = document.querySelectorAll('#data_table tbody tr:first-child td');
@@ -110,8 +112,10 @@
                 .then(response => response.text())
                 .then(html => {
                     document.getElementById('tableContainer').innerHTML = html;
+                    label = "%";
                     setFilterInputWidth(); // Reset filter input width based on new table content
                     attachFilterEvents(); // Reattach filter events to the new inputs
+                    downloadEventListener();
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
@@ -131,7 +135,26 @@
         window.addEventListener('DOMContentLoaded', function() {
             setFilterInputWidth();
             attachFilterEvents();
+            downloadEventListener();
         });
+
+        function downloadEventListener() {
+            document.getElementById('downloadButton').addEventListener('click', function() {
+                // Replace 'label_value' with the actual label value you want to pass
+                var labelValue =  label;
+
+                // Construct the URL with the label as a query parameter
+                var url = `/compare_data/download?label=${encodeURIComponent(labelValue)}`;
+
+                // Create an anchor element to trigger the download
+                var link = document.createElement('a');
+                link.href = url;
+                link.download = 'FIX_PLAN_TEDEN.xlsx'; // Specify the filename for download
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        }
     </script>
 </body>
 </html>

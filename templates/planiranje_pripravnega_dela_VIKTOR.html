@@ -22,39 +22,11 @@
             top: 0;
             z-index: 1; /* Ensure the floating header stays on top of the table */
         }
-		
-		thead th:nth-child(5) {
-			display: none;
-		}
-
-		/* Hide the 4th column cells */
-		tbody td:nth-child(5) {
-			display: none;
-		}
-		thead th:nth-last-child(2) {
-			display: none;
-		}
-
-		/* Hide the second-to-last column cells */
-		tbody td:nth-last-child(2) {
-			display: none;
-		}
-
-		th, td {
-			padding: 8px 16px;
-			text-align: left;
-			border: 1px solid #ddd;
-			white-space: nowrap; /* Prevent cells from breaking lines */
-		}
-
-		#sticky-tables thead th {
-			background-color: #f4f4f4;
-			position: -webkit-sticky; /* For Safari */
-			position: sticky;
-			top: 0; /* Stick to the top */
-			z-index: 3; /* Ensure the header is above the table body */
-		}
-
+        th, td {
+            padding: 10px;
+            border: 0.5px solid #ddd;
+            text-align: center;
+        }
         tbody tr:nth-child(even) {
             background-color: #bdbdbd;
         }
@@ -126,80 +98,6 @@
         .checkbox:checked + .checkbox-label::after {
             transform: translate(-50%, -50%) scale(1);
         }
-				/* Style for sticky columns */
-				
-		tbody td:first-child{
-			position: -webkit-sticky;
-			position: sticky;
-			left: 0;
-			background-color: #bdbdbd;
-			}
-		
-		thead th:first-child {
-			position: -webkit-sticky;
-			position: sticky;
-			left: 0;
-			z-index: 10;
-			border: 1px solid #ddd;
-			white-space: nowrap; 
-			background-color: #f4f4f4; /* Optional: change this color as needed */
-		}
-
-		tbody td:nth-child(2){
-			position: -webkit-sticky;
-			position: sticky;
-			left: 150px;
-			background-color: #bdbdbd;
-			}
-		thead th:nth-child(2) {
-			position: -webkit-sticky;
-			position: sticky;
-			width: auto;
-			left: 150px; /* Adjust this value based on the width of the first column */
-			z-index: 10;
-			background-color: #f4f4f4; /* Optional: change this color as needed */
-			border: 1px solid #ddd;
-			white-space: nowrap; 
-		}
-
-		tbody td:nth-child(7){
-			position: -webkit-sticky;
-			position: sticky;
-			left: 340px;
-			background-color: #bdbdbd;
-
-			}
-		thead th:nth-child(7) {
-			position: -webkit-sticky;
-			position: sticky;
-			left: 340px; /* Adjust this value based on the width of the first two columns */
-			z-index: 10;
-			border: 1px solid #ddd;
-			white-space: nowrap; 
-			background-color: #f4f4f4; /* Optional: change this color as needed */
-		}
-		/* Adjust for the action column if necessary */
-		#sticky-tables tbody td:last-child,
-		#sticky-tables thead th:last-child {
-			position: -webkit-sticky;
-			position: sticky;
-			right: 0;
-			z-index: 5;
-			background-color: #fff; /* Optional: change this color as needed */
-		}
-		
-		thead th{
-			position: -webkit-sticky;
-			position: sticky;
-			z-index: 5;
-			border: 1px solid #ddd;
-			white-space: nowrap; 
-			background-color: #f4f4f4; /* Optional: change this color as needed */
-		}	
-
-		tbody tr:nth-child(even) {
-            background-color: #bdbdbd;
-        }
     </style>
 </head>
 <body>
@@ -231,22 +129,18 @@
                     <tr>
                         {% for column in column_names %}
                             <th>
-								<div>
-									<input type="text" data-column-name="{{ column }}" onkeyup="filterTable()" placeholder="{{ column }}:">
-								</div>
-								<div>								
-									<button class="sort-button" onclick="sortTable('{{ column }}')">
-										{% if column_to_sort == col %}
-											{% if ascending %}
-												Asc
-											{% else %}
-												Desc
-											{% endif %}
-										{% else %}
-											Sort
-										{% endif %}
-									</button>
-								</div>
+                                <input type="text" data-column-name="{{ column }}" onkeyup="filterTable()" placeholder="{{ column }}:">
+                                <button class="sort-button" onclick="sortTable('{{ column }}')">
+                                    {% if column_to_sort == col %}
+                                        {% if ascending %}
+                                            Asc
+                                        {% else %}
+                                            Desc
+                                        {% endif %}
+                                    {% else %}
+                                        Sort
+                                    {% endif %}
+                                </button>
                             </th>
                         {% endfor %}
                         <th></th> <!-- Empty header for the 'Edit' column -->
@@ -281,48 +175,21 @@
 <script>
     document.getElementById('warningMessage').style.display = 'none';
     window.addEventListener('DOMContentLoaded', function() {
+        setDefaultMonths();
         updateProgressColumnColor();
-		
-		    const table = document.getElementById('sticky-table');
-	console.log("aaaaaaaaaaaa");
-	console.log(table)
-    const headers = table.querySelectorAll('thead th');
-    const cells = table.querySelectorAll('tbody td');
-
-    // Initialize an array to keep track of left offsets
-    let offsets = [];
-
-    // Calculate and apply sticky positioning dynamically
-    function updateStickyHeaders() {
-        offsets = []; // Clear previous offsets
-
-        headers.forEach((header, index) => {
-            const cell = cells[index]; // Corresponding data cell
-            const headerWidth = header.offsetWidth; // Width of the header
-			console.log(headerWidth);
-
-			headerWidth = headerWidth + 5000
-			console.log(headerWidth);
-
-            // Calculate left offset
-            let offset = 0;
-            if (index > 0) {
-                offset = offsets[index - 1] + headers[index - 1].offsetWidth;
-            }
-
-            // Apply sticky positioning
-            header.style.left = `${offset}px`;
-            cell.style.left = `${offset}px`;
-
-            // Store the offset for the next header
-            offsets.push(offset);
-        });
-    }
-
-    // Call updateStickyHeaders initially and on window resize
-    updateStickyHeaders();
-    window.addEventListener('resize', updateStickyHeaders);
     });
+
+    function setDefaultMonths() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = (now.getMonth() + 1).toString().padStart(2, '0'); // Adding 1 since getMonth() returns 0-11
+
+        const fromMonth = `${year}-01`;
+        const toMonth = `${year}-12`;             // End of the current year (December)
+
+        document.getElementById('from_date_table').value = fromMonth;
+        document.getElementById('to_date_table').value = toMonth;
+    }
     function updateProgressColumnColor() {
 
         var progressCells = document.querySelectorAll('select[name="progress"]');

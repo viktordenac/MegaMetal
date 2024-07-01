@@ -16,7 +16,7 @@
     <a href="{{ url_for('action_plans') }}">Akcijski plan</a>
     {% endif %}
 
-    {% if 'potrosnja_materiala' in stranice_list or 'po_identu' in stranice_list or 'torta' in stranice_list or 'potrosnja_materiala' in stranice_list %}
+    {% if 'potrosnja_materiala' in stranice_list or 'grupiranje_materiala' in stranice_list or 'potrosnja_materiala_torta' in stranice_list %}
     <div class="dropdown">
         Potrošnja materiala &rarr;
         <!-- Inside Dropdown -->
@@ -30,11 +30,14 @@
             {% if 'potrosnja_materiala_torta' in stranice_list %}
             <a href="{{ url_for('potrosnja_materiala_torta') }}"><div class="ddDropdown">Torta</div></a>
             {% endif %}
+			{% if 'plasmakalk' in stranice_list %}
+            <a href="{{ url_for('plasmakalk') }}"><div class="ddDropdown"> Rezalnik Razlike</div></a>
+            {% endif %}
         </div>
     </div>
     {% endif %}
 
-    {% if 'produktivnost' in stranice_list or 'produktivnost_oee' in stranice_list or 'produktivnost_pozicije' in stranice_list %}
+    {% if 'produktivnost_delavcev_grafi' in stranice_list or 'potrosnja_materiala_OEE' in stranice_list or 'produktivnost_pozicije' in stranice_list %}
     <div class="dropdown">
         Produktivnost &rarr;
         <!-- Inside Dropdown -->
@@ -52,7 +55,7 @@
     </div>
     {% endif %}
 
-    {% if 'planiranje_proizvodnje' in stranice_list or 'planiranje_proizvodnje_omejeno' in stranice_list or 'verzug_lista' in stranice_list
+    {% if 'planiranjePripravnegaDela' in stranice_list or 'planiranjePripravnegaDelaPravice' in stranice_list or 'verzugsLista' in stranice_list
     or 'norme' in stranice_list or 'kapaciteta' in stranice_list %}
     <div class="dropdown">
         Proizvodnja &rarr;

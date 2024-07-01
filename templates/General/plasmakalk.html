@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Razlike Rezalnik Kosovnica i Kalkulacije</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: rgb(220, 220, 220);
+        }
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+        table {
+            margin-left: 14%;
+            width: 86%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .edit-button {
+            cursor: pointer;
+            background-color: darkorange;
+            color: black;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+        }
+        .edit-button:hover {
+            background-color: #ffaa00;
+        }
+        /* Adjust as needed */
+        .download-button-container {
+            text-align: right;
+            margin-top: 20px;
+        }
+        .download-button-container button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+        .download-button-container button:hover {
+            background-color: #45a049;
+            cursor: pointer;
+        }
+        /* Styling for filter input */
+        #filter-input {
+            margin-left: 14%;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+			width: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Razlike Rezalnik Kosovnica i Kalkulacije</h1>
+	    <input type="text" id="filter-input" placeholder="Filter Id_rn...">
+
+    <div>
+        {% for table in tables %}
+            <div id="dataframe">
+                {{ table|safe }}
+            </div>
+        {% endfor %}
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const getCellValue = (tr, idx) => tr.children[idx].innerText || tr.children[idx].textContent;
+
+            const comparer = (idx, asc) => (a, b) => (
+                (v1, v2) => v1 !== '' && v2 !== '' && !isNaN(v1) && !isNaN(v2) ? v1 - v2 : v1.toString().localeCompare(v2)
+            )(getCellValue(asc ? a : b, idx), getCellValue(asc ? b : a, idx));
+
+            const filterTable = (idx, searchText) => {
+                const table = document.querySelector('table');
+                const rows = Array.from(table.querySelectorAll('tbody tr'));
+                
+                rows.forEach(row => {
+                    const cellValue = getCellValue(row, idx);
+                    row.style.display = (cellValue.toLowerCase().includes(searchText.toLowerCase())) ? '' : 'none';
+                });
+            };
+
+            document.querySelectorAll('th').forEach((th, idx) => th.addEventListener('click', (() => {
+                let asc = true;
+                return () => {
+                    const table = th.closest('table');
+                    const rows = Array.from(table.querySelectorAll('tbody tr'));
+                    const headerRow = table.querySelector('thead tr');
+                    
+                    // Sorting only data rows (skipping header and any other static rows)
+                    rows.sort(comparer(Array.from(headerRow.children).indexOf(th), asc))
+                        .forEach((row, index) => {
+                            if (index !== 0) {
+                                table.querySelector('tbody').appendChild(row);
+                            }
+                        });
+
+                    // Toggle sorting direction
+                    asc = !asc;
+                };
+            })()));
+
+            // Event listener for the filter input
+            const filterInput = document.getElementById('filter-input');
+            filterInput.addEventListener('input', () => {
+                filterTable(0, filterInput.value.trim()); // Filter the first column (index 0)
+            });
+        });
+    </script>
+</body>
+</html>

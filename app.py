@@ -8,7 +8,8 @@ from datetime import datetime, date, timedelta
 import calendar
 import glob
 from decimal import Decimal
-
+import pyodbc
+drivers = pyodbc.drivers()
 import holidays
 import msoffcrypto
 import numpy as np
@@ -71,6 +72,7 @@ class TBA_RAD(db.Model):
     Ime = db.Column(db.String(100))
     Kartica = db.Column(db.Numeric(25, 0), primary_key=True)
     Kartica_value = db.Column(db.Numeric(25, 0))
+    SPICA = db.Column(db.INT())
     Mjesto = db.Column(db.CHAR(15))
     Kombinirani = db.Column(db.CHAR(15))
     Username = db.Column(db.CHAR(15))
@@ -125,7 +127,7 @@ class TBA_PRAVA(db.Model):
 class TPRO_PLAN(db.Model):
     __tablename__ = 'TPRO_PLAN'
     KUPEC = db.Column(db.CHAR(100))
-    Stari_DN = db.Column(db.CHAR(50))
+    PRED_DAT_ZBIRANJA = db.Column(db.CHAR(50))
     OPOMBE = db.Column(db.CHAR(100))
     IDENT_NR = db.Column(db.CHAR(15))
     KLJUCAVNICAR = db.Column(db.CHAR(50))
@@ -599,7 +601,7 @@ def format_date(date_str):
 def potrosnja_materiala_grafi():
     if not is_authenticated():
         return jsonify({"error": "Not authenticated"})
-
+    print("AAAAAAA")
     # Retrieve 'from_date' and 'to_date' from request parameters
     from_date_str = request.args.get('from_date', '2024-01-01')
     to_date_str = request.args.get('to_date', '2024-12-31')
@@ -657,6 +659,8 @@ def potrosnja_materiala_grafi():
             'Udio': 'DELEŽ',
             'Postotak*udio': 'PROCENT*DELEŽ'
         })
+        print("ccccccccccccccc")
+
         print(new_df.columns)
         return jsonify({"data": data, "df": new_df.to_json(orient='records')})
     else:
@@ -917,6 +921,233 @@ def grupiranje_materiala_table():
 
     except Exception as e:
         return jsonify({"error": str(e)})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+""" IVAN"""
+
+@app.route('/testjedan')
+def testjedan():
+
+    connection = connect_to_mssql(server, database, username, password)
+    print(session["_user_id"])
+    query=f"""
+            SELECT [TSSPICA].[dbo].[USER_BADGES].[USERNO],
+                    SUBSTRING([TSSPICA].[dbo].[USERS].[LASTNAME], CHARINDEX('-', [TSSPICA].[dbo].[USERS].[LASTNAME]) + 1, LEN([TSSPICA].[dbo].[USERS].[LASTNAME])) AS extracted_value,
+                    [TSSPICA].[dbo].[USERS].[FIRSTNAME]
+              FROM [TSSPICA].[dbo].[USER_BADGES],  [TSSPICA].[dbo].[USERS]
+              where [TSSPICA].[dbo].[USER_BADGES].[USERNO] = [TSSPICA].[dbo].[USERS].[NO] 
+            """
+    df = pd.read_sql_query(query, connection)
+    query_database(connection, query)
+    # Query the database and process the results
+    result = query_database(connection, query)
+    df['concatenated'] = df['extracted_value'] + ' ' + df['FIRSTNAME']
+    # Create a new dataframe with just the concatenated column
+    new_df = df[['USERNO', 'concatenated']]
+    print("ASDASD")
+    print(new_df)
+    options = list(zip(new_df['USERNO'], new_df['concatenated']))
+    new_element = ('%', 'SVI')
+    options.insert(0, new_element)
+    options = list(options)
+    unique_options = list(dict.fromkeys(options))
+    return render_template('testjedan.html',options=unique_options)
+
+def connect_to_mssql(server, database, username, password):
+    try:
+        connection = pyodbc.connect(
+            f'DRIVER={{ODBC Driver 18 for SQL Server}};'
+            f'SERVER={server};'
+            f'DATABASE={database};'
+            f'UID={username};'
+            f'PWD={password};'
+            f'Encrypt=no'
+        )
+        print("Connected to SQL Server")
+        return connection
+
+    except pyodbc.Error as e:
+        print(f"Error while connecting to SQL Server: {e}")
+        return None
+
+# Example usage
+server = '192.168.100.187'
+database = 'TSSPICA'
+username = 'tsspica'
+password = '534CC86By-'
+def calculate_working_time(entries):
+    working_times = []
+    current_start = None
+    current_end = None
+    start=None
+    end=1
+    counter = 0
+
+    for value, date, timestamp, code, oj, ime, prezime in entries:
+        flag= False
+        if counter % 2 == 0:
+            current_start = timestamp
+            start=None
+            flag=True
+        else:
+            current_end = timestamp
+            start=1
+        counter += 1
+        # Final calculation for the last period
+        if current_start is not None and current_end is not None:
+            duration = current_end - current_start
+            if duration.total_seconds() > 0:  # Only consider periods where there's actual work
+                working_times.append((current_start, current_end, duration,value,date,ime,prezime,oj))
+            current_start=None
+            current_end=None
+
+    return working_times
+
+
+def get_start_end_dates(date_str):
+    # Parse the input string to a datetime object
+    date = datetime.strptime(date_str, '%Y-%m')
+    # Get the start date
+    start_date = date.replace(day=1)
+    # Calculate the end date
+    if date.month == 12:
+        next_month = date.replace(year=date.year + 1, month=1, day=1)
+    else:
+        next_month = date.replace(month=date.month + 1, day=1)
+    end_date = next_month - timedelta(days=1)
+    # Format the dates as strings
+    start_date_str = start_date.strftime('%Y-%m-%d')
+    end_date_str = end_date.strftime('%Y-%m-%d')
+
+    return start_date_str, end_date_str
+
+def query_database(connection, query):
+    cursor = connection.cursor()
+    cursor.execute(query)
+    result = cursor.fetchall()
+    return result
+# Route to fetch data based on the selected date
+
+"""NOVO"""
+def get_dataframe():
+    query = """
+            SELECT "Id_rn","rezano" as Plasma, "Brutotez" as BrutoKosovnica, "BrutoGewicht" as BrutoKalkulacija,
+                            "rezano" - "Brutotez" as "Plasma-Kosovnica","rezano" - "BrutoGewicht" as "Plasma-Kalkulacija"
+                            from (SELECT 
+                                rezanje."Id_rn",
+                                sum(rezanje."Bruto") as rezano,
+                                tba."Brutotez",
+                                norme."BrutoGewicht"
+                            FROM 
+                                public."TREZ_KALK" as rezanje
+                            JOIN
+                                (SELECT "PolIzdelek", sum("Brutotez") as "Brutotez"
+                                 FROM public."TBA_KOSOVNICA"
+                                 GROUP BY "PolIzdelek") as tba
+                            ON 
+                                rezanje."Ident" = tba."PolIzdelek"
+                            JOIN
+                                public."TBA_NORME" as norme
+                            ON 
+                                rezanje."Ident" = norme."ANGEBOT" AND tba."PolIzdelek" = norme."ANGEBOT"
+                            GROUP BY 
+                                rezanje."Id_rn", tba."Brutotez", norme."BrutoGewicht")
+                            ORDER BY "rezano"-"Brutotez" desc
+    """
+    rezultat_vseh_identov = db.session.execute(text(query))
+    df = pd.DataFrame(rezultat_vseh_identov.fetchall())
+    df_rounded = df.round({'plasma': 2, 'Plasma-Kosovnica': 2, 'Plasma-Kalkulacija': 2})
+    print(df.columns)
+    return df_rounded
+
+
+@app.route('/plasmakalk', methods=['GET'])
+def plasmakalk():
+    df = get_dataframe()
+    return render_template('plasmakalk.html', tables=[df.to_html(classes='data', header="false", index=False)], titles=df.columns.values,stranice_list=session.get("stranice"))
+
+"""NOVO"""
+
+@app.route('/get_data_by_date', methods=['GET'])
+def get_data_by_date():
+    start_date = request.args.get('date')
+    end_date = request.args.get('date')
+    key = request.args.get('key')
+    print(key)
+    if str(start_date).count('-') == 1:
+        start_date, end_date = get_start_end_dates(start_date)
+    data = []
+    connection = connect_to_mssql(server, database, username, password)
+    ide=key
+    if key!='%':
+        ide= int(float(key))
+
+    query=f"""
+            SELECT [USERNO]
+                  ,FORMAT([TIMESTAMP], 'dd-MM-yyyy') AS day_month_year
+                  ,[TIMESTAMP]
+                  ,[USERNO]
+                  ,[SUBDEPARTMENT]
+                  , [TSSPICA].[dbo].[USERS].[FIRSTNAME]
+                  ,SUBSTRING([TSSPICA].[dbo].[USERS].[LASTNAME], CHARINDEX('-', [TSSPICA].[dbo].[USERS].[LASTNAME]) + 1, LEN([TSSPICA].[dbo].[USERS].[LASTNAME])) AS extracted_value
+              FROM [TSSPICA].[dbo].[EVENTS], [TSSPICA].[dbo].[USERS]
+              WHERE CAST([TIMESTAMP] AS DATE) BETWEEN '{start_date}' AND '{end_date}' AND 
+   [TSSPICA].[dbo].[EVENTS].[DATA] IS NULL
+              and  [TSSPICA].[dbo].[EVENTS].USERNO like '{ide}'
+              and 	[TSSPICA].[dbo].[USERS].NO= CONVERT(VARCHAR(13),[TSSPICA].[dbo].[EVENTS].USERNO)
+               order by [TSSPICA].[dbo].[EVENTS].USERNO, [TIMESTAMP] asc
+            """
+
+    df = pd.read_sql_query(query, connection)
+    query_database(connection, query)
+    # Query the database and process the results
+    result = query_database(connection, query)
+    working_times = calculate_working_time(result)
+    for start, end, duration, ide, dan, ime, prezime,oj in working_times:
+        # Convert the string to a datetime object
+        data.append({
+            'Day': dan,
+            'Worker': f"{ime} {prezime}",
+            'Start': str(start.time()),
+            'Oj': str(oj),
+            'End': str(end.time()),
+            'WorkedFor': str(duration)  # Convert timedelta to string
+        })
+    # Output the dictionary
+    df = pd.DataFrame(data)
+    data = df.to_dict(orient='records')
+    connection.close()
+    return jsonify(data)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @app.route("/produktivnost_grafi_load")
@@ -1186,6 +1417,7 @@ def home():
         # Split the 'Stranice' column by ';'
         stranice_list = user_permissions.Stranice.split(';')
         session["stranice"] = stranice_list
+        print(stranice_list)
         return render_template('home.html', stranice_list=stranice_list)
     else:
         return render_template('unauthorized.html')
@@ -1229,8 +1461,10 @@ def add_user():
     username = request.form.get('username')
     kartica = request.form.get('kartica')
     novaKartica = request.form.get('novaKartica')
+    spica = request.form.get('spica')
     mjesto = request.form.get('mjesto')
     password = request.form.get('password')
+    print(spica)
 
     if (request.form.get('datexp') != ''):
         datexp = request.form.get('datexp')
@@ -1244,7 +1478,7 @@ def add_user():
         return jsonify({'success': False, 'error': 'User already exists.'})
 
     # User does not exist, proceed with adding the user
-    new_user = TBA_RAD(Ime=name, Kartica=kartica, Kartica_value=novaKartica, Mjesto=mjesto, Username=username, Password=password, Datexp=datexp)
+    new_user = TBA_RAD(Ime=name, Kartica=kartica, Kartica_value=novaKartica, SPICA=spica, Mjesto=mjesto, Username=username, Password=password, Datexp=datexp)
     try:
         db.session.add(new_user)
         db.session.commit()
@@ -1266,6 +1500,7 @@ def edit_user():
         user.Username = request.form.get('username')
         user.Kartica = request.form.get('kartica')
         user.Kartica_value = request.form.get('novaKartica')
+        user.SPICA = request.form.get('spica')
         user.Mjesto = request.form.get('mjesto')
         user.Kombinirani = request.form.get('kombinirani')
         user.Password = request.form.get('password')
@@ -1382,11 +1617,10 @@ def delete_tev_evid():
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-    if not inspect.currentframe().f_code.co_name in session["stranice"]:
-        return render_template('unauthorized.html', stranice_list=session["stranice"])
+
     # Get the date range from query parameters
-    from_date_str = request.args.get('from_date', None)
-    to_date_str = request.args.get('to_date', None)
+    from_date_str = request.args.get('from_date', "2024-01")
+    to_date_str = request.args.get('to_date', "2025-01")
     checkbox = request.args.get('checkbox', 'false')
 
     # If dates are not provided, use default values (e.g., current month)
@@ -1399,10 +1633,9 @@ def planiranjePripravnegaDela():
         # Default date range: current year
         now = datetime.now()
         current_year = now.year
-        #from_date = datetime(current_year, 5, 1)
+        # from_date = datetime(current_year, 5, 1)
         from_date = datetime(current_year, 1, 1)
-        to_date = datetime(current_year, 12, 31)
-
+        to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
 
     # Query to get records within the date range
     if checkbox == "true":
@@ -1443,12 +1676,19 @@ def planiranjePripravnegaDela():
     # Sorting
     column_to_sort = request.args.get('sort_by', None)
     ascending = request.args.get('ascending', 'true').lower() == 'true'
+    df['DAT_ISPO'] = pd.to_datetime(df['DAT_ISPO']).dt.strftime('%d/%m/%Y')
+    df['STVARNA_ISPORUKA'] = pd.to_datetime(df['STVARNA_ISPORUKA']).dt.strftime('%d/%m/%Y')
+    df['DOG_ISPO'] = pd.to_datetime(df['DOG_ISPO']).dt.strftime('%d/%m/%Y')
+    df['PRED_DAT_ZBIRANJA'] = pd.to_datetime(df['PRED_DAT_ZBIRANJA']).dt.strftime('%d/%m/%Y')
+
     if column_to_sort:
         df = df.sort_values(by=column_to_sort, ascending=ascending)
 
     return render_template('planiranje_pripravnega_dela.html', column_names=df.columns.values,
                            row_data=list(df.values.tolist()), link_column="Patient ID", zip=zip,
-                           column_to_sort=column_to_sort, ascending=ascending, stranice_list=session.get("stranice"), checkbox=checkbox)
+                           column_to_sort=column_to_sort, ascending=ascending, stranice_list=session.get("stranice"),
+                           checkbox=checkbox)
+
 
 
 @app.template_filter('is_date')
@@ -1517,6 +1757,9 @@ def planiranjePripravnegaDelaLoad():
                     surfix = parts[0]
                 column_groups.append({'prefix': prefix, 'columns': [surfix]})
 
+        # for group in column_groups:
+        #     print(group['prefix'], group['columns'])
+
         # Fetch rows from the TPRO_PLAN table
         rows = TPRO_PLAN.query.order_by(asc(TPRO_PLAN.ID_PK)).all()
         user_role = session["role"]
@@ -1533,14 +1776,12 @@ def planiranjePripravnegaDelaLoad():
                 if isinstance(value, datetime.date):
                     # Format datetime objects to dd.mm.yyyy
                     value = value.strftime('%d.%m.%Y')
+                    print(value)
                 formatted_row.append(value)
             data.append(formatted_row)
-
-        end_time = time.time()  # Record the end time
-        execution_time = end_time - start_time  # Calculate the execution time
-
         # Return the JSON response with column groups
-        return jsonify({'column_groups': column_groups, 'data': data, 'role': user_role, 'execution_time': execution_time})
+        return jsonify(
+            {'column_groups': column_groups, 'data': data, 'role': user_role})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -1591,8 +1832,11 @@ def validate_and_format_date(date_str):
 def update_planiranje_pripravnega_Dela():
     import datetime
     updated_data = request.json
+    # print(updated_data)
     podatki_stranice = updated_data['data']
     id_rn = updated_data['data'][6]
+    print(podatki_stranice)
+    print("AAAAAAA")
     record = TPRO_PLAN.query.filter_by(IDRN=id_rn).first()
     record_list = []
     for column in record.__table__.columns:
@@ -1600,7 +1844,6 @@ def update_planiranje_pripravnega_Dela():
     from decimal import Decimal
     modified_record_list = []
     for item in record_list:
-
         if isinstance(item, Decimal):
             modified_record_list.append(int(item))  # Convert Decimal to int
         elif isinstance(item, datetime.date):
@@ -1610,7 +1853,9 @@ def update_planiranje_pripravnega_Dela():
                 modified_record_list.append(item.strftime('%m/%d/%Y'))  # Format date
         else:
             modified_record_list.append(item)
+    # print(modified_record_list)
     differences = [i for i, (x, y) in enumerate(zip(podatki_stranice, modified_record_list)) if str(x) != str(y)]
+    # print("Indexes with different values:", differences)
     converted_records = []
     for date_str in modified_record_list:
         try:
@@ -1622,118 +1867,143 @@ def update_planiranje_pripravnega_Dela():
     for index in differences[:]:  # using [:] to create a copy of the list to avoid modifying it while iterating
         if str(podatki_stranice[index]) == '':
             differences.remove(index)
-    different_value=podatki_stranice[differences[0]]
-    list_to_change_od=[9,13,17,21,25,29,33,37,41,45,49]
-    list_to_change_do = [10,14,18,22,26,30,34,38,42,46,50]
+        if index in [1,2,3,4,5]:
+            differences.remove(index)
+    different_value = podatki_stranice[differences[0]]
+    print(differences)
+    print(different_value)
+    print("ASDASDASDASD")
+    list_to_change_od = [9, 13, 17, 21, 25, 29, 33, 37, 41, 45, 49]
+    list_to_change_do = [10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50]
     filtered_list_od = [x for x in list_to_change_od if x >= differences[0]]
-    counter=0
-    list_dani=[11,15,19,23,27,31,35,39,43,47,51,53]
-    list_to_change_status = [12,16,20,24,28,32,36,40,44,48,52,54]
-    mjenjan=0
-    indexes = [9,10,13,14,17,18,21,22,25,26,29,30,33,34,37,38,41,42,45,46,49,50]
+
+    counter = 0
+    list_dani = [11, 15, 19, 23, 27, 31, 35, 39, 43, 47, 51, 53]
+    list_to_change_status = [12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 54]
+    mjenjan = 0
+    indexes = [9, 10, 13, 14, 17, 18, 21, 22, 25, 26, 29, 30, 33, 34, 37, 38, 41, 42, 45, 46, 49, 50]
     date_format = "%d/%m/%Y"
-    # Ako je izmjenjen STATUS
-    if differences[0] in list_to_change_status:
-        modified_record_list = []
-        for value in podatki_stranice:
-            formatted_value = validate_and_format_date(value)
-            modified_record_list.append(formatted_value if formatted_value else value)
+    differencess = [num for num in differences if num not in list_to_change_status]
 
     # Ako je izmjenjen datum OD
-    if differences[0] in list_to_change_od:
+    if differencess[0] in list_to_change_od:
+        # if modified_record_list[i + 2] == 0 or str(modified_record_list[i + 2]) == 'None':
+        # new_date_object_od = modified_record_list[i + 1]
         for i in filtered_list_od:
-            if modified_record_list[i+2]==0:
-                modified_record_list[i]=modified_record_list[i-3]
-                modified_record_list[i+1]=modified_record_list[i-3]
-                modified_record_list[i + 3]='J'
-                continue
-            if counter==0:
-                try:
-                    new_date_object_do=datetime.datetime.strptime(str(podatki_stranice[i]), date_format)+ timedelta(modified_record_list[i+2]-1)
-                except:
-                    new_date_object_do=datetime.datetime.strptime(str(podatki_stranice[i]), "%m/%d/%Y")+ timedelta(modified_record_list[i+2]-1)
-                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
-                    new_date_object_do += timedelta(days=1)
-                modified_record_list[i]=podatki_stranice[i]
-                modified_record_list[i+1]=new_date_object_do
-                counter+=1
-            else:
-                new_date_object_od=(modified_record_list[i-3])+ timedelta(days=1)#  + timedelta(modified_record_list[i+2]-1)
-                while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
-                    new_date_object_od += timedelta(days=1)
-                new_date_object_do=new_date_object_od+ timedelta(modified_record_list[i+2]-1)
-                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
-                    new_date_object_do += timedelta(days=1)
-                modified_record_list[i]=new_date_object_od
-                modified_record_list[i+1]=new_date_object_do
-                counter+=1
+            if i >= differencess[0]:
+                if modified_record_list[i + 2] == 0:
+                    modified_record_list[i] = modified_record_list[i - 3]
+                    modified_record_list[i + 1] = modified_record_list[i - 3]
+                    modified_record_list[i + 3] = 'J'
+                    continue
+                if counter == 0:
+                    try:
+                        new_date_object_do = datetime.datetime.strptime(str(podatki_stranice[i]), date_format) + timedelta(
+                            modified_record_list[i + 2] - 1)
+                    except:
+                        new_date_object_do = datetime.datetime.strptime(str(podatki_stranice[i]), "%m/%d/%Y") + timedelta(
+                            modified_record_list[i + 2] - 1)
+                    while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                        new_date_object_do += timedelta(days=1)
+                    modified_record_list[i] = podatki_stranice[i]
+                    modified_record_list[i + 1] = new_date_object_do
+                    counter += 1
+                else:
+                    new_date_object_od = (modified_record_list[i - 3]) + timedelta(
+                        days=1)  # + timedelta(modified_record_list[i+2]-1)
+                    while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
+                        new_date_object_od += timedelta(days=1)
+                    if modified_record_list[i + 2] == 0 or str(modified_record_list[i + 2]) == 'None':
+                        if modified_record_list[i - 4] == 0 or str(modified_record_list[i - 4]) == 'None':
+                            new_date_object_do = modified_record_list[i - 8]
+                        else:
+                            new_date_object_do = modified_record_list[i - 4]
+                    else:
+                        new_date_object_do = new_date_object_od + timedelta(modified_record_list[i + 2] - 1)
+                    while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                        new_date_object_do += timedelta(days=1)
+                    modified_record_list[i] = new_date_object_od
+                    modified_record_list[i + 1] = new_date_object_do
+                    counter += 1
     # Ako je izmjenjen datum DO
-    if differences[0] in list_to_change_do:
+    if differencess[0] in list_to_change_do:
         for i in list_to_change_do:
-            if modified_record_list[i+1]==0:
-                modified_record_list[i]=modified_record_list[i-4]
-                modified_record_list[i-1]=modified_record_list[i-4]
-                modified_record_list[i + 2]='J'
-                continue
-            if counter==0:
-                date_format = "%d/%m/%Y"
-                try:
-                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], date_format)
-                except:
-                    new_date_object_do=datetime.datetime.strptime(podatki_stranice[i], "%m/%d/%Y")
-                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
-                    new_date_object_do += timedelta(days=1)
-                modified_record_list[i]=new_date_object_do
-                counter+=1
-            else:
-                new_date_object_od=(modified_record_list[i-4])+ timedelta(days=1)
-                while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
-                    new_date_object_od += timedelta(days=1)
-                new_date_object_do=new_date_object_od+ timedelta(modified_record_list[i+1]-1)
-                while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
-                    new_date_object_do += timedelta(days=1)
-                modified_record_list[i-1]=new_date_object_od
-                modified_record_list[i]=new_date_object_do
-                counter+=1
-    # Ako je izmjenjen datum DOSTAVE
+            if i >= differencess[0]:
+                if modified_record_list[i + 1] == 0:
+                    modified_record_list[i] = modified_record_list[i - 4]
+                    modified_record_list[i - 1] = modified_record_list[i - 4]
+                    modified_record_list[i + 2] = 'J'
+                    continue
+                if counter == 0:
+                    date_format = "%d/%m/%Y"
+                    try:
+                        new_date_object_do = datetime.datetime.strptime(podatki_stranice[i], date_format)
+                    except:
+                        new_date_object_do = datetime.datetime.strptime(podatki_stranice[i], "%m/%d/%Y")
+                    while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                        new_date_object_do += timedelta(days=1)
+                    modified_record_list[i] = new_date_object_do
+                    counter += 1
+                else:
+                    new_date_object_od = (modified_record_list[i - 4]) + timedelta(days=1)
+                    while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
+                        new_date_object_od += timedelta(days=1)
 
-    if differences[0]==53:
-        mjenjan=1
-        modified_record_list[53]=podatki_stranice[53]
+                    if modified_record_list[i + 1] == 0 or str(modified_record_list[i + 1]) == 'None':
+                        if modified_record_list[i - 3] == 0 or str(modified_record_list[i - 3]) == 'None':
+                            new_date_object_do = modified_record_list[i - 8]
+                        else:
+                            new_date_object_do = modified_record_list[i - 3]
+                    else:
+                        new_date_object_do = new_date_object_od + timedelta(modified_record_list[i + 1] - 1)
+
+                    while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
+                        new_date_object_do += timedelta(days=1)
+                    modified_record_list[i - 1] = new_date_object_od
+                    modified_record_list[i] = new_date_object_do
+                    counter += 1
+
+    # Ako je izmjenjen datum DOSTAVE
+    if differencess[0] == 53:
+        mjenjan = 1
+        modified_record_list[53] = podatki_stranice[53]
         for i in reversed(indexes):
             if i % 2 == 0:
-                if str(modified_record_list[i+3])=='None':
-                    new_date_object_do=datetime.datetime.strptime(modified_record_list[i+7], date_format)-timedelta(days=1)
-                    podatki_stranice[i]=new_date_object_do
+                if str(modified_record_list[i + 3]) == 'None':
+                    new_date_object_do = datetime.datetime.strptime(modified_record_list[i + 7], date_format) - timedelta(days=1)
+                    podatki_stranice[i] = new_date_object_do
                 if str(modified_record_list[i + 3]) != 'None':
                     try:
-                        new_date_object_do=modified_record_list[i+3]-timedelta(days=1)
+                        new_date_object_do = modified_record_list[i + 3] - timedelta(days=1)
                     except:
-                        new_date_object_do=datetime.datetime.strptime(modified_record_list[i + 3], date_format)
-                    podatki_stranice[i]=new_date_object_do
+                        new_date_object_do = datetime.datetime.strptime(modified_record_list[i + 3], date_format)
+                    podatki_stranice[i] = new_date_object_do
+
                 while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
                     new_date_object_do -= timedelta(days=1)
-                modified_record_list[i] =new_date_object_do
+                modified_record_list[i] = new_date_object_do
             if i % 2 == 1:
-                if str(modified_record_list[i+1])!='None':
-                    new_date_object_od=modified_record_list[i+1] - timedelta(modified_record_list[i+2]-1)
+                if str(modified_record_list[i + 1]) != 'None' or str(modified_record_list[i + 1]) == '0':
+                    if modified_record_list[i + 2] == 0 or str(modified_record_list[i + 2]) == 'None':
+                        new_date_object_od = modified_record_list[i + 1]
+                    else:
+                        new_date_object_od = modified_record_list[i + 1] - timedelta(modified_record_list[i + 2] - 1)
+
                     while new_date_object_od.weekday() >= 5 or new_date_object_od in slo_holidays:
                         new_date_object_od -= timedelta(days=1)
                     modified_record_list[i] = new_date_object_od
 
     zeros_positions = []
-
-    # Ako je dan=0 vrati datume na None
+    # Vrati datume na None
     for i in list_dani:
-        if modified_record_list[i] == 0:
+        if modified_record_list[i] == 0 or str(modified_record_list[i]) == 'None':
             zeros_positions.append(i)
             if i > 0:
                 modified_record_list[i - 1] = None
                 modified_record_list[i - 2] = None
     filtered_indexes = [x for x in indexes if x >= differences[0]]
-
     # update datum isporuke
-    if mjenjan==0:
+    if 0 == 0:
         for idx in indexes:
             try:
                 modified_record_list[idx] = datetime.datetime.strptime(str(modified_record_list[idx]),'%Y-%m-%d %H:%M:%S')
@@ -1742,18 +2012,38 @@ def update_planiranje_pripravnega_Dela():
                     modified_record_list[idx] = datetime.datetime.strptime(str(modified_record_list[idx]), '%d/%m/%Y')
                 except Exception as e:
                     print(e)
-        selected_dates = [modified_record_list[i] for i in filtered_indexes if isinstance(modified_record_list[i], datetime.datetime)]
+        selected_dates = [modified_record_list[i] for i in filtered_indexes if
+                          isinstance(modified_record_list[i], datetime.datetime)]
         # Find the maximum date
-        max_date = max(selected_dates)
-        modified_record_list[53]= max_date+timedelta(days=1)
-        modified_record_list[53] = modified_record_list[53].strftime("%d/%m/%Y")
+        try:
+            max_date = max(selected_dates)
+        except:
+            max_date = None
+
+        if str(max_date)!='None':
+            modified_record_list[53] = max_date + timedelta(days=1)
+            modified_record_list[53] = modified_record_list[53].strftime("%d/%m/%Y")
+        if str(max_date) == 'None':
+            modified_record_list[53]=modified_record_list[53]
+    # Update statusa
     for i in list_to_change_status:
         modified_record_list[i] = podatki_stranice[i]
-    if 1==1:
+    pripravljeno=0
+    for i in reversed(list_to_change_status):
+        print(podatki_stranice[i])
+        if str(podatki_stranice[i])=="Pripravljeno":
+            pripravljeno=1
+        if pripravljeno==1:
+            modified_record_list[i] = "Pripravljeno"
+
+    if 1 == 1:
         try:
+            if str(modified_record_list[-3])=='nan':
+                modified_record_list[-3]=None
             # Dynamically assign values from the list to model attributes
             for attr, value in zip(TPRO_PLAN.__table__.columns.keys(), modified_record_list):
                 setattr(record, attr, value)
+                print(value)
             db.session.commit()
         except Exception as e:
             print(e)
@@ -2665,7 +2955,7 @@ def replace_nan(data):
     return [[cell if not pd.isna(cell) else None for cell in row] for row in data]
 
 if __name__ == "__main__":
-    #from waitress import serve
-    #serve(app, host='192.168.100.216', port=5000)
-    app.run(host='127.0.0.1', port=5000)
-    app.run(debug=True)
+    from waitress import serve
+    serve(app, host='192.168.100.216', port=5000)
+    #app.run(host='127.0.0.1', port=5000)
+    #app.run(debug=True)

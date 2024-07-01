@@ -68,6 +68,8 @@
                         <th>fix_plan_teden</th>
                         <th>fix_plan_mesec</th>
 
+                        <th>testjedan</th>
+                        <th>plasmakalk</th>
                         <th>direktor</th>
                         <th class="edit-column">Uredi</th>
                     </tr>
@@ -82,8 +84,8 @@
                         'izmene', 'tev_evid',
                         'administracija', 'user', 'user_roles', 'skripte', 'aktivni_nalogi', 'neaktivni_nalogi',
                         'MM2Alat',
-                        'compare_data', 'compare_data_mj',
-                        'direktor'] %}
+                        'compare_data', 'compare_data_mj','testjedan',
+                        'plasmakalk','direktor'] %}
                         <td><label for="{{ privilege }}"></label><input id="{{ privilege }}" type="checkbox" {% if user.Stranice is not none and privilege in user.Stranice %}checked{% endif %} disabled></td>
                         {% endfor %}
                         <td class="edit-column"><button class="edit-button" onclick="toggleEditMode(this.parentNode.parentNode)">Uredi</button></td>
@@ -165,6 +167,7 @@
             const username = row.cells[0].innerHTML; // Get the username from the first cell of the row
             const privileges = []; // Array to store selected privileges
             const checkboxes = row.querySelectorAll('input[type="checkbox"]');
+			
             checkboxes.forEach(function(checkbox) {
                 if (checkbox.checked) {
                     privileges.push(checkbox.id); // Add the ID of the checked checkbox to the array
@@ -173,6 +176,7 @@
 
             // AJAX call to send data to the server
             const xhr = new XMLHttpRequest();
+			console.log(row);
             xhr.open('POST', '/update_privileges');
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.onload = function() {
@@ -187,6 +191,7 @@
                 console.error('Request failed');
             };
             // Prepare data to send in JSON format
+			console.log(privileges);
             const data = {
                 username: username,
                 privileges: privileges

@@ -176,7 +176,7 @@
                     <td>{{ user.Kombinirani }}</td>
                     <td>{{ user.Password }}</td>
                     <td>{{ user.Datexp }}</td>
-                    <td><button id="edit-button" onclick="showEditForm('Uredi Uporabnika'); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}','{{ user.Kartica_value }}', '{{ user.Mjesto }}', '{{ user.Kombinirani }}', '{{ user.Password }}', '{{ user.Datexp }}')">Uredi</button></td> <!-- Add Edit button -->
+                    <td><button id="edit-button" onclick="showEditForm('Uredi Uporabnika'); editUser('{{ user.Ime }}','{{ user.Username }}', '{{ user.Kartica }}','{{ user.Kartica_value }}', '{{ user.SPICA }}', '{{ user.Mjesto }}', '{{ user.Kombinirani }}', '{{ user.Password }}', '{{ user.Datexp }}')">Uredi</button></td> <!-- Add Edit button -->
                     <td><button id="delete-button" onclick="deleteUser('{{ user.Username }}', '{{ user.Kartica }}')">Izbriši</button></td>
                     <!-- Add more columns here as needed -->
                 </tr>
@@ -184,7 +184,7 @@
             </tbody>
         </table>
     </div>
-    <button id="add-user-button" onclick="showEditForm('Dodaj Uporabnika','','','','','','','')">Dodaj uporabnika</button>
+    <button id="add-user-button" onclick="showEditForm('Dodaj Uporabnika','','','','','','','','')">Dodaj uporabnika</button>
 <!-- Edit form container -->
     <div id="editFormContainer">
         <button onclick="hideEditForm()">Close</button>
@@ -198,6 +198,8 @@
             <input type="text" id="editKartica" name="kartica" required><br>
             <label for="editNovaKartica">NOVA KARTICA:</label>
             <input type="text" id="editNovaKartica" name="novaKartica"><br>
+            <label for="editSpica">SPICA vrednost:</label>
+            <input type="text" id="editSpica" name="spica"><br>
             <label for="editMjesto">Mesto:</label>
             <input type="text" id="editMjesto" name="mjesto" required><br>
             <label for="editKombinirani">Kombinirani:</label>
@@ -218,11 +220,12 @@
 
 
 <script>
-    function editUser(name, username, kartica, novaKartica, mjesto, kombinirani, password, datexp) {
+    function editUser(name, username, kartica, novaKartica, spica, mjesto, kombinirani, password, datexp) {
         document.getElementById("editName").value = name; // Clear previous values if any
         document.getElementById("editUsername").value = username;
         document.getElementById("editKartica").value = kartica;
         document.getElementById("editNovaKartica").value = novaKartica;
+        document.getElementById("editSpica").value = spica; // Replace with actual value
         document.getElementById("editMjesto").value = mjesto; // Replace with actual value
         document.getElementById("editKombinirani").value = kombinirani; // Replace with actual value
         document.getElementById("editPassword").value = password;
@@ -327,13 +330,14 @@
 
 
     // Function to show edit form and populate fields
-    function showEditForm(title, name, username, kartica, novaKartica, mjesto, password, datexp) {
+    function showEditForm(title, name, username, kartica, novaKartica, spica ,mjesto, password, datexp) {
         // Populate form fields
         document.getElementById("formTitle").textContent = title;
         document.getElementById("editName").value = name;
         document.getElementById("editUsername").value = username;
         document.getElementById("editKartica").value = kartica;
         document.getElementById("editNovaKartica").value = novaKartica;
+        document.getElementById("editSpica").value = spica;
         document.getElementById("editMjesto").value = mjesto;
         document.getElementById("editPassword").value = password;
         document.getElementById("editDatexp").value = datexp;
@@ -351,6 +355,11 @@
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape') {
             hideEditForm();
+        }
+    });
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            document.querySelector('form').submit(); // Trigger form submission
         }
     });
 

@@ -37,7 +37,7 @@
     </div>
     {% endif %}
 
-    {% if 'produktivnost_delavcev_grafi' in stranice_list or 'potrosnja_materiala_OEE' in stranice_list or 'produktivnost_pozicije' in stranice_list %}
+    {% if 'produktivnost_delavcev_grafi' in stranice_list or 'potrosnja_materiala_OEE' in stranice_list or 'produktivnost_pozicije' in stranice_list or 'delovneUre' in stranice_list %}
     <div class="dropdown">
         Produktivnost &rarr;
         <!-- Inside Dropdown -->
@@ -50,6 +50,9 @@
             {% endif %}
             {% if 'produktivnost_pozicije' in stranice_list %}
                 <a href="{{ url_for('produktivnost_pozicije') }}"><div class="ddDropdown">Pozicije</div></a>
+            {% endif %}
+            {% if 'delovneUre' in stranice_list %}
+                <a href="{{ url_for('delovneUre') }}"><div class="ddDropdown">Ure delavcev SPICA</div></a>
             {% endif %}
         </div>
     </div>

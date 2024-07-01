@@ -938,8 +938,10 @@ def grupiranje_materiala_table():
 
 """ IVAN"""
 
-@app.route('/testjedan')
-def testjedan():
+@app.route('/delovneUre')
+def delovneUre():
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
 
     connection = connect_to_mssql(server, database, username, password)
     print(session["_user_id"])
@@ -958,13 +960,13 @@ def testjedan():
     # Create a new dataframe with just the concatenated column
     new_df = df[['USERNO', 'concatenated']]
     print("ASDASD")
-    print(new_df)
+    # print(new_df)
     options = list(zip(new_df['USERNO'], new_df['concatenated']))
     new_element = ('%', 'SVI')
     options.insert(0, new_element)
     options = list(options)
     unique_options = list(dict.fromkeys(options))
-    return render_template('testjedan.html',options=unique_options)
+    return render_template('delovne_ure.html',options=unique_options, stranice_list=session.get("stranice"))
 
 def connect_to_mssql(server, database, username, password):
     try:

@@ -68,7 +68,7 @@
                         <th>fix_plan_teden</th>
                         <th>fix_plan_mesec</th>
 
-                        <th>testjedan</th>
+                        <th>Ure SPICA</th>
                         <th>plasmakalk</th>
                         <th>direktor</th>
                         <th class="edit-column">Uredi</th>
@@ -84,7 +84,8 @@
                         'izmene', 'tev_evid',
                         'administracija', 'user', 'user_roles', 'skripte', 'aktivni_nalogi', 'neaktivni_nalogi',
                         'MM2Alat',
-                        'compare_data', 'compare_data_mj','testjedan',
+                        'compare_data', 'compare_data_mj',
+                        'delovneUre',
                         'plasmakalk','direktor'] %}
                         <td><label for="{{ privilege }}"></label><input id="{{ privilege }}" type="checkbox" {% if user.Stranice is not none and privilege in user.Stranice %}checked{% endif %} disabled></td>
                         {% endfor %}

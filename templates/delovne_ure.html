@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Tracking</title>
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <title>Spremljanje delovnih ur</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -74,7 +75,7 @@
 		const daysInMonth = new Date(year, month, 0).getDate();
 		const firstDay = new Date(year, month, 1).getDay();
 
-		const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+		const dayNames = ['Ned', 'Pon', 'Tor', 'Sre', 'Čet', 'Pet', 'Sob'];
 
 		// Create header row
 		dayNames.forEach(day => {
@@ -203,53 +204,63 @@ const totalHours = Math.floor(totalSeconds / 3600);
     </script>
 </head>
 <body>
-    <div class="container">
-        <div class="sidebar">
-            <div class="form-section">
-			<label for="oj">Prezime</label>
-				<select id="oj" name="oj" onchange="updateCalendar()">
-					{% for value, label in options %}
-						<option value="{{ value }}">{{ label }}</option>
-					{% endfor %}
-				</select>
+    {% include 'navigation.html' %}
+
+    <div class="content">
+        <div class="container">
+            <div class="sidebar">
+                <div class="form-section">
+                <label for="oj">Naziv</label>
+                    <select id="oj" name="oj" onchange="updateCalendar()">
+                        {% for value, label in options %}
+                            <option value="{{ value }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-section">
+                    <label for="month">Mesec</label>
+                    <select id="month" name="month" onchange="updateCalendar()">
+                        <option value="1">Januar</option>
+                        <option value="2">Februar</option>
+                        <option value="3">Marec</option>
+                        <option value="4">April</option>
+                        <option value="5">Maj</option>
+                        <option value="6">Junij</option>
+                        <option value="7">Julij</option>
+                        <option value="8">Avgust</option>
+                        <option value="9">September</option>
+                        <option value="10">Oktober</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div class="form-section">
+                    <label for="year">Leto</label>
+                    <select id="year" name="year" onchange="updateCalendar()">
+                        <option value="2023">2023</option>
+                        <option value="2024">2024</option>
+                        <option value="2025">2025</option>
+                    </select>
+                </div>
+                <div id="calendar" class="calendar"></div>
             </div>
-            <div class="form-section">
-                <label for="month">Month</label>
-                <select id="month" name="month" onchange="updateCalendar()">
-                    <option value="1">Januar</option>
-                    <option value="2">Februar</option>
-                    <option value="3">Marec</option>
-                    <option value="4">April</option>
-                    <option value="5">Maj</option>
-                    <option value="6">Junij</option>
-                    <option value="7">Julij</option>
-                    <option value="8">Avgust</option>
-                    <option value="9">September</option>
-                    <option value="10">Oktober</option>
-                    <option value="11">November</option>
-                    <option value="12">December</option>
-                </select>
+            <div class="main">
+                <table class="time-table">
+                    <thead>
+                        <tr>
+                            <th>Dan</th>
+                            <th>Prihod</th>
+                            <th>Ime in priimek</th>
+                            <th>Oddelek</th>
+                            <th>Odhod</th>
+                            <th>Čas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
             </div>
-            <div class="form-section">
-                <label for="year">Year</label>
-                <select id="year" name="year" onchange="updateCalendar()">
-                    <option value="2023">2023</option>
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                </select>
-            </div>
-            <div id="calendar" class="calendar"></div>
         </div>
-        <div class="main">
-            <table class="time-table">
-                <thead>
-                    <tr>
-                        <th>Dan</th>
-                        <th>Ulaz</th>
-                        <th>Prezime i ime</th>
-                        <th>OJ</th>
-                        <th>Izlaz</th>
-                        <th>Vreme</th>
-                    </tr>
-                </thead>
-                <tbody>
+    </div>
+</body>
+</html>

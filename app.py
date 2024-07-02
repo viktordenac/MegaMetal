@@ -944,7 +944,6 @@ def delovneUre():
         return render_template('unauthorized.html', stranice_list=session["stranice"])
 
     connection = connect_to_mssql(server, database, username, password)
-    print(session["_user_id"])
     query=f"""
             SELECT [TSSPICA].[dbo].[USER_BADGES].[USERNO],
                     SUBSTRING([TSSPICA].[dbo].[USERS].[LASTNAME], CHARINDEX('-', [TSSPICA].[dbo].[USERS].[LASTNAME]) + 1, LEN([TSSPICA].[dbo].[USERS].[LASTNAME])) AS extracted_value,
@@ -959,8 +958,6 @@ def delovneUre():
     df['concatenated'] = df['extracted_value'] + ' ' + df['FIRSTNAME']
     # Create a new dataframe with just the concatenated column
     new_df = df[['USERNO', 'concatenated']]
-    print("ASDASD")
-    # print(new_df)
     options = list(zip(new_df['USERNO'], new_df['concatenated']))
     new_element = ('%', 'SVI')
     options.insert(0, new_element)
@@ -1079,6 +1076,9 @@ def get_dataframe():
 @app.route('/plasmakalk', methods=['GET'])
 def plasmakalk():
     df = get_dataframe()
+    print(inspect.currentframe().f_code.co_name)
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     return render_template('plasmakalk.html', tables=[df.to_html(classes='data', header="false", index=False)], titles=df.columns.values,stranice_list=session.get("stranice"))
 
 """NOVO"""

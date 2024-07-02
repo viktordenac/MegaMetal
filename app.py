@@ -1621,13 +1621,17 @@ def planiranjePripravnegaDela():
         return redirect(url_for("login"))
 
     # Get the date range from query parameters
-    from_date_str = request.args.get('from_date', "2024-01")
-    to_date_str = request.args.get('to_date', "2025-01")
+    from_date_str = request.args.get('from_date')
+    to_date_str = request.args.get('to_date')
     checkbox = request.args.get('checkbox', 'false')
 
     # If dates are not provided, use default values (e.g., current month)
     if from_date_str and to_date_str:
+        now = datetime.now()
+        current_year = now.year
+        #from_date = datetime(current_year, 7, 1)
         from_date = datetime.strptime(from_date_str, "%Y-%m")
+        #to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
         to_date = datetime.strptime(to_date_str, "%Y-%m")
         # Adjust to_date to the end of the month
         to_date = datetime(to_date.year, to_date.month + 1, 1) - timedelta(days=1)
@@ -1635,9 +1639,9 @@ def planiranjePripravnegaDela():
         # Default date range: current year
         now = datetime.now()
         current_year = now.year
-        # from_date = datetime(current_year, 5, 1)
-        from_date = datetime(current_year, 1, 1)
-        to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
+        from_date = datetime(current_year, 12, 1)
+        #from_date = datetime(current_year, 1, 1)
+        to_date = datetime(from_date.year, from_date.month, 1) + relativedelta(months=1)
 
     # Query to get records within the date range
     if checkbox == "true":
@@ -1646,6 +1650,8 @@ def planiranjePripravnegaDela():
                 .order_by(TPRO_PLAN.DAT_ISPO.asc())
                 .all())
     else:
+        print(from_date)
+        print(to_date)
         rows = (db.session.query(TPRO_PLAN)
                 .filter(TPRO_PLAN.DAT_ISPO.between(from_date, to_date))
                 .filter(TPRO_PLAN.STVARNA_ISPORUKA.is_(None))  # Check for NULL values
@@ -2879,6 +2885,7 @@ def action_plans():
 def update_action_plan(id):
     action_plan = ACTION_PLAN.query.get_or_404(id)
     if request.method == 'POST':
+        action_plan.TEMA = request.form['tema']
         action_plan.ACTIVITY = request.form['activity']
         action_plan.RESPONSIBLE = request.form['responsible']
         action_plan.DEPARTMENT = request.form['department']

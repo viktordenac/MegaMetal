@@ -87,7 +87,10 @@
             {% for plan in action_plans %}
             <form id="updateForm{{ plan.ID_PK }}" action="{{ url_for('update_action_plan', id=plan.ID_PK) }}" method="POST">
                 <tr class="expandable" data-progress="{{ plan.PROGRESS }}">
-                    <td>{{ plan.TEMA }}</td>
+                    <td class="tema" data-plan-id="{{ plan.ID_PK }}">
+                        <div contenteditable="true">{{ plan.TEMA }}</div>
+                        <input type="text" name="tema" value="{{ plan.TEMA }}" style="display: none;">
+                    </td>
                     <td class="activity" data-plan-id="{{ plan.ID_PK }}">
                         <div contenteditable="true">{{ plan.ACTIVITY }}</div>
                         <input type="text" name="activity" value="{{ plan.ACTIVITY }}" style="display: none;">
@@ -115,7 +118,7 @@
             {% endfor %}
             <form action="{{ url_for('add_action_plan') }}" method="POST">
                 <tr>
-                    <td>New</td>
+                    <td><input type="text" name="tema" required></td>
                     <td><input type="text" name="activity" required></td>
                     <td><input type="text" name="responsible" required></td>
                     <td><input type="text" name="department" required></td>
@@ -169,6 +172,20 @@
                     }
                 });
             });
+
+            // Attach event listener to all contenteditable divs with class "activity"
+            var temaDivs = document.querySelectorAll('.tema > div[contenteditable="true"]');
+            temaDivs.forEach(function(div) {
+                div.addEventListener('input', function() {
+                    // Get the associated hidden input field
+                    var hiddenInput = this.parentElement.querySelector('input[type="text"]');
+                    if (hiddenInput) {
+                        // Update the value of the hidden input field with the content of the contenteditable div
+                        hiddenInput.value = this.textContent;
+                    }
+                });
+            });
+
 
             // Toggle finished rows visibility
             var toggleFinishedBtn = document.getElementById('toggleFinishedBtn');

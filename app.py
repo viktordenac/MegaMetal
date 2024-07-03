@@ -1619,7 +1619,8 @@ def delete_tev_evid():
 def planiranjePripravnegaDela():
     if not is_authenticated():
         return redirect(url_for("login"))
-
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
     # Get the date range from query parameters
     from_date_str = request.args.get('from_date')
     to_date_str = request.args.get('to_date')
@@ -1634,12 +1635,12 @@ def planiranjePripravnegaDela():
         #to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
         to_date = datetime.strptime(to_date_str, "%Y-%m")
         # Adjust to_date to the end of the month
-        to_date = datetime(to_date.year, to_date.month + 1, 1) - timedelta(days=1)
+        to_date = datetime(to_date.year, to_date.month, 1) + relativedelta(months=1) - timedelta(days=1)
     else:
         # Default date range: current year
         now = datetime.now()
         current_year = now.year
-        from_date = datetime(current_year, 12, 1)
+        from_date = datetime(current_year, 6, 1)
         #from_date = datetime(current_year, 1, 1)
         to_date = datetime(from_date.year, from_date.month, 1) + relativedelta(months=1)
 
@@ -1697,6 +1698,91 @@ def planiranjePripravnegaDela():
                            column_to_sort=column_to_sort, ascending=ascending, stranice_list=session.get("stranice"),
                            checkbox=checkbox)
 
+
+@app.route('/planiranjePripravnegaDela_2-0')
+def planiranjePripravnegaDela_2_0():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    print(inspect.currentframe().f_code.co_name)
+    if not inspect.currentframe().f_code.co_name in session["stranice"]:
+        return render_template('unauthorized.html', stranice_list=session["stranice"])
+
+    # Get the date range from query parameters
+    from_date_str = request.args.get('from_date')
+    to_date_str = request.args.get('to_date')
+    checkbox = request.args.get('checkbox', 'false')
+
+    # If dates are not provided, use default values (e.g., current month)
+    if from_date_str and to_date_str:
+        now = datetime.now()
+        current_year = now.year
+        #from_date = datetime(current_year, 7, 1)
+        from_date = datetime.strptime(from_date_str, "%Y-%m")
+        #to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
+        to_date = datetime.strptime(to_date_str, "%Y-%m")
+        # Adjust to_date to the end of the month
+        to_date = datetime(to_date.year, to_date.month, 1) + relativedelta(months=1) - timedelta(days=1)
+    else:
+        # Default date range: current year
+        now = datetime.now()
+        current_year = now.year
+        from_date = datetime(current_year, 6, 1)
+        #from_date = datetime(current_year, 1, 1)
+        to_date = datetime(from_date.year, from_date.month, 1) + relativedelta(months=1)
+
+    # Query to get records within the date range
+    if checkbox == "true":
+        rows = (db.session.query(TPRO_PLAN)
+                .filter(TPRO_PLAN.DAT_ISPO.between(from_date, to_date))
+                .order_by(TPRO_PLAN.DAT_ISPO.asc())
+                .all())
+    else:
+        print(from_date)
+        print(to_date)
+        rows = (db.session.query(TPRO_PLAN)
+                .filter(TPRO_PLAN.DAT_ISPO.between(from_date, to_date))
+                .filter(TPRO_PLAN.STVARNA_ISPORUKA.is_(None))  # Check for NULL values
+                .order_by(TPRO_PLAN.DAT_ISPO.asc())
+                .all())
+
+    # Get column names from the SQLAlchemy model
+    columns = [column.key for column in TPRO_PLAN.__table__.columns]
+
+    # Convert the rows to a dictionary
+    data = []
+
+    def reformat_date(date_str):
+        if date_str:
+            return datetime.strptime(str(date_str), "%Y-%m-%d").strftime("%d/%m/%Y")
+        return date_str
+
+    for row in rows:
+        row_data = {}
+        for column in columns:
+            value = getattr(row, column)
+            if column.endswith('_OD') or column.endswith('_DO'):
+                value = reformat_date(value)
+            row_data[column] = value
+        data.append(row_data)
+
+    # Create DataFrame from the dictionary
+    df = pd.DataFrame(data)
+
+    # Sorting
+    column_to_sort = request.args.get('sort_by', None)
+    ascending = request.args.get('ascending', 'true').lower() == 'true'
+    df['DAT_ISPO'] = pd.to_datetime(df['DAT_ISPO']).dt.strftime('%d/%m/%Y')
+    df['STVARNA_ISPORUKA'] = pd.to_datetime(df['STVARNA_ISPORUKA']).dt.strftime('%d/%m/%Y')
+    df['DOG_ISPO'] = pd.to_datetime(df['DOG_ISPO']).dt.strftime('%d/%m/%Y')
+    df['PRED_DAT_ZBIRANJA'] = pd.to_datetime(df['PRED_DAT_ZBIRANJA']).dt.strftime('%d/%m/%Y')
+
+    if column_to_sort:
+        df = df.sort_values(by=column_to_sort, ascending=ascending)
+
+    return render_template('planiranje_pripravnega_dela_2-0.html', column_names=df.columns.values,
+                           row_data=list(df.values.tolist()), link_column="Patient ID", zip=zip,
+                           column_to_sort=column_to_sort, ascending=ascending, stranice_list=session.get("stranice"),
+                           checkbox=checkbox)
 
 
 @app.template_filter('is_date')

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style/navigation.css">
+    <title>Dates Data</title>
+    <style>
+        #table-container {
+            max-height: 84vh; /* Adjust as needed */
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+
+        thead th:nth-child(5) {
+            display: none;
+        }
+
+        /* Hide the 4th column cells */
+        tbody td:nth-child(5) {
+            display: none;
+        }
+
+        thead th:nth-last-child(2) {
+            display: none;
+        }
+
+        /* Hide the second-to-last column cells */
+        tbody td:nth-last-child(2) {
+            display: none;
+        }
+
+        th, td {
+            padding: 8px 16px;
+            text-align: left;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent cells from breaking lines */
+        }
+
+        #sticky-tables thead th {
+            background-color: #f4f4f4;
+            position: -webkit-sticky; /* For Safari */
+            position: sticky;
+            top: 0; /* Stick to the top */
+            z-index: 3; /* Ensure the header is above the table body */
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #bdbdbd;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: rgb(220, 220, 220);
+        }
+
+        h1, h2 {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        input[type="text"], input[type="date"] {
+            width: 7vw;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        /* CSS to make the "Edit" column fixed */
+        .edit-column {
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            right: 0;
+            z-index: 0; /* Ensure it's above other cells */
+        }
+
+        /* Optionally, you can style the "Edit" header cell */
+        #edit {
+            font-size: 15px;
+            table-layout: fixed;
+            background-color: #b6b6b6; /* Background color of floating header */
+            position: sticky;
+            top: 0;
+            z-index: 1; /* Ensure the floating header stays on top of the table */
+        }
+
+        /* Style for the checkbox */
+        .checkbox-container {
+            display: inline-block;
+            vertical-align: middle;
+            cursor: pointer;
+        }
+
+        .checkbox {
+            display: none;
+        }
+
+        .checkbox-label {
+            position: relative;
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: #eee;
+            border: 2px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .checkbox-label::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 12px;
+            height: 12px;
+            background-color: #333;
+            border-radius: 2px;
+            transition: transform 0.2s ease-in-out;
+        }
+
+        /* Checked state */
+        .checkbox:checked + .checkbox-label::after {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Style for sticky columns */
+
+        tbody td:first-child {
+            position: -webkit-sticky;
+            position: sticky;
+            left: 0;
+            background-color: #bdbdbd;
+        }
+
+        thead th:first-child {
+            position: -webkit-sticky;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+            background-color: #f4f4f4; /* Optional: change this color as needed */
+        }
+
+        tbody td:nth-child(2) {
+            position: -webkit-sticky;
+            position: sticky;
+            left: 160px;
+            background-color: #bdbdbd;
+        }
+
+        thead th:nth-child(2) {
+            position: -webkit-sticky;
+            position: sticky;
+            width: auto;
+            left: 160px; /* Adjust this value based on the width of the first column */
+            z-index: 1000;
+            background-color: #f4f4f4; /* Optional: change this color as needed */
+            border: 1px solid #ddd;
+            white-space: nowrap;
+        }
+
+        tbody td:nth-child(7) {
+            position: -webkit-sticky;
+            position: sticky;
+            left: 340px;
+            background-color: #bdbdbd;
+
+        }
+
+        thead th:nth-child(7) {
+            position: -webkit-sticky;
+            position: sticky;
+            left: 340px; /* Adjust this value based on the width of the first two columns */
+            z-index: 1000;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+            background-color: #f4f4f4; /* Optional: change this color as needed */
+        }
+
+        /* Adjust for the action column if necessary */
+        #sticky-tables tbody td:last-child,
+        #sticky-tables thead th:last-child {
+            position: -webkit-sticky;
+            position: sticky;
+            right: 0;
+            z-index: 5;
+            background-color: #fff; /* Optional: change this color as needed */
+        }
+
+        thead th {
+            position: -webkit-sticky;
+            position: sticky;
+            z-index: 5;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+            background-color: #f4f4f4; /* Optional: change this color as needed */
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #bdbdbd;
+        }
+
+        #buttons-container, #myTable {
+            display: none;
+        }
+        #buttons-container
+    </style>
+</head>
+<body>
+<div class="content">
+    {% include 'navigation.html' %}
+    <h2>Plani</h2>
+    <form class="date_form">
+        <label for="from_date_table">Od:</label>
+        <input type="month" id="from_date_table" name="from_date_table">
+        <label for="to_date_table">Do:</label>
+        <input type="month" id="to_date_table" name="to_date_table">
+        <button type="button" id="submitButton">Prikaži</button>
+    </form>
+    <div><label class="warning" id="warningMessage" style="display: none;">Datum do mora biti isti ali večji kot datum
+        od.</label></div>
+    <label class="checkbox-container">Prikaži tudi plane, ki so izstavljeni
+        <input type="checkbox" class="checkbox" {% if checkbox== 'true' %}checked{% endif %}>
+        <span class="checkbox-label"></span>
+    </label>
+    <div id="buttons-container">
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,9,12)">Konstrukcija</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,13,16)">Razrez</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,17,20)">MPO</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,21,24)">Zbiranje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,25,28)">Sestavljanje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,29,32)">Varjenje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,33,36)">Žarenje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,37,40)">Brušenje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,41,44)">Kontr in lak</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,45,48)">Pesk in barv</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,49,52)">Mehanska</button>
+    </div>
+    <div id="table-container">
+        <table id="myTable">
+            <thead>
+            <tr>
+                {% for column in column_names %}
+                <th>{{ column }}</th>
+                {% endfor %}
+                <th id="edit">Edit</th> <!-- Assuming you have an 'Edit' column -->
+            </tr>
+            <tr>
+                {% for column in column_names %}
+                <th>
+                    <div>
+                        <input type="text" data-column-name="{{ column }}" onkeyup="filterTable()"
+                               placeholder="{{ column }}:">
+                    </div>
+                    <div>
+                        <button class="sort-button" onclick="sortTable('{{ column }}')">
+                            {% if column_to_sort == col %}
+                            {% if ascending %}
+                            Asc
+                            {% else %}
+                            Desc
+                            {% endif %}
+                            {% else %}
+                            Sort
+                            {% endif %}
+                        </button>
+                    </div>
+                </th>
+                {% endfor %}
+                <th></th> <!-- Empty header for the 'Edit' column -->
+            </tr>
+            </thead>
+            <tbody>
+            {% for row in row_data %}
+            <tr>
+                {% for cell in row %}
+                {% if cell == 'Ni se še začelo' or cell == 'Zamujamo' or cell == 'V fazi priprave' or cell ==
+                'Pripravljeno' %}
+                <td>
+                    <select name="progress" disabled onchange="checkOption(this)">
+                        <option value="Ni se še začelo" {% if cell==
+                        'Ni se še začelo' %}selected{% endif %}>Ni se še začelo</option>
+                        <option value="Zamujamo" {% if cell==
+                        'Zamujamo' %}selected{% endif %}>Zamujamo</option>
+                        <option value="V fazi priprave" {% if cell==
+                        'V fazi priprave' %}selected{% endif %}>V fazi priprave</option>
+                        <option value="Pripravljeno" {% if cell==
+                        'Pripravljeno' %}selected{% endif %}>Pripravljeno</option>
+                    </select>
+                </td>
+                {% else %}
+                <td><input type="text" value="{{ cell }}" disabled></td>
+                {% endif %}
+                {% endfor %}
+                <td class="edit-column">
+                    <button onclick="toggleEditState(this.parentElement.parentElement, this)">Edit</button>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+    (function() {
+        const buttons = document.querySelectorAll('#buttons-container button');
+        buttons.forEach(button => {
+            simulateClick(button); // Simulate a click on each button
+        });
+
+        function simulateClick(element) {
+            const event = new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            element.dispatchEvent(event); // Dispatch the click event on the element
+        }
+        // Show buttons and table after initialization
+        document.getElementById('buttons-container').style.display = 'block';
+    })();
+    document.getElementById('warningMessage').style.display = 'none';
+    window.addEventListener('DOMContentLoaded', function () {
+        updateProgressColumnColor();
+        document.getElementById('myTable').style.display = 'table';
+
+        const table = document.getElementById('sticky-table');
+        console.log("aaaaaaaaaaaa");
+        console.log(table)
+        const headers = table.querySelectorAll('thead th');
+        const cells = table.querySelectorAll('tbody td');
+
+        // Initialize an array to keep track of left offsets
+        let offsets = [];
+
+        // Calculate and apply sticky positioning dynamically
+        function updateStickyHeaders() {
+            offsets = []; // Clear previous offsets
+
+            headers.forEach((header, index) => {
+                const cell = cells[index]; // Corresponding data cell
+                const headerWidth = header.offsetWidth; // Width of the header
+                console.log(headerWidth);
+
+                headerWidth = headerWidth + 5000
+                console.log(headerWidth);
+
+                // Calculate left offset
+                let offset = 0;
+                if (index > 0) {
+                    offset = offsets[index - 1] + headers[index - 1].offsetWidth;
+                }
+
+                // Apply sticky positioning
+                header.style.left = `${offset}px`;
+                cell.style.left = `${offset}px`;
+
+                // Store the offset for the next header
+                offsets.push(offset);
+            });
+        }
+
+        // Call updateStickyHeaders initially and on window resize
+        updateStickyHeaders();
+        window.addEventListener('resize', updateStickyHeaders);
+    });
+
+    function toggleVisibility(start, end) {
+        const table = document.getElementById('myTable');
+        const headers = table.getElementsByTagName('thead');
+        const bodies = table.getElementsByTagName('tbody');
+
+        if (headers.length === 0 || bodies.length === 0) {
+            console.error("Table headers or bodies are not found");
+            return;
+        }
+
+        const headerRow = headers[0].rows[0];
+        const headerFilterRow = headers[0].rows[1];
+        const bodyRows = Array.from(bodies[0].rows);
+
+        for (let index = start; index <= end; index++) {
+            let isHeaderVisible;
+            // Toggle header row visibility
+            if (index < headerRow.cells.length) {
+                const cell = headerRow.cells[index];
+                isHeaderVisible = cell.style.display !== 'none';
+                cell.style.display = isHeaderVisible ? 'none' : '';
+            }
+
+            // Toggle filter header row visibility
+            if (index < headerFilterRow.cells.length) {
+                const cell = headerFilterRow.cells[index];
+                isHeaderVisible = cell.style.display !== 'none';
+                cell.style.display = isHeaderVisible ? 'none' : '';
+            }
+
+            // Toggle body rows visibility
+            bodyRows.forEach(row => {
+                if (index < row.cells.length) {
+                    row.cells[index].style.display = isHeaderVisible ? 'none' : '';
+                }
+            });
+        }
+    }
+
+    function toggleVisibilityAndChangeColor(button, start, end) {
+        toggleVisibility(start, end);
+        if(button.style.backgroundColor === 'orange') {
+            button.style.backgroundColor = 'rgba(69,160,73,0.82)';
+        } else {
+            button.style.backgroundColor = 'orange';
+        }
+    }
+
+    function updateProgressColumnColor() {
+
+        var progressCells = document.querySelectorAll('select[name="progress"]');
+        progressCells.forEach(function (cell) {
+            var selectedValue = cell.value;
+            var parentRow = cell.parentElement.parentElement; // Parent row of the select element
+            var parentChildren = Array.from(parentRow.children); // Convert NodeList to array
+            var childNumber = parentChildren.indexOf(cell.parentElement); // Index of the parent element within its parent's children
+            var dateChild = childNumber - 1;
+            var dateCell = parentRow.querySelector('td:nth-child(' + dateChild + ')');
+            var valueMat = dateCell.innerHTML;
+            var valueMatch = valueMat.match(/value="([^"]*)"/);
+            var endDateString = ""
+            // Check if the value attribute was found and extract the value
+            if (valueMatch && valueMatch[1]) {
+                endDateString = valueMatch[1];
+            } else {
+                console.log("Value attribute not found");
+            }
+
+            var dateValue = endDateString.trim(); // Get end date from cell text
+
+            // Assume the date is in the format "DD-MM-YYYY"
+            var dateParts = dateValue.split('/');
+            var day = parseInt(dateParts[0], 10);
+            var month = parseInt(dateParts[1], 10) - 1; // Months are zero-based in JavaScript
+            var year = parseInt(dateParts[2], 10);
+
+            var endDate = new Date(year, month, day); // Create a Date object
+            if (endDate < new Date() && selectedValue !== 'Pripravljeno') {
+                dateCell.style.backgroundColor = 'red';
+            }
+
+            //console.log(isEndDatePast(endDate));
+            const today = new Date();
+            const threeDaysAgo = new Date(today);
+            threeDaysAgo.setDate(today.getDate() - 3);
+            if (selectedValue === 'Pripravljeno') {
+                cell.parentElement.style.backgroundColor = 'green';
+            }
+            if (selectedValue === 'V fazi priprave') {
+                cell.parentElement.style.backgroundColor = 'yellow';
+            }
+            if (selectedValue === 'Zamujamo') {
+                cell.parentElement.style.backgroundColor = 'red';
+            }
+        });
+    }
+
+    function submitRowData(row, button) {
+        const updatedRowData = Array.from(row.querySelectorAll('input, select')).map(element => {
+            if (element.tagName === 'INPUT') {
+                return element.value;
+            } else if (element.tagName === 'SELECT') {
+                return element.options[element.selectedIndex].value;
+            }
+        });
+        const updatedData = {row: row.rowIndex, data: updatedRowData};
+        fetch('/planiranjePripravnegaDelaUpdate', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(updatedData)
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Success:', response);
+                } else {
+                    console.error('Error:', response);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+
+
+    function toggleEditState(row, button) {
+        // Determine if we are entering or exiting edit mode
+        const isEditing = button.textContent === 'Edit';
+        console.log(isEditing)
+
+        // Toggle the disabled state of inputs in the specified range
+        for (const cell of row.cells) {
+            if (cell.cellIndex >= 9 && cell.cellIndex <= 53) {
+                const input = cell.querySelector('input');
+                const select = cell.querySelector('select');
+                if (input) {
+                    input.disabled = !isEditing;
+                } else if (select) {
+                    select.disabled = !isEditing;
+                }
+            }
+        }
+
+        // Update the button text based on the current state
+        if (isEditing) {
+            button.textContent = 'Submit';
+        } else {
+            button.textContent = 'Edit';
+            submitRowData(row, button); // Call the new function to submit the data
+        }
+    }
+
+
+    function sortTable(column) {
+        console.log(column);
+        var url = new URL(window.location.href);
+        var sort_by = url.searchParams.get("sort_by");
+        var ascending = url.searchParams.get("ascending") === "true";
+
+        // If already sorting by the same column, toggle ascending/descending
+        if (sort_by === column) {
+            ascending = !ascending;
+        } else {
+            // Default to ascending order if sorting by a new column
+            ascending = true;
+        }
+
+        // Update query parameters
+        url.searchParams.set("sort_by", column);
+        url.searchParams.set("ascending", ascending);
+
+        // Redirect to the updated URL
+        window.location.href = url.toString();
+    }
+
+    function clearSort(event, column) {
+        event.stopPropagation();  // Prevent the sortTable function from being called
+
+        var url = new URL(window.location.href);
+        url.searchParams.delete("sort_by");
+        url.searchParams.delete("ascending");
+
+        // Redirect to the updated URL
+        window.location.href = url.toString();
+    }
+
+    // Function to filter the table based on input values
+    function filterTable() {
+        const table = document.getElementById("myTable");
+        const tbody = table.querySelector("tbody");
+        const filterInputs = document.querySelectorAll("thead input[type='text']");
+        const filters = Array.from(filterInputs).map(input => input.value.trim().toUpperCase());
+
+        for (const row of tbody.rows) {
+            let rowVisible = true;
+
+            for (let i = 0; i < row.cells.length; i++) {
+                const cell = row.cells[i];
+                const filter = filters[i];
+
+                let cellValue = '';
+
+                // Check if the cell contains an input element
+                const input = cell.querySelector('input[type="text"]');
+                const dateInput = cell.querySelector('input[type="date"]');
+                const statusInput = cell.querySelector('select');
+                if (input) {
+                    cellValue = input.value.trim().toUpperCase();
+                } else if (dateInput) {
+                    cellValue = dateInput.value.trim().toUpperCase();
+
+                    // Parse the date string into a Date object
+                    var date = new Date(cellValue);
+
+                    // Check if the parsed date is valid
+                    if (!isNaN(date.getTime())) {
+                        // Format the date as dd/mm/yyyy
+                        cellValue = ('0' + date.getDate()).slice(-2) + '/' + ('0' + (date.getMonth() + 1)).slice(-2) + '/' + date.getFullYear();
+                    } else {
+                        // Handle invalid date input
+                    }
+                } else if (statusInput) {
+                    cellValue = statusInput.value.trim().toUpperCase();
+                }
+
+                // Apply filter only if filter input is not empty
+                if (filter) {
+                    // Split the filter value by comma to support multiple criteria
+                    const filterValues = filter.split(',');
+                    // Check if any of the filter values match the cell content
+                    const match = filterValues.some(filterValue => cellValue.includes(filterValue.trim()));
+                    if (!match) {
+                        rowVisible = false;
+                        break; // Break if no match is found
+                    }
+                }
+            }
+
+            row.style.display = rowVisible ? "" : "none";
+        }
+    }
+
+    function fetchDataTable() {
+        // Get the form element
+        const form = document.getElementById('dateForm');
+
+        // Get the values of the input fields
+        const fromDate = document.getElementById('from_date_table').value;
+        const toDate = document.getElementById('to_date_table').value;
+        const checkbox = document.querySelector('.checkbox');
+        const warningMessage = document.getElementById('warningMessage');
+        console.log(fromDate, " : ", toDate)
+
+        if (fromDate !== "" && toDate !== "" && fromDate > toDate) {
+            // Show the warning message
+            warningMessage.style.display = 'block';
+        } else {
+            // Hide the warning message
+            warningMessage.style.display = 'none';
+            // Construct the URL with query parameters
+            const url = new URL("{{ url_for('planiranjePripravnegaDela') }}", window.location.origin);
+            url.searchParams.append('from_date', fromDate);
+            url.searchParams.append('to_date', toDate);
+            url.searchParams.append('checkbox', checkbox.checked);
+
+            // Redirect to the constructed URL
+            window.location.href = url.toString();
+        }
+    }
+
+    // Attach the fetchDataTable function to the button click event
+    document.getElementById('submitButton').onclick = fetchDataTable;
+
+
+    function checkOption(selectElement) {
+        const selectedOption = selectElement.value;
+        const optionToTriggerFunction = 'Pripravljeno';
+
+        if (selectedOption === optionToTriggerFunction) {
+            // Call the function only if "Pripravljeno" option is selected
+            changeDateToToday(selectElement);
+        }
+    }
+
+    function changeDateToToday(selectElement) {
+        // Get the parent row
+        const row = selectElement.parentElement.parentElement;
+        var parentChildren = Array.from(row.children); // Convert NodeList to array
+        var childNumber = parentChildren.indexOf(selectElement.parentElement); // Index of the parent element within its parent's children
+        var dateChild = childNumber - 1;
+        var dateCell = row.querySelector('td:nth-child(' + dateChild + ')');
+        var dateInput = dateCell.querySelector('input[type="text"]');
+        console.log(dateCell)
+        const danes = new Date();
+        const leto = danes.getFullYear();
+        const mesec = (danes.getMonth() + 1).toString().padStart(2, '0'); // Month is zero-based
+        const dan = danes.getDate().toString().padStart(2, '0');
+        const formattedDate = `${dan}/${mesec}/${leto}`;
+        console.log(formattedDate);
+        dateInput.value = formattedDate; // Set the content of the cell
+        selectElement.parentElement.style.backgroundColor = 'green';
+    }
+
+
+    //window.onload = hideCompletedPlans;
+</script>
+</body>
+</html>

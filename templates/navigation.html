@@ -58,7 +58,7 @@
     </div>
     {% endif %}
 
-    {% if 'planiranjePripravnegaDela' in stranice_list or 'planiranjePripravnegaDelaPravice' in stranice_list or 'verzugsLista' in stranice_list
+    {% if 'planiranjePripravnegaDela' in stranice_list or 'planiranjePripravnegaDela_2_0' in stranice_list or 'planiranjePripravnegaDelaPravice' in stranice_list or 'verzugsLista' in stranice_list
     or 'norme' in stranice_list or 'kapaciteta' in stranice_list %}
     <div class="dropdown">
         Proizvodnja &rarr;
@@ -66,6 +66,9 @@
         <div class="dropdown-dropdown">
             {% if 'planiranjePripravnegaDela' in stranice_list  %}
                 <a href="{{ url_for('planiranjePripravnegaDela') }}"><div class="ddDropdown">Planiranje proizvodnje</div></a>
+            {% endif %}
+            {% if 'planiranjePripravnegaDela_2_0' in stranice_list %}
+                <a href="{{ url_for('planiranjePripravnegaDela_2_0') }}"><div class="ddDropdown">Plani. proiz. oddelki</div></a>
             {% endif %}
             {% if 'planiranjePripravnegaDelaPravice' in stranice_list %}
                 <a href="{{ url_for('planiranjePripravnegaDelaPravice') }}"><div class="ddDropdown">PPD P</div></a>

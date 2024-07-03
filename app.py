@@ -1640,9 +1640,9 @@ def planiranjePripravnegaDela():
         # Default date range: current year
         now = datetime.now()
         current_year = now.year
-        from_date = datetime(current_year, 6, 1)
-        #from_date = datetime(current_year, 1, 1)
-        to_date = datetime(from_date.year, from_date.month, 1) + relativedelta(months=1)
+        #from_date = datetime(current_year, 6, 1)
+        from_date = datetime(current_year, 1, 1)
+        to_date = datetime(from_date.year, 12, 1) + relativedelta(months=1) - timedelta(days=1)
 
     # Query to get records within the date range
     if checkbox == "true":
@@ -1726,9 +1726,9 @@ def planiranjePripravnegaDela_2_0():
         # Default date range: current year
         now = datetime.now()
         current_year = now.year
-        from_date = datetime(current_year, 6, 1)
-        #from_date = datetime(current_year, 1, 1)
-        to_date = datetime(from_date.year, from_date.month, 1) + relativedelta(months=1)
+        #from_date = datetime(current_year, 6, 1)
+        from_date = datetime(current_year, 1, 1)
+        to_date = datetime(from_date.year, 12, 1) + relativedelta(months=1) - timedelta(days=1)
 
     # Query to get records within the date range
     if checkbox == "true":

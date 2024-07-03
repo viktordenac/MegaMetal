@@ -7,7 +7,7 @@
     <title>Dates Data</title>
     <style>
         #table-container {
-            max-height: 84vh; /* Adjust as needed */
+            max-height: 78vh; /* Adjust as needed */
             overflow-y: auto;
         }
 
@@ -110,11 +110,12 @@
         .checkbox-label {
             position: relative;
             display: inline-block;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             background-color: #eee;
             border: 2px solid #ccc;
             border-radius: 4px;
+            margin-top: 1px;
         }
 
         .checkbox-label::after {
@@ -216,7 +217,9 @@
         #buttons-container, #myTable {
             display: none;
         }
-        #buttons-container
+        #buttons-container {
+            margin-top: 1vh;
+        }
     </style>
 </head>
 <body>
@@ -237,17 +240,19 @@
         <span class="checkbox-label"></span>
     </label>
     <div id="buttons-container">
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,9,12)">Konstrukcija</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,13,16)">Razrez</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,17,20)">MPO</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,21,24)">Zbiranje</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,25,28)">Sestavljanje</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,29,32)">Varjenje</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,33,36)">Žarenje</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,37,40)">Brušenje</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,41,44)">Kontr in lak</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,45,48)">Pesk in barv</button>
-        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,49,52)">Mehanska</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,9,12,null)">Konstrukcija</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,13,16,null)">Razrez</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,17,20,null)">MPO</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,21,24,null)">Zbiranje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,25,28,null)">Sestavljanje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,29,32,null)">Varjenje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,33,36,null)">Žarenje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,37,40,null)">Brušenje</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,41,44,null)">Kontr in lak</button>
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,45,48,null)">Pesk in barv</button>
+        <button style="background-color: rgba(69,160,73,0.82); margin-bottom: 10px;" onclick="toggleVisibilityAndChangeColor(this,49,52,null)">Mehanska</button>
+        <br >
+        <button style="background-color: rgba(69,160,73,0.82)" onclick="toggleVisibilityAndChangeColor(this,null,null,[3,5,7,8,54,55,56])">INFO</button>
     </div>
     <div id="table-container">
         <table id="myTable">
@@ -378,47 +383,58 @@
         window.addEventListener('resize', updateStickyHeaders);
     });
 
-    function toggleVisibility(start, end) {
-        const table = document.getElementById('myTable');
-        const headers = table.getElementsByTagName('thead');
-        const bodies = table.getElementsByTagName('tbody');
+    function toggleVisibility(start, end, specific) {
+    const table = document.getElementById('myTable');
+    const headers = table.getElementsByTagName('thead');
+    const bodies = table.getElementsByTagName('tbody');
 
-        if (headers.length === 0 || bodies.length === 0) {
-            console.error("Table headers or bodies are not found");
-            return;
-        }
+    if (headers.length === 0 || bodies.length === 0) {
+        console.error("Table headers or bodies are not found");
+        return;
+    }
 
-        const headerRow = headers[0].rows[0];
-        const headerFilterRow = headers[0].rows[1];
-        const bodyRows = Array.from(bodies[0].rows);
+    const headerRow = headers[0].rows[0];
+    const headerFilterRow = headers[0].rows[1];
+    const bodyRows = Array.from(bodies[0].rows);
 
-        for (let index = start; index <= end; index++) {
-            let isHeaderVisible;
-            // Toggle header row visibility
-            if (index < headerRow.cells.length) {
-                const cell = headerRow.cells[index];
-                isHeaderVisible = cell.style.display !== 'none';
-                cell.style.display = isHeaderVisible ? 'none' : '';
-            }
-
-            // Toggle filter header row visibility
-            if (index < headerFilterRow.cells.length) {
-                const cell = headerFilterRow.cells[index];
-                isHeaderVisible = cell.style.display !== 'none';
-                cell.style.display = isHeaderVisible ? 'none' : '';
-            }
-
-            // Toggle body rows visibility
-            bodyRows.forEach(row => {
-                if (index < row.cells.length) {
-                    row.cells[index].style.display = isHeaderVisible ? 'none' : '';
-                }
-            });
+    let indexesToToggle = [];
+    console.log(specific)
+    if (specific && specific.length > 0) {
+        indexesToToggle = specific;
+    } else if (start !== null && end !== null) {
+        for (let i = start; i <= end; i++) {
+            indexesToToggle.push(i);
         }
     }
 
-    function toggleVisibilityAndChangeColor(button, start, end) {
-        toggleVisibility(start, end);
+    // Toggle visibility based on specified indexes
+    indexesToToggle.forEach(index => {
+        if (index < headerRow.cells.length) {
+            const headerCell = headerRow.cells[index];
+            headerCell.style.display = toggleDisplay(headerCell.style.display);
+        }
+
+        if (index < headerFilterRow.cells.length) {
+            const filterCell = headerFilterRow.cells[index];
+            filterCell.style.display = toggleDisplay(filterCell.style.display);
+        }
+
+        bodyRows.forEach(row => {
+            if (index < row.cells.length) {
+                row.cells[index].style.display = toggleDisplay(row.cells[index].style.display);
+            }
+        });
+    });
+}
+
+// Helper function to toggle display property
+function toggleDisplay(currentDisplay) {
+    return currentDisplay === 'none' ? '' : 'none';
+}
+
+
+    function toggleVisibilityAndChangeColor(button, start, end, specific) {
+        toggleVisibility(start, end, specific);
         if(button.style.backgroundColor === 'orange') {
             button.style.backgroundColor = 'rgba(69,160,73,0.82)';
         } else {

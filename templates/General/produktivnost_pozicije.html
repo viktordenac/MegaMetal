@@ -9,57 +9,41 @@
     <link rel="stylesheet" href="../../static/style/produktivnost_pozicije.css">
 </head>
 <body>
-    <div class="container">
-        <div class="form-container">
-            <form class="login-form" id="textForm" onsubmit="fetchDataTopAndSlow(); return false;">
-                <h2>Iskanje pozicije</h2>
-                <div class="dropdownIdNr">
-                    <label for="documentID"></label><input type="text" id="documentID" oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')" onclick="toggleDropdown('delovniNalogDropdown', true)" placeholder="Išči Delovni Nalog..." autocomplete="off" required>
-                    <div id="delovniNalogDropdown" class="dropdown-content">
-                        {% for idRadnogNaloga in radniNalogi %}
-                            <a class="dropdown-option-id-rn" onclick="selectOption('{{ idRadnogNaloga }}', 'documentID', 'delovniNalogDropdown')">{{ idRadnogNaloga }}</a>
-                        {% endfor %}
-                    </div>
-                </div>
-                <input type="submit" value="Išči">
-            </form>
-        </div>
-    <!-- Add separate div containers for top and bottom tables -->
-        <div id="dataContainer">
-            <h2>Kalkulacije</h2>
-            <div class="table-container">
-            <!-- Main table container -->
-                <div id="mainTableContainer" class ="scrollable-table">
-                    <div id="data_container" class="data-container">
-                        <table id="mainTable">
-                            <thead>
-                                <tr>
-                                    <th>Ident - Kos</th>
-                                    <th>Vreme</th>
-                                    <th>Norma</th>
-                                    <th>Postotek</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                            </tbody>
-                        </table>
-                    </div>
+<div class="container">
+    <div class="form-container">
+        <form class="login-form" id="textForm" onsubmit="fetchDataTopAndSlow(); return false;">
+            <h2>Iskanje pozicije</h2>
+            <div class="dropdownIdNr">
+                <label for="documentID"></label><input type="text" id="documentID"
+                                                       oninput="filterDropdown('documentID', 'delovniNalogDropdown', 'dropdown-option-id-rn')"
+                                                       onclick="toggleDropdown('delovniNalogDropdown', true)"
+                                                       placeholder="Išči Delovni Nalog..." autocomplete="off" required>
+                <div id="delovniNalogDropdown" class="dropdown-content">
+                    {% for idRadnogNaloga in radniNalogi %}
+                    <a class="dropdown-option-id-rn"
+                       onclick="selectOption('{{ idRadnogNaloga }}', 'documentID', 'delovniNalogDropdown')">{{
+                        idRadnogNaloga }}</a>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
-        <div id="summaryContainer">
-            <!-- Summary table container -->
-            <h3>Skupno kalkulacije</h3>
-            <div id="summaryTableContainer">
-                <div class="data-container">
-                    <table id="summaryTable">
+            <input type="submit" value="Išči">
+        </form>
+    </div>
+    <!-- Add separate div containers for top and bottom tables -->
+    <div id="dataContainer">
+        <h2>Kalkulacije</h2>
+        <div class="table-container">
+            <!-- Main table container -->
+            <div id="mainTableContainer" class="scrollable-table">
+                <div id="data_container" class="data-container">
+                    <table id="mainTable" class="data-frame-section">
                         <thead>
-                            <tr>
-                                <th>Ident</th>
-                                <th>Vreme</th>
-                                <th>Norma</th>
-                                <th>Produktivnost</th>
-                            </tr>
+                        <tr>
+                            <th>Ident - Kos</th>
+                            <th>Vreme</th>
+                            <th>Norma</th>
+                            <th>Postotek</th>
+                        </tr>
                         </thead>
                         <tbody>
                         </tbody>
@@ -68,36 +52,58 @@
             </div>
         </div>
     </div>
-    <div id="pozicijeDF">
-        <div id="top5" class="data-frame-section">
-            <h3 style="color: #45a049">Najboljših 5 identov</h3>
-            <div id="top5Table"></div>
-        </div>
-        <div id="bottom5" class="data-frame-section">
-            <h3 style="color: red">Najslabših 5 identov</h3>
-            <div id="bottom5Table"></div>
+    <div id="summaryContainer">
+        <!-- Summary table container -->
+        <h3>Skupno kalkulacije</h3>
+        <div id="summaryTableContainer">
+            <div class="data-container">
+                <table id="summaryTable" class="data-frame-section">
+                    <thead>
+                    <tr>
+                        <th>Ident</th>
+                        <th>Vreme</th>
+                        <th>Norma</th>
+                        <th>Produktivnost</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+</div>
+<div id="pozicijeDF">
+    <div id="top5" class="data-frame-section">
+        <h3 style="color: #45a049">Najboljših 5 identov</h3>
+        <div id="top5Table"></div>
+    </div>
+    <div id="bottom5" class="data-frame-section">
+        <h3 style="color: red">Najslabših 5 identov</h3>
+        <div id="bottom5Table"></div>
+    </div>
+</div>
 
 </body>
 <script>
-    window.onload = function() {
+    window.onload = function () {
         console.log("Window loaded");
         setTimeout(fetchDataTopAndSlow, 100); // Fetch data after 1 second
     };
+
     function fetchDataTopAndSlow() {
         const documentId = document.getElementById('documentID').value;
         const xhr = new XMLHttpRequest();
         xhr.open('POST', '/grupiranje_materiala_table'); // Adjust the URL if needed
         xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        xhr.onload = function() {
+        xhr.onload = function () {
             if (xhr.status === 200) {
                 try {
                     const response = JSON.parse(xhr.responseText);
                     console.log('Response:', response); // Log the response for debugging
                     displayTopAndSlowData(response.response_data);
-                    if(response.document_id_ident !== ""){
-                        displayData(response)
+                    if (response.document_id_ident !== "") {
+                        displayData(response.response_data.specific_data)
                     }
                 } catch (error) {
                     console.error('Error parsing JSON response:', error);
@@ -118,132 +124,143 @@
         displayChartTable(parentDataBottom, childData, 'bottom5Table');
     }
 
-    function displayData(response) {
-        const mainTable = document.getElementById('mainTable');
-        const summaryTable = document.getElementById('summaryTable');
+    function displayData(data) {
+    let table = '<table class="data-frame-table">';
+    table += '<thead><tr>';
+    table += '<th>IDENT</th><th>NORMA</th><th>POSTOTAK</th><th>VREME</th>';
+    table += '</tr></thead>';
+    table += '<tbody>';
 
-        if (response.error) {
-            alert(response.error); // Display error message in a popup
-            return; // Exit function early
-        } else {
-            mainTable.style.display = 'table';
-            summaryTable.style.display = 'table';
-            let mainHtml = '';
-            let summaryHtml = '';
-
-
-            // Populate main table
-            response.document_id_ident.forEach(function(row) {
-                mainHtml += '<tr><td>' + row.IDENT.toString() + '</td><td>' + row.vreme.toString() + '</td><td>' + row.norma.toString() + '</td><td>' + row.postotak.toString() + '%</td></tr>';
-            });
-            mainTable.querySelector('tbody').innerHTML = mainHtml;
-
-            // Populate summary table
-            response.sum_document_id_ident.forEach(function(row) {
-                summaryHtml += '<tr><td>' + row.ident.toString() + '</td><td>' + row.vreme.toString() + '</td><td>' + row.norma.toString() + '</td><td>' + row.produktivnost.toString() + '%</td></tr>';
-            });
-            summaryTable.querySelector('tbody').innerHTML = summaryHtml;
-        }
-    }
-
-    function displayChartTable(parentData, childData, divId) {
-        let table = '<table class="data-frame-table">';
-        table += '<thead><tr>';
-        ['ident', 'norma', 'produktivnost', 'vreme'].forEach(function(key) {
-            table += '<th>' + key.toUpperCase() + '</th>';
-        });
-        table += '</tr></thead>';
-        table += '<tbody>';
-
-        function addRows(data, level) {
-            data.forEach(function(row) {
+    function addRows(data, level) {
+        Object.keys(data).forEach(function (parentIdent) {
+            data[parentIdent].forEach(function (row) {
                 table += '<tr>';
-                Object.keys(row).forEach(function(key) {
-                    if (key === 'ident') {
-                        table += '<td><button class="show-details" data-ident="' + row.ident + '">' + row[key] + '</button></td>';
-                    } else {
-                        table += '<td>' + row[key] + '</td>';
-                    }
-                });
+                table += '<td><button class="show-details data-button" data-ident="' + row.IDENT + '">' + row.IDENT + '</button></td>';
+                table += '<td>' + row.norma + '</td>';
+                table += '<td>' + row.postotak + '</td>';
+                table += '<td>' + row.vreme + '</td>';
                 table += '</tr>';
 
-                if (childData[row.ident]) {
-                    childData[row.ident].forEach(function(childRow) {
-                        table += '<tr class="subcontent level-' + level + '" data-parent-ident="' + row.ident + '" style="display: none;">';
-                        Object.keys(childRow).forEach(function(key) {
-                            if(key === 'IDENT'){
-                                table += '<td><button class="show-sub-details" data-ident="' + childRow.IDENT + '">' + childRow[key] + '</button></td>';
-                            }else if (Array.isArray(childRow[key])){
+                row.delavec_data.forEach(function (childRow) {
+                    table += '<tr class="subcontent level-' + level + '" data-parent-ident="' + row.IDENT + '" style="display: none;">';
+                    table += '<td>' + childRow.DELAVEC + '</td>';
+                    table += '<td>' + childRow.norma + '</td>';
+                    table += '<td>' + childRow.postotak + '</td>';
+                    table += '<td>' + childRow.vreme + '</td>';
+                    table += '<td>' + childRow.Mjesto + '</td>';
+                    table += '</tr>';
+                });
+            });
+        });
+    }
 
-                            }else if (key !== 'parent_ident') {
-                                table += '<td>' + childRow[key] + '</td>';
-                            }
-                        });
-                        table += '</tr>';
+    addRows(data, 1);
 
-                        Object.keys(childRow).forEach(function(key) {
-                            // Recursively add child rows if they exist
-                            if (Array.isArray(childRow[key])) {
-                                var nekaj = [];
-                                childRow[key].forEach(function(arrayElement) {
-                                    table += '<tr class="sub_subcontent level-' + (level+1) + '" data-parent-ident="' + childRow.IDENT + '" style="display: none;">';
-                                    table += '<td>' + arrayElement.DELAVEC + '</td>' + '<td>' + arrayElement.norma + '</td>' + '<td>' + arrayElement.postotak + '</td>' + '<td>' + arrayElement.vreme + '</td>' + '<td>' + arrayElement.Mjesto + '</td>';
-                                    table += '</tr>';
-                                });
-                            }
-                        });
-                    });
+    table += '</tbody></table>';
+    document.getElementById('mainTable').innerHTML = table;
+
+    document.querySelectorAll('.data-button').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const ident = this.dataset.ident;
+            document.querySelectorAll('.subcontent').forEach(function (row) {
+                if (row.dataset.parentIdent === ident) {
+                    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
                 }
             });
-        }
-
-        addRows(parentData, 1);
-
-        table += '</tbody></table>';
-        document.getElementById(divId).innerHTML = table;
-
-        document.querySelectorAll('#' + divId + ' .show-details').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const ident = this.dataset.ident;
-                console.log("Ident", ident);
-
-                // Hide all sub_subcontent rows
-                document.querySelectorAll('.sub_subcontent').forEach(function(row) {
-                    row.style.display = 'none';
-                });
-
-                document.querySelectorAll('.subcontent').forEach(function(row) {
-                    if (row.dataset.parentIdent === ident) {
-                        console.log("Parent Ident", row.dataset.parentIdent);
-                        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-                    }
-                });
-            });
         });
-
-        // Ensure the event listener for show-sub-details is outside the previous forEach loop
-        document.querySelectorAll('#' + divId + ' .show-sub-details').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const ident = this.dataset.ident;
-                document.querySelectorAll('.sub_subcontent').forEach(function(row) {
-                    if (row.dataset.parentIdent === ident) {
-                        row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
-                    }
-                });
-            });
-        });
+    });
 }
 
+function displayChartTable(parentData, childData, divId) {
+    let table = '<table class="data-frame-table">';
+    table += '<thead><tr>';
+    ['ident', 'norma', 'produktivnost', 'vreme'].forEach(function (key) {
+        table += '<th>' + key.toUpperCase() + '</th>';
+    });
+    table += '</tr></thead>';
+    table += '<tbody>';
+
+    function addRows(data, level) {
+        data.forEach(function (row) {
+            table += '<tr>';
+            Object.keys(row).forEach(function (key) {
+                if (key === 'ident') {
+                    table += '<td><button class="show-details chart-button" data-ident="' + row.ident + '">' + row[key] + '</button></td>';
+                } else {
+                    table += '<td>' + row[key] + '</td>';
+                }
+            });
+            table += '</tr>';
+
+            if (childData[row.ident]) {
+                childData[row.ident].forEach(function (childRow) {
+                    table += '<tr class="subcontent level-' + level + '" data-parent-ident="' + row.ident + '" style="display: none;">';
+                    Object.keys(childRow).forEach(function (key) {
+                        if (key === 'IDENT') {
+                            table += '<td><button class="show-sub-details sub-chart-button" data-ident="' + childRow.IDENT + '">' + childRow[key] + '</button></td>';
+                        } else if (Array.isArray(childRow[key])) {
+
+                        } else if (key !== 'parent_ident') {
+                            table += '<td>' + childRow[key] + '</td>';
+                        }
+                    });
+                    table += '</tr>';
+
+                    Object.keys(childRow).forEach(function (key) {
+                        if (Array.isArray(childRow[key])) {
+                            childRow[key].forEach(function (arrayElement) {
+                                table += '<tr class="sub_subcontent level-' + (level + 1) + '" data-parent-ident="' + childRow.IDENT + '" style="display: none;">';
+                                table += '<td>' + arrayElement.DELAVEC + '</td>' + '<td>' + arrayElement.norma + '</td>' + '<td>' + arrayElement.postotak + '</td>' + '<td>' + arrayElement.vreme + '</td>' + '<td>' + arrayElement.Mjesto + '</td>';
+                                table += '</tr>';
+                            });
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+    addRows(parentData, 1);
+
+    table += '</tbody></table>';
+    document.getElementById(divId).innerHTML = table;
+
+    document.querySelectorAll('#' + divId + ' .chart-button').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const ident = this.dataset.ident;
+            document.querySelectorAll('.sub_subcontent').forEach(function (row) {
+                row.style.display = 'none';
+            });
+
+            document.querySelectorAll('.subcontent').forEach(function (row) {
+                if (row.dataset.parentIdent === ident) {
+                    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                }
+            });
+        });
+    });
+
+    document.querySelectorAll('#' + divId + ' .sub-chart-button').forEach(function (button) {
+        button.addEventListener('click', function () {
+            const ident = this.dataset.ident;
+            document.querySelectorAll('.sub_subcontent').forEach(function (row) {
+                if (row.dataset.parentIdent === ident) {
+                    row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+                }
+            });
+        });
+    });
+}
 
 
 
     function toggleDropdown(idOfElement, toggle) {
         const dropdown = document.getElementById(idOfElement);
-        if(toggle === true) {
-            if(!dropdown.classList.contains("show")){
+        if (toggle === true) {
+            if (!dropdown.classList.contains("show")) {
                 dropdown.classList.toggle("show");
             }
-        }else{
+        } else {
             dropdown.classList.remove("show");
         }
     }
@@ -270,7 +287,7 @@
         toggleDropdown(idOfElement, false); // You may want to hide the dropdown after selecting an option
     }
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (!event.target.matches('.dropdown-content') && !event.target.matches('.dropdown-content a') && !event.target.matches('#documentID')) {
             const dropdownsIdRn = document.getElementsByClassName("dropdown-content");
             for (let i = 0; i < dropdownsIdRn.length; i++) {
@@ -282,7 +299,7 @@
         }
     }
 
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             toggleDropdown('delovniNalogDropdown', false);
         }

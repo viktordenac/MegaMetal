@@ -9,6 +9,7 @@ import calendar
 import glob
 from decimal import Decimal
 import pyodbc
+
 drivers = pyodbc.drivers()
 import holidays
 import msoffcrypto
@@ -28,7 +29,7 @@ from io import BytesIO
 from sqlalchemy.exc import IntegrityError
 from realizirano import Realizirano
 
-#python -m pip install flask_sqlalchemy
+# python -m pip install flask_sqlalchemy
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Change this to a random secret key
@@ -43,8 +44,9 @@ db = SQLAlchemy(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-#user_path = "C:/Users/ivan.tonkic/Desktop/"
+# user_path = "C:/Users/ivan.tonkic/Desktop/"
 user_path = "C:/Users/mm.student/PycharmProjects/MegaMetal/"
+
 
 # Example user model
 class User(UserMixin):
@@ -79,6 +81,7 @@ class TBA_RAD(db.Model):
     Password = db.Column(db.CHAR(10))
     Datexp = db.Column(db.DateTime())
 
+
 class TREZ_TIME(db.Model):
     __tablename__ = 'TREZ_TIME'
     JobCode = db.Column(db.CHAR(25), primary_key=True)
@@ -87,6 +90,7 @@ class TREZ_TIME(db.Model):
     Bruto = db.Column(db.REAL)
     Neto = db.Column(db.REAL)
 
+
 class TREZ_KALK(db.Model):
     __tablename__ = 'TREZ_KALK'
     Ident = db.Column(db.CHAR(10), primary_key=True)
@@ -94,6 +98,7 @@ class TREZ_KALK(db.Model):
     Bruto = db.Column(db.REAL)
     Debljina = db.Column(db.INT())
     Kvaliteta = db.Column(db.CHAR(20))  # Adjust data type and length as per your table schema
+
 
 class TEV_EVID(db.Model):
     __tablename__ = 'TEV_EVID'
@@ -107,11 +112,13 @@ class TEV_EVID(db.Model):
     Kartica = db.Column(db.Numeric(25, 0))
     Id_rn = db.Column(db.CHAR(50))
 
+
 class TEV_IZMENE(db.Model):
     __tablename__ = 'TEV_IZMENE'
     ID = db.Column(db.INT(), primary_key=True)
     Oddelek = db.Column(db.CHAR(50))
     Izmjena = db.Column(db.INT())
+
 
 class TRN_RN(db.Model):
     __tablename__ = 'TRN_RN'
@@ -119,10 +126,12 @@ class TRN_RN(db.Model):
     Status = db.Column(db.CHAR(15))
     Aktivan = db.Column(db.CHAR(2))
 
+
 class TBA_PRAVA(db.Model):
     __tablename__ = 'TBA_PRAVA'
     Username = db.Column(db.CHAR(15), primary_key=True)
     Stranice = db.Column(db.CHAR(1000))
+
 
 class TPRO_PLAN(db.Model):
     __tablename__ = 'TPRO_PLAN'
@@ -202,6 +211,7 @@ class TBA_KOS(db.Model):
     Bruto_tez = db.Column(db.REAL)
     PK = db.Column(db.INT(), primary_key=True)
 
+
 class TBA_ALAT(db.Model):
     __tablename__ = 'TBA_ALAT'
     PK = db.Column(db.INT(), primary_key=True)
@@ -234,6 +244,7 @@ class TBA_FIX_REAL(db.Model):
     KW = db.Column(db.Numeric)
     IZNOS = db.Column(db.Float)
     TEZINA = db.Column(db.Float)
+
 
 class TBA_REAL(db.Model):
     __tablename__ = 'TBA_REAL'
@@ -297,9 +308,9 @@ class ACTION_PLAN(db.Model):
     DEPARTMENT = db.Column(db.CHAR(15))
     START = db.Column(db.DateTime())
     END = db.Column(db.DateTime())
-    PROGRESS =  db.Column(db.CHAR(15))
-    STATUS =  db.Column(db.CHAR(15))
-    RESULTS =  db.Column(db.CHAR(2000))
+    PROGRESS = db.Column(db.CHAR(15))
+    STATUS = db.Column(db.CHAR(15))
+    RESULTS = db.Column(db.CHAR(2000))
 
 
 class TBA_FAZA(db.Model):
@@ -312,9 +323,9 @@ class TBA_FAZA(db.Model):
 
 class TBA_NORME(db.Model):
     __tablename__ = 'TBA_NORME'
-    #SourceName = db.Column(db.String(100))
+    # SourceName = db.Column(db.String(100))
     ANGEBOT = db.Column(db.String(100))
-    #ArtikelNr = db.Column(db.String(100))
+    # ArtikelNr = db.Column(db.String(100))
     Artikelbezeichnung = db.Column(db.String(100))
     Konstruktion = db.Column(db.String(100))
     Brennschneiden = db.Column(db.Float)
@@ -369,8 +380,10 @@ def load_user(kartica):
         return User(employee.Kartica, employee.Username, employee.Ime, employee.Mjesto)
     return None
 
+
 def is_authenticated():
     return "username" in session
+
 
 @app.route("/", methods=["GET", "POST"])
 def login():
@@ -395,6 +408,7 @@ def login():
             return render_template("login.html", error="Invalid username or password.")
     return render_template("login.html", error=None)
 
+
 @app.route("/potrosnja_materiala_grafi")
 def potrosnja_materiala():
     if not is_authenticated():
@@ -406,6 +420,7 @@ def potrosnja_materiala():
     stranice_list = session["stranice"]
     return render_template("potrosnja_materiala_grafi.html", stranice_list=stranice_list)
 
+
 @app.route("/potrosnja_materiala_torta")
 def potrosnja_materiala_torta():
     if not is_authenticated():
@@ -414,6 +429,7 @@ def potrosnja_materiala_torta():
         return render_template('unauthorized.html', stranice_list=session["stranice"])
     stranice_list = session["stranice"]
     return render_template("potrosnja_materiala_torta.html", stranice_list=stranice_list)
+
 
 @app.route("/grupiranje_materiala")
 def grupiranje_materiala():
@@ -427,7 +443,8 @@ def grupiranje_materiala():
     identiKG = set(row[0].rsplit('-', 1)[0] for row in identiKG)
     stranice_list = session["stranice"]
 
-    return render_template("grupiranje_materiala.html", radniNalogiKG=identiKG, radniNalogi=identi, stranice_list=stranice_list)
+    return render_template("grupiranje_materiala.html", radniNalogiKG=identiKG, radniNalogi=identi,
+                           stranice_list=stranice_list)
 
 
 @app.route("/produktivnost_delavcev_grafi")
@@ -473,6 +490,7 @@ def aktivni_nalogi():
     stranice_list = session["stranice"]
     return render_template("aktivni_nalogi.html", data=data, unique_values=unique_values, stranice_list=stranice_list)
 
+
 @app.route("/edit_aktivni_nalogi", methods=['POST'])
 def edit_aktivni_nalogi():
     if not is_authenticated():
@@ -487,6 +505,7 @@ def edit_aktivni_nalogi():
 
     # Return a JSON response indicating success
     return jsonify({'success': True})
+
 
 @app.route('/delete_nalog', methods=['POST'])
 def delete_nalog():
@@ -509,6 +528,7 @@ def delete_nalog():
             # Return a message indicating that the user does not exist
             return jsonify({'success': False, 'error': 'User not found.'}), 404
 
+
 @app.route('/add_aktivni_nalog', methods=['POST'])
 def add_aktivni_nalog():
     # Get data from the form submission
@@ -523,7 +543,7 @@ def add_aktivni_nalog():
         return jsonify({'prompt': True, 'username': id_rn})
 
     # User does not exist, proceed with adding the user
-    new_nalog = TRN_RN(Id_rn=id_rn,Status=status, Aktivan=aktivan)
+    new_nalog = TRN_RN(Id_rn=id_rn, Status=status, Aktivan=aktivan)
     db.session.add(new_nalog)
     db.session.commit()
 
@@ -632,7 +652,7 @@ def potrosnja_materiala_grafi():
         df = df.drop('_sa_instance_state', axis=1)
         column_sum = df['Bruto'].sum()
         df.insert(len(df.columns), 'Udio', df['Bruto'] / column_sum * 100)
-        df.insert(len(df.columns), 'Postotak*udio', df['Postotak']/100 * df['Udio']/100)
+        df.insert(len(df.columns), 'Postotak*udio', df['Postotak'] / 100 * df['Udio'] / 100)
         column_sum1 = df['Postotak*udio'].sum()
         column_sum1 = (column_sum1 * 100).round(2)
         postotakXudio = column_sum1.astype(str) + "%"
@@ -646,7 +666,10 @@ def potrosnja_materiala_grafi():
         new_df = df[
             ['JobCode', 'DateCreated', 'Postotak', 'Bruto', 'Neto', 'Udio', 'Postotak*udio']]
         new_df['DateCreated'] = new_df['DateCreated'].apply(format_date)
-        new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
+        new_row = pd.DataFrame(
+            {'JobCode': ["Suma"], 'Bruto': [column_sum], 'DateCreated': [''], 'Postotak': [''], 'Neto': [''],
+             'Udio': [''],
+             'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
 
         # Append the new row to the DataFrame
         new_df = pd.concat([new_df, new_row], ignore_index=True)
@@ -665,6 +688,7 @@ def potrosnja_materiala_grafi():
         return jsonify({"data": data, "df": new_df.to_json(orient='records')})
     else:
         return jsonify({"error": "No data found"})
+
 
 def file_to_base64(file_path):
     with open(file_path, 'rb') as file:
@@ -690,6 +714,7 @@ def get_pdf():
     else:
         return jsonify({'error': 'PDF not found for the label'}), 404
 
+
 def categorize_postotak(value):
     try:
         if value < 49:
@@ -700,6 +725,7 @@ def categorize_postotak(value):
             return '>71'
     except Exception as e:
         return e
+
 
 @app.route("/potrosnja_materiala_mj")
 def potrosnja_materiala_mj():
@@ -735,7 +761,7 @@ def potrosnja_materiala_mj():
         df = df.drop('_sa_instance_state', axis=1)
         column_sum = df['Bruto'].sum()
         df.insert(len(df.columns), 'Udio', df['Bruto'] / column_sum * 100)
-        df.insert(len(df.columns), 'Postotak*udio', df['Postotak']/100 * df['Udio']/100)
+        df.insert(len(df.columns), 'Postotak*udio', df['Postotak'] / 100 * df['Udio'] / 100)
         column_sum1 = df['Postotak*udio'].sum()
         column_sum1 = (column_sum1 * 100).round(2)
         postotakXudio = column_sum1.astype(str) + "%"
@@ -748,7 +774,7 @@ def potrosnja_materiala_mj():
         # Create a new row as a dictionary
         new_df = df[['JobCode', 'DateCreated', 'Postotak', 'Bruto', 'Neto', 'Udio', 'Postotak*udio']]
         new_df['DateCreated'] = new_df['DateCreated'].apply(format_date)
-        #new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
+        # new_row = pd.DataFrame({'JobCode': ["Suma"],'Bruto': [column_sum],'DateCreated': [''], 'Postotak': [''], 'Neto': [''], 'Udio': [''], 'Postotak*udio': [postotakXudio]})  # Replace 'Column1', 'Column2', value1, and value2 with actual values
         # Convert 'DateCreated' to datetime
         new_df['DateCreated'] = pd.to_datetime(new_df['DateCreated'])
         # Extract month and year
@@ -768,12 +794,12 @@ def potrosnja_materiala_mj():
             SumBruto1=('Bruto1', 'sum')
         ).reset_index()
         merged_df = pd.merge(grouped_df1, grouped_df, on='YearMonth')
-        grouped_df=merged_df
-        grouped_df['AveragePostotak']=(grouped_df['SumBruto1']/grouped_df['SumBruto']*100).round(2)
-        #grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(AveragePostotak=('Postotak', 'mean')).reset_index()
+        grouped_df = merged_df
+        grouped_df['AveragePostotak'] = (grouped_df['SumBruto1'] / grouped_df['SumBruto'] * 100).round(2)
+        # grouped_df = new_df.groupby(['YearMonth', 'kate']).agg(AveragePostotak=('Postotak', 'mean')).reset_index()
         # Convert the Period type to string for JSON serialization
         grouped_df['YearMonth'] = grouped_df['YearMonth'].astype(str)
-        #grouped_df['AveragePostotak']=grouped_df['SumBruto1']/grouped_df['SumBruto']
+        # grouped_df['AveragePostotak']=grouped_df['SumBruto1']/grouped_df['SumBruto']
         grouped_df = grouped_df.drop('SumBruto1', axis=1)
         grouped_df = grouped_df.drop('SumBruto', axis=1)
         json_data = grouped_df.to_dict(orient='records')
@@ -791,7 +817,8 @@ def grupiranje_materiala_table():
 
     try:
         # Fetch data from the database
-        sumData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, func.sum(TREZ_KALK.Bruto)).group_by(TREZ_KALK.Ident).all()
+        sumData = TREZ_KALK.query.with_entities(TREZ_KALK.Ident, func.sum(TREZ_KALK.Bruto)).group_by(
+            TREZ_KALK.Ident).all()
         filtered_results = [(row[0], float(row[1])) for row in sumData if row[0] == documentId]
         filtered_bruto = [round((row[1]), 3) for row in filtered_results]  # Round to 3 decimals
 
@@ -807,12 +834,12 @@ def grupiranje_materiala_table():
                             group by(ident)
                             order by produktivnost desc
                             """
-        vsi_deli_identov= """
+        vsi_deli_identov = """
                             select "IDENT", sum("VREME") as vreme, sum(distinct("NORMA")) as norma, sum(distinct("NORMA"))/sum("VREME") as postotak 
                             FROM public."TBA_REAL_IDENT"	
                             group by("IDENT")
                             """
-        vsi_delavci="""
+        vsi_delavci = """
                             SELECT TBA_REAL_IDENT."DELAVEC", TBA_RAD."Mjesto",sum("VREME") as vreme, sum(distinct("NORMA")) as norma, 
                             sum(distinct("NORMA"))/sum("VREME") as postotak, TBA_REAL_IDENT."IDENT" 
                             from public."TBA_RAD" as TBA_RAD,
@@ -823,23 +850,6 @@ def grupiranje_materiala_table():
 
         document_id_ident = ""
         sum_document_id_ident = ""
-
-        if documentId:
-            rezultat_delov_identov = db.session.execute(text(vsi_deli_identov))
-            columns_delov_identov = rezultat_delov_identov.keys()
-            rezultat_vseh_identov = db.session.execute(text(vsi_identi))
-            columns_vseh_identov = rezultat_vseh_identov.keys()
-            df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
-            df1 = pd.DataFrame(rezultat_delov_identov.fetchall(), columns=columns_delov_identov)
-            df1['parent_ident'] = df1['IDENT'].apply(lambda x: '-'.join(x.split('-')[:2]) if len(x.split('-')) > 1 else x)
-            filtered_df = df1[df1['parent_ident'] == documentId]
-            filtered_df_parent = df[df['ident'] == documentId]
-            document_id_ident = filtered_df.sort_values(by='postotak', ascending=False)
-            document_id_ident['postotak'] = ((document_id_ident['postotak'])*100).round(2)
-            document_id_ident = document_id_ident.to_dict(orient='records')
-            sum_document_id_ident = filtered_df_parent
-            sum_document_id_ident.loc[:, 'produktivnost'] = (sum_document_id_ident['produktivnost'] * 100).round(2)
-            sum_document_id_ident = sum_document_id_ident.to_dict(orient='records')
 
         rezultat_delov_identov = db.session.execute(text(vsi_deli_identov))
         columns_delov_identov = rezultat_delov_identov.keys()
@@ -859,7 +869,7 @@ def grupiranje_materiala_table():
             'Mehanska': 'Mehanska obdelava',
         })
 
-        delavec_data['postotak'] = ((delavec_data['postotak'])*100).round(2)
+        delavec_data['postotak'] = ((delavec_data['postotak']) * 100).round(2)
 
         # Creating a DataFrame from the SQL rezultat_vseh_identov
         df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
@@ -869,10 +879,53 @@ def grupiranje_materiala_table():
         # Extract the parent 'ident' in df1 using a lambda function directly
         df1['parent_ident'] = df1['IDENT'].apply(lambda x: '-'.join(x.split('-')[:2]) if len(x.split('-')) > 1 else x)
 
-
         # Group df1 by parent_ident
         grouped_df1 = df1.groupby('parent_ident')
         grouped_data = {ident: group.to_dict(orient='records') for ident, group in grouped_df1}
+        specific_filtered_grouped_data = {}
+
+        if documentId:
+            rezultat_delov_identov = db.session.execute(text(vsi_deli_identov))
+            columns_delov_identov = rezultat_delov_identov.keys()
+            rezultat_vseh_identov = db.session.execute(text(vsi_identi))
+            columns_vseh_identov = rezultat_vseh_identov.keys()
+            df = pd.DataFrame(rezultat_vseh_identov.fetchall(), columns=columns_vseh_identov)
+            df1 = pd.DataFrame(rezultat_delov_identov.fetchall(), columns=columns_delov_identov)
+            df1['parent_ident'] = df1['IDENT'].apply(
+                lambda x: '-'.join(x.split('-')[:2]) if len(x.split('-')) > 1 else x)
+            filtered_df = df1[df1['parent_ident'] == documentId]
+            filtered_df_parent = df[df['ident'] == documentId]
+            document_id_ident = filtered_df.sort_values(by='postotak', ascending=False)
+            document_id_ident['postotak'] = ((document_id_ident['postotak']) * 100).round(2)
+            document_id_ident = document_id_ident.to_dict(orient='records')
+            sum_document_id_ident = filtered_df_parent
+            sum_document_id_ident.loc[:, 'produktivnost'] = (sum_document_id_ident['produktivnost'] * 100).round(2)
+            sum_document_id_ident = sum_document_id_ident.to_dict(orient='records')
+            # Assuming you have a specific identifier stored in a variable
+            specific_ident = filtered_df_parent['ident'].values[0]
+            print(specific_ident)
+
+
+            # Check if the specific identifier exists in grouped_data
+            if specific_ident in grouped_data:
+                # Filter out only the specific identifier
+                specific_filtered_grouped_data[specific_ident] = grouped_data[specific_ident]
+
+            # Iterate over each record in child_data
+            for ident, records in specific_filtered_grouped_data.items():
+                for record in records:
+                    # Find the corresponding 'delavec' data where the 'IDENT' matches
+                    matching_delavec = delavec_data[delavec_data['IDENT'] == record['IDENT']]
+
+                    # Convert the matching 'delavec' data to a dictionary
+                    matching_delavec_dict = matching_delavec.to_dict(orient='records')
+
+                    # Add the 'delavec' data to the record in the 'child_data'
+                    record['delavec_data'] = matching_delavec_dict
+            # Print the filtered and processed data
+
+
+
         # Prepare the final data to send to the frontend
         # Select the top and bottom five rows
         top_five = df.head(5)
@@ -900,7 +953,8 @@ def grupiranje_materiala_table():
         final_data = {
             'parent_data_top': top_five.to_dict(orient='records'),
             'parent_data_bottom': bottom_five.to_dict(orient='records'),
-            'child_data': filtered_grouped_data
+            'child_data': filtered_grouped_data,
+            'specific_data': specific_filtered_grouped_data
         }
 
         if not filtered_results and not allData and not final_data:
@@ -915,28 +969,19 @@ def grupiranje_materiala_table():
                         tba_kos_data]
 
         # Convert allData to a list of dictionaries
-        all_data_dict = [{'Ident': row[0], 'Id_rn': row[1], 'Bruto': round((row[2]), 3)} for row in allData]  # Round to 3 decimals
+        all_data_dict = [{'Ident': row[0], 'Id_rn': row[1], 'Bruto': round((row[2]), 3)} for row in
+                         allData]  # Round to 3 decimals
 
-        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto, 'TBA_KOS': tba_kos_dict, "response_data": final_data, "document_id_ident": document_id_ident, "sum_document_id_ident": sum_document_id_ident})
+        return jsonify({'AllData': all_data_dict, 'skupnoBruto': filtered_bruto, 'TBA_KOS': tba_kos_dict,
+                        "response_data": final_data, "document_id_ident": document_id_ident,
+                        "sum_document_id_ident": sum_document_id_ident})
 
     except Exception as e:
         return jsonify({"error": str(e)})
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 """ IVAN"""
+
 
 @app.route('/delovneUre')
 def delovneUre():
@@ -944,7 +989,7 @@ def delovneUre():
         return render_template('unauthorized.html', stranice_list=session["stranice"])
 
     connection = connect_to_mssql(server, database, username, password)
-    query=f"""
+    query = f"""
             SELECT [TSSPICA].[dbo].[USER_BADGES].[USERNO],
                     SUBSTRING([TSSPICA].[dbo].[USERS].[LASTNAME], CHARINDEX('-', [TSSPICA].[dbo].[USERS].[LASTNAME]) + 1, LEN([TSSPICA].[dbo].[USERS].[LASTNAME])) AS extracted_value,
                     [TSSPICA].[dbo].[USERS].[FIRSTNAME]
@@ -963,7 +1008,8 @@ def delovneUre():
     options.insert(0, new_element)
     options = list(options)
     unique_options = list(dict.fromkeys(options))
-    return render_template('delovne_ure.html',options=unique_options, stranice_list=session.get("stranice"))
+    return render_template('delovne_ure.html', options=unique_options, stranice_list=session.get("stranice"))
+
 
 def connect_to_mssql(server, database, username, password):
     try:
@@ -982,36 +1028,39 @@ def connect_to_mssql(server, database, username, password):
         print(f"Error while connecting to SQL Server: {e}")
         return None
 
+
 # Example usage
 server = '192.168.100.187'
 database = 'TSSPICA'
 username = 'tsspica'
 password = '534CC86By-'
+
+
 def calculate_working_time(entries):
     working_times = []
     current_start = None
     current_end = None
-    start=None
-    end=1
+    start = None
+    end = 1
     counter = 0
 
     for value, date, timestamp, code, oj, ime, prezime in entries:
-        flag= False
+        flag = False
         if counter % 2 == 0:
             current_start = timestamp
-            start=None
-            flag=True
+            start = None
+            flag = True
         else:
             current_end = timestamp
-            start=1
+            start = 1
         counter += 1
         # Final calculation for the last period
         if current_start is not None and current_end is not None:
             duration = current_end - current_start
             if duration.total_seconds() > 0:  # Only consider periods where there's actual work
-                working_times.append((current_start, current_end, duration,value,date,ime,prezime,oj))
-            current_start=None
-            current_end=None
+                working_times.append((current_start, current_end, duration, value, date, ime, prezime, oj))
+            current_start = None
+            current_end = None
 
     return working_times
 
@@ -1033,14 +1082,19 @@ def get_start_end_dates(date_str):
 
     return start_date_str, end_date_str
 
+
 def query_database(connection, query):
     cursor = connection.cursor()
     cursor.execute(query)
     result = cursor.fetchall()
     return result
+
+
 # Route to fetch data based on the selected date
 
 """NOVO"""
+
+
 def get_dataframe():
     query = """
             SELECT "Id_rn","rezano" as Plasma, "Brutotez" as BrutoKosovnica, "BrutoGewicht" as BrutoKalkulacija,
@@ -1079,9 +1133,12 @@ def plasmakalk():
     print(inspect.currentframe().f_code.co_name)
     if not inspect.currentframe().f_code.co_name in session["stranice"]:
         return render_template('unauthorized.html', stranice_list=session["stranice"])
-    return render_template('plasmakalk.html', tables=[df.to_html(classes='data', header="false", index=False)], titles=df.columns.values,stranice_list=session.get("stranice"))
+    return render_template('plasmakalk.html', tables=[df.to_html(classes='data', header="false", index=False)],
+                           titles=df.columns.values, stranice_list=session.get("stranice"))
+
 
 """NOVO"""
+
 
 @app.route('/get_data_by_date', methods=['GET'])
 def get_data_by_date():
@@ -1093,11 +1150,11 @@ def get_data_by_date():
         start_date, end_date = get_start_end_dates(start_date)
     data = []
     connection = connect_to_mssql(server, database, username, password)
-    ide=key
-    if key!='%':
-        ide= int(float(key))
+    ide = key
+    if key != '%':
+        ide = int(float(key))
 
-    query=f"""
+    query = f"""
             SELECT [USERNO]
                   ,FORMAT([TIMESTAMP], 'dd-MM-yyyy') AS day_month_year
                   ,[TIMESTAMP]
@@ -1118,7 +1175,7 @@ def get_data_by_date():
     # Query the database and process the results
     result = query_database(connection, query)
     working_times = calculate_working_time(result)
-    for start, end, duration, ide, dan, ime, prezime,oj in working_times:
+    for start, end, duration, ide, dan, ime, prezime, oj in working_times:
         # Convert the string to a datetime object
         data.append({
             'Day': dan,
@@ -1133,23 +1190,6 @@ def get_data_by_date():
     data = df.to_dict(orient='records')
     connection.close()
     return jsonify(data)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @app.route("/produktivnost_grafi_load")
@@ -1231,6 +1271,7 @@ def get_chart_color(index):
     ]
     return colors[index % len(colors)]
 
+
 @app.route("/produktivnost_table_load")
 def produktivnost_table_load():
     if not is_authenticated():
@@ -1279,6 +1320,7 @@ def produktivnost_table_load():
         return jsonify({"table_data_top": top_five, "table_data_bottom": bottom_five})
     else:
         return jsonify({"error": "No data found"})
+
 
 @app.route("/produktivnost_grafi_delavec_load")
 def produktivnost_grafi_delavec_load():
@@ -1420,14 +1462,15 @@ def graph_data():
     ).order_by(TREZ_OEE.DATUM).all()
     # Process the data
     for machine in machine_data:
-        oe=float(str(machine.OEE).replace("%",""))
+        oe = float(str(machine.OEE).replace("%", ""))
         data.append({
             "Machine name": machine.MACHINE_NAME,
             "OEE": oe,
             "DATUM": machine.DATUM
         })
     # Convert data to DataFrame
-    df = pd.DataFrame(data,columns=['Machine name', 'OEE','DATUM'])  # Replace 'column1', 'column2' with your actual column names
+    df = pd.DataFrame(data, columns=['Machine name', 'OEE',
+                                     'DATUM'])  # Replace 'column1', 'column2' with your actual column names
     grouped_df = df.groupby(['Machine name', 'DATUM']).mean().reset_index()
     data_json = grouped_df.to_json(orient='records')
     return jsonify(data_json)
@@ -1440,11 +1483,13 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
+
 @app.route('/index')
 @login_required
 def index():
     # Handle other roles or unauthorized access
     return redirect(url_for("home"))
+
 
 @app.route('/home')
 def home():
@@ -1463,6 +1508,7 @@ def home():
     else:
         return render_template('unauthorized.html')
 
+
 @app.route('/user')
 def user():
     if not is_authenticated():
@@ -1475,10 +1521,12 @@ def user():
     unique_values = {}
     for column in TBA_RAD.__table__.columns:
         column_name = column.name
-        unique_values[column_name] = [getattr(row, column_name) for row in data if getattr(row, column_name) is not None]
+        unique_values[column_name] = [getattr(row, column_name) for row in data if
+                                      getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
     return render_template('add_user.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
+
 
 @app.route('/add_or_edit_user', methods=['POST'])
 def add_or_edit_user():
@@ -1519,7 +1567,8 @@ def add_user():
         return jsonify({'success': False, 'error': 'User already exists.'})
 
     # User does not exist, proceed with adding the user
-    new_user = TBA_RAD(Ime=name, Kartica=kartica, Kartica_value=novaKartica, SPICA=spica, Mjesto=mjesto, Username=username, Password=password, Datexp=datexp)
+    new_user = TBA_RAD(Ime=name, Kartica=kartica, Kartica_value=novaKartica, SPICA=spica, Mjesto=mjesto,
+                       Username=username, Password=password, Datexp=datexp)
     try:
         db.session.add(new_user)
         db.session.commit()
@@ -1528,6 +1577,7 @@ def add_user():
         # Handle any integrity errors that occur during user creation
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Failed to add user.'}), 500
+
 
 @app.route('/edit_user', methods=['POST'])
 def edit_user():
@@ -1576,6 +1626,7 @@ def delete_user():
             # Return a message indicating that the user does not exist
             return jsonify({'success': False, 'error': 'User not found.'}), 404
 
+
 @app.route('/tev_evid')
 def tev_evid():
     if not is_authenticated():
@@ -1592,9 +1643,12 @@ def tev_evid():
                                       getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
-    return render_template('evidenca_ur.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
+    return render_template('evidenca_ur.html', data=data, unique_values=unique_values,
+                           stranice_list=session["stranice"])
+
 
 from flask import request
+
 
 @app.route('/edit_tev_evid', methods=['POST'])
 def edit_tev_evid():
@@ -1631,6 +1685,7 @@ def edit_tev_evid():
     else:
         # Return an error response if the record was not found
         return jsonify({'success': False, 'message': 'TEV EVID record not found'})
+
 
 @app.route('/delete_tev_evid', methods=['POST'])
 def delete_tev_evid():
@@ -1669,9 +1724,9 @@ def planiranjePripravnegaDela():
     if from_date_str and to_date_str:
         now = datetime.now()
         current_year = now.year
-        #from_date = datetime(current_year, 7, 1)
+        # from_date = datetime(current_year, 7, 1)
         from_date = datetime.strptime(from_date_str, "%Y-%m")
-        #to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
+        # to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
         to_date = datetime.strptime(to_date_str, "%Y-%m")
         # Adjust to_date to the end of the month
         to_date = datetime(to_date.year, to_date.month, 1) + relativedelta(months=1) - timedelta(days=1)
@@ -1679,7 +1734,7 @@ def planiranjePripravnegaDela():
         # Default date range: current year
         now = datetime.now()
         current_year = now.year
-        #from_date = datetime(current_year, 6, 1)
+        # from_date = datetime(current_year, 6, 1)
         from_date = datetime(current_year, 1, 1)
         to_date = datetime(from_date.year, 12, 1) + relativedelta(months=1) - timedelta(days=1)
 
@@ -1755,9 +1810,9 @@ def planiranjePripravnegaDela_2_0():
     if from_date_str and to_date_str:
         now = datetime.now()
         current_year = now.year
-        #from_date = datetime(current_year, 7, 1)
+        # from_date = datetime(current_year, 7, 1)
         from_date = datetime.strptime(from_date_str, "%Y-%m")
-        #to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
+        # to_date = datetime(current_year, now.month + 1, 1) - timedelta(days=1)
         to_date = datetime.strptime(to_date_str, "%Y-%m")
         # Adjust to_date to the end of the month
         to_date = datetime(to_date.year, to_date.month, 1) + relativedelta(months=1) - timedelta(days=1)
@@ -1765,7 +1820,7 @@ def planiranjePripravnegaDela_2_0():
         # Default date range: current year
         now = datetime.now()
         current_year = now.year
-        #from_date = datetime(current_year, 6, 1)
+        # from_date = datetime(current_year, 6, 1)
         from_date = datetime(current_year, 1, 1)
         to_date = datetime(from_date.year, 12, 1) + relativedelta(months=1) - timedelta(days=1)
 
@@ -1831,6 +1886,7 @@ def is_date(value):
     pattern = r'^\d{2}/\d{2}/\d{4}$'
     return re.match(pattern, value) is not None
 
+
 @app.template_filter('format_date_for_input')
 def format_date_for_input(value):
     if not isinstance(value, str):
@@ -1839,6 +1895,7 @@ def format_date_for_input(value):
         day, month, year = value.split('/')
         return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
     return value
+
 
 @app.route('/planiranjePripravnegaDelaPravice')
 def planiranjePripravnegaDelaPravice():
@@ -1851,8 +1908,8 @@ def planiranjePripravnegaDelaPravice():
 
 from collections import defaultdict
 
-
 from collections import defaultdict
+
 
 @app.route('/planiranjePripravnegaDelaLoad', methods=['GET'])
 def planiranjePripravnegaDelaLoad():
@@ -1961,6 +2018,7 @@ def validate_and_format_date(date_str):
     if date_str in [None, 'None', '']:
         return '01/01/1900'
 
+
 @app.route('/planiranjePripravnegaDelaUpdate', methods=['POST'])
 def update_planiranje_pripravnega_Dela():
     import datetime
@@ -2000,7 +2058,7 @@ def update_planiranje_pripravnega_Dela():
     for index in differences[:]:  # using [:] to create a copy of the list to avoid modifying it while iterating
         if str(podatki_stranice[index]) == '':
             differences.remove(index)
-        if index in [1,2,3,4,5]:
+        if index in [1, 2, 3, 4, 5]:
             differences.remove(index)
     different_value = podatki_stranice[differences[0]]
     print(differences)
@@ -2031,10 +2089,12 @@ def update_planiranje_pripravnega_Dela():
                     continue
                 if counter == 0:
                     try:
-                        new_date_object_do = datetime.datetime.strptime(str(podatki_stranice[i]), date_format) + timedelta(
+                        new_date_object_do = datetime.datetime.strptime(str(podatki_stranice[i]),
+                                                                        date_format) + timedelta(
                             modified_record_list[i + 2] - 1)
                     except:
-                        new_date_object_do = datetime.datetime.strptime(str(podatki_stranice[i]), "%m/%d/%Y") + timedelta(
+                        new_date_object_do = datetime.datetime.strptime(str(podatki_stranice[i]),
+                                                                        "%m/%d/%Y") + timedelta(
                             modified_record_list[i + 2] - 1)
                     while new_date_object_do.weekday() >= 5 or new_date_object_do in slo_holidays:
                         new_date_object_do += timedelta(days=1)
@@ -2103,7 +2163,8 @@ def update_planiranje_pripravnega_Dela():
         for i in reversed(indexes):
             if i % 2 == 0:
                 if str(modified_record_list[i + 3]) == 'None':
-                    new_date_object_do = datetime.datetime.strptime(modified_record_list[i + 7], date_format) - timedelta(days=1)
+                    new_date_object_do = datetime.datetime.strptime(modified_record_list[i + 7],
+                                                                    date_format) - timedelta(days=1)
                     podatki_stranice[i] = new_date_object_do
                 if str(modified_record_list[i + 3]) != 'None':
                     try:
@@ -2139,7 +2200,8 @@ def update_planiranje_pripravnega_Dela():
     if 0 == 0:
         for idx in indexes:
             try:
-                modified_record_list[idx] = datetime.datetime.strptime(str(modified_record_list[idx]),'%Y-%m-%d %H:%M:%S')
+                modified_record_list[idx] = datetime.datetime.strptime(str(modified_record_list[idx]),
+                                                                       '%Y-%m-%d %H:%M:%S')
             except:
                 try:
                     modified_record_list[idx] = datetime.datetime.strptime(str(modified_record_list[idx]), '%d/%m/%Y')
@@ -2153,26 +2215,26 @@ def update_planiranje_pripravnega_Dela():
         except:
             max_date = None
 
-        if str(max_date)!='None':
+        if str(max_date) != 'None':
             modified_record_list[53] = max_date + timedelta(days=1)
             modified_record_list[53] = modified_record_list[53].strftime("%d/%m/%Y")
         if str(max_date) == 'None':
-            modified_record_list[53]=modified_record_list[53]
+            modified_record_list[53] = modified_record_list[53]
     # Update statusa
     for i in list_to_change_status:
         modified_record_list[i] = podatki_stranice[i]
-    pripravljeno=0
+    pripravljeno = 0
     for i in reversed(list_to_change_status):
         print(podatki_stranice[i])
-        if str(podatki_stranice[i])=="Pripravljeno":
-            pripravljeno=1
-        if pripravljeno==1:
+        if str(podatki_stranice[i]) == "Pripravljeno":
+            pripravljeno = 1
+        if pripravljeno == 1:
             modified_record_list[i] = "Pripravljeno"
 
     if 1 == 1:
         try:
-            if str(modified_record_list[-3])=='nan':
-                modified_record_list[-3]=None
+            if str(modified_record_list[-3]) == 'nan':
+                modified_record_list[-3] = None
             # Dynamically assign values from the list to model attributes
             for attr, value in zip(TPRO_PLAN.__table__.columns.keys(), modified_record_list):
                 setattr(record, attr, value)
@@ -2190,7 +2252,10 @@ def download_evidencaUr():
     tev_evid_data = TEV_EVID.query.all()
 
     # Convert the data to a Pandas DataFrame
-    df = pd.DataFrame([(item.ID, item.Ime, item.Kartica, item.Id_rn, item.Datum, item.Izmena, item.Faza, item.Opombe, item.Vrijeme) for item in tev_evid_data], columns=['ID', 'Ime', 'Kartica', 'Id_rn', 'Datum', 'Izmena', 'Faza', 'Opombe', 'Vrijeme'])
+    df = pd.DataFrame(
+        [(item.ID, item.Ime, item.Kartica, item.Id_rn, item.Datum, item.Izmena, item.Faza, item.Opombe, item.Vrijeme)
+         for item in tev_evid_data],
+        columns=['ID', 'Ime', 'Kartica', 'Id_rn', 'Datum', 'Izmena', 'Faza', 'Opombe', 'Vrijeme'])
 
     # Convert 'Datum' column to datetime if not already
     df['Datum'] = pd.to_datetime(df['Datum'])
@@ -2214,17 +2279,20 @@ def download_evidencaUr():
     # Return the Excel file as a downloadable attachment
     return send_file(output, download_name="TEV_EVID.xlsx", as_attachment=True)
 
+
 @app.route('/kapaciteta', methods=['GET'])
 def kapaciteta():
     if not is_authenticated():
         return redirect(url_for("login"))
     return render_template('kapaciteta.html', stranice_list=session["stranice"])
 
+
 @app.route('/izmene', methods=['GET'])
 def izmene():
     if not is_authenticated():
         return redirect(url_for("login"))
     return render_template('izmene.html', stranice_list=session["stranice"])
+
 
 @app.route('/editIzmene', methods=['POST'])
 def edit_izmene():
@@ -2250,13 +2318,15 @@ def edit_izmene():
         # Return an error response if the record was not found
         return jsonify({'success': False, 'message': 'TEV EVID record not found'})
 
+
 @app.route('/izmene/download', methods=['GET'])
 def download_izmene():
     # Query data from the database
     tev_evid_data = TEV_EVID.query.all()
 
     # Convert the data to a Pandas DataFrame
-    df = pd.DataFrame([(item.ID, item.Oddelek, item.Izmjena) for item in tev_evid_data], columns=['ID', 'Oddelek', 'Izmjena'])
+    df = pd.DataFrame([(item.ID, item.Oddelek, item.Izmjena) for item in tev_evid_data],
+                      columns=['ID', 'Oddelek', 'Izmjena'])
 
     # Create an output stream
     output = BytesIO()
@@ -2274,12 +2344,14 @@ def download_izmene():
     # Return the Excel file as a downloadable attachment
     return send_file(output, download_name="TEV_EVID.xlsx", as_attachment=True)
 
+
 @app.route('/verzugsLista', methods=['GET'])
 def verzugsLista():
     stranice_list = session["stranice"]
     if not inspect.currentframe().f_code.co_name in session["stranice"]:
         return render_template('unauthorized.html', stranice_list=session["stranice"])
     return render_template('verzugs_lista.html', stranice_list=stranice_list)
+
 
 @app.route('/verzugsListaLoad', methods=['GET'])
 def verzugsListaLoad():
@@ -2290,7 +2362,7 @@ def verzugsListaLoad():
     godina = today.strftime('%Y')
     mjesec = today.strftime('%m')
     dan = today.strftime('%d')
-    file_path = "//192.168.100.216/Users/ivan.tonkic/Desktop/Share/Verzugs_liste/Verzugs_lista_"+ dan + "-" + mjesec + "-" + godina + ".xlsx"
+    file_path = "//192.168.100.216/Users/ivan.tonkic/Desktop/Share/Verzugs_liste/Verzugs_lista_" + dan + "-" + mjesec + "-" + godina + ".xlsx"
     try:
         dfs = pd.read_excel(file_path, sheet_name=None, header=None)
         sheet_names = list(dfs.keys())
@@ -2298,6 +2370,7 @@ def verzugsListaLoad():
         return jsonify({'sheet_names': sheet_names, 'data': data})
     except Exception as e:
         return jsonify({'error': str(e)})
+
 
 @app.route('/user_roles')
 def user_roles():
@@ -2351,13 +2424,15 @@ def user_roles():
     unique_values = {}
     for column in TBA_PRAVA.__table__.columns:
         column_name = column.name
-        unique_values[column_name] = [getattr(row, column_name) for row in data if getattr(row, column_name) is not None]
+        unique_values[column_name] = [getattr(row, column_name) for row in data if
+                                      getattr(row, column_name) is not None]
         # Filter out duplicates and sort
         unique_values[column_name] = sorted(set(unique_values[column_name]))
     for row in data:
         if row.Username == "denac":
             print(row.Stranice)
     return render_template('user_roles.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
+
 
 @app.route('/update_privileges', methods=['POST'])
 def update_privileges():
@@ -2382,6 +2457,7 @@ def edit_user_role():
     if not is_authenticated():
         return redirect(url_for("login"))
 
+
 @app.route('/MM2Alat', methods=['GET'])
 def MM2Alat():
     if not is_authenticated():
@@ -2400,6 +2476,7 @@ def MM2Alat():
         unique_values[column_name] = sorted(set(unique_values[column_name]))
     return render_template('MM2_alat.html', data=data, unique_values=unique_values, stranice_list=session["stranice"])
 
+
 @app.route('/add_or_edit_alat', methods=['POST'])
 def add_or_edit_alat():
     # Get data from the form submission
@@ -2411,6 +2488,7 @@ def add_or_edit_alat():
             return jsonify({'success': False, 'error': 'User already exists.'})
     except:
         return jsonify({'exists': False})
+
 
 @app.route('/add_alat', methods=['POST'])
 def add_alat():
@@ -2435,7 +2513,8 @@ def add_alat():
         return jsonify({'success': False, 'error': 'User already exists.'})
 
     # User does not exist, proceed with adding the user
-    new_alat = TBA_ALAT(ALAT=alat, IDENTIFIKACIJA=identifikacija, LOKACIJA=lokacija, CERTNR=certnr, POSEBNOSTI=posebnosti, DATUMEXP=datumExp, DATUMPEXP=datumPExp)
+    new_alat = TBA_ALAT(ALAT=alat, IDENTIFIKACIJA=identifikacija, LOKACIJA=lokacija, CERTNR=certnr,
+                        POSEBNOSTI=posebnosti, DATUMEXP=datumExp, DATUMPEXP=datumPExp)
     try:
         db.session.add(new_alat)
         db.session.commit()
@@ -2444,6 +2523,7 @@ def add_alat():
         # Handle any integrity errors that occur during user creation
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Failed to add user.'}), 500
+
 
 @app.route('/edit_alat', methods=['POST'])
 def edit_alat():
@@ -2487,6 +2567,7 @@ def delete_alat():
 podatkiMesec = 0
 podatkiKW = 0
 
+
 @app.route('/fix-plan-navigation')
 def fix_plan_navigation():
     global podatkiMesec, podatkiKW
@@ -2495,7 +2576,9 @@ def fix_plan_navigation():
 
     try:
         decrypted_workbook = io.BytesIO()
-        with open('//192.168.100.216/Users/ivan.tonkic/Desktop/Share/Verzugs_liste/Updated_Orders_Invoices_analize_v5.xlsx', 'rb') as file:
+        with open(
+                '//192.168.100.216/Users/ivan.tonkic/Desktop/Share/Verzugs_liste/Updated_Orders_Invoices_analize_v5.xlsx',
+                'rb') as file:
             office_file = msoffcrypto.OfficeFile(file)
             office_file.load_key(password='mega')
             office_file.decrypt(decrypted_workbook)
@@ -2505,16 +2588,18 @@ def fix_plan_navigation():
         columns_to_extract = ['Unnamed: 7', 'Unnamed: 95', 'Unnamed: 42', 'Unnamed: 11', 'Unnamed: 13']
         extracted_df = shipping_data[columns_to_extract].copy()
 
-        filtered_df = extracted_df[pd.to_datetime(extracted_df['Unnamed: 95'], errors='coerce', format='%Y-%m-%d').notnull() &
-                                   ~extracted_df['Unnamed: 7'].str.contains('STORNO', na=False) &
-                                   ~extracted_df['Unnamed: 7'].str.contains('PRENOS', na=False)]
+        filtered_df = extracted_df[
+            pd.to_datetime(extracted_df['Unnamed: 95'], errors='coerce', format='%Y-%m-%d').notnull() &
+            ~extracted_df['Unnamed: 7'].str.contains('STORNO', na=False) &
+            ~extracted_df['Unnamed: 7'].str.contains('PRENOS', na=False)]
 
         rows_with_zeros = filtered_df[filtered_df['Unnamed: 42'] == '00:00:00']
         filtered_df.loc[:, 'Unnamed: 42'] = pd.to_datetime(filtered_df['Unnamed: 42'])
         filtered_df = filtered_df[filtered_df['Unnamed: 42'] >= pd.to_datetime('2024-01-01')]
 
-        filtered_df.loc[:, 'Unnamed: 7'] = filtered_df['Unnamed: 7'].apply(lambda x: '-'.join(str(x).split('-')) if re.match(r'^\d+-\d+-\d+$', str(x)) else str(x))
-        #MESEC
+        filtered_df.loc[:, 'Unnamed: 7'] = filtered_df['Unnamed: 7'].apply(
+            lambda x: '-'.join(str(x).split('-')) if re.match(r'^\d+-\d+-\d+$', str(x)) else str(x))
+        # MESEC
         filtered_df.loc[:, 'Unnamed: 42'] = pd.to_datetime(filtered_df['Unnamed: 42'])
         filtered_df['Month'] = filtered_df['Unnamed: 42'].dt.month
         filtered_df['Value'] = filtered_df['Unnamed: 11']
@@ -2522,7 +2607,7 @@ def fix_plan_navigation():
                                                           format='mixed').dt.strftime('%d.%m.%Y')
         podatkiMesec = filtered_df.groupby('Month')['Value'].sum().reset_index()  # po mjesecu
         podatkiMesec = podatkiMesec.to_dict(orient='records')
-        #KW
+        # KW
         filtered_df['KW'] = filtered_df['Unnamed: 13']
         filtered_df['Value'] = filtered_df['Unnamed: 11']
         podatkiKW = filtered_df.groupby('KW')['Value'].sum().reset_index()  # po KW
@@ -2552,6 +2637,7 @@ def fix_plan():
         return jsonify({'data': data_str})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 @app.route('/fix-plan-data')
 def fix_plan_data():
@@ -2616,6 +2702,8 @@ def fix_plan_data():
 
 
 """--------------------------------------------------------------------"""
+
+
 @app.route("/compare_data_mj")
 def compare_data_mj():
     # Get the current year and month
@@ -2665,9 +2753,12 @@ def compare_data_mj():
 
     stranice_list = session["stranice"]
     return render_template("General/compare_data_mj.html",
-                           pl_kw_values=pl_kw_values, pl_iznos_values=pl_iznos_values, pl_tezina_values=pl_tezina_values,
-                           real_kw_values=real_kw_values, real_iznos_values=real_iznos_values, real_tezina_values=real_tezina_values,
-                           neki_kw_values=neki_kw_values, neki_iznos_values=neki_iznos_values, neki_tezina_values=neki_tezina_values,
+                           pl_kw_values=pl_kw_values, pl_iznos_values=pl_iznos_values,
+                           pl_tezina_values=pl_tezina_values,
+                           real_kw_values=real_kw_values, real_iznos_values=real_iznos_values,
+                           real_tezina_values=real_tezina_values,
+                           neki_kw_values=neki_kw_values, neki_iznos_values=neki_iznos_values,
+                           neki_tezina_values=neki_tezina_values,
                            stranice_list=stranice_list)
 
 
@@ -2678,11 +2769,11 @@ def filter_data_mj():
 
     # Query data from TBA_FIX_PL where KW is between start_week and end_week
     pl_data = db.session.query(TBA_FIX_PL.MJESEC, TBA_FIX_PL.IZNOS, TBA_FIX_PL.TEZINA).filter(
-        TBA_FIX_PL.KW.is_(None)    ).all()
+        TBA_FIX_PL.KW.is_(None)).all()
 
     # Query data from TBA_FIX_REAL where KW is between start_week and end_week
     real_data = db.session.query(TBA_FIX_REAL.MJESEC, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
-        TBA_FIX_REAL.KW.is_(None)    ).all()
+        TBA_FIX_REAL.KW.is_(None)).all()
 
     neki_data = db.session.query(TBA_FIX_REAL.MJESEC, TBA_FIX_REAL.IZNOS, TBA_FIX_REAL.TEZINA).filter(
         TBA_FIX_REAL.KW.is_(None)).all()
@@ -2765,14 +2856,12 @@ def compare_data():
                            stranice_list=stranice_list)
 
 
-
 def generate_filter_row(column_names):
     filter_row = '<tr id="filterRow">'
     for column_name in column_names:
         filter_row += f'<th><input type="text" class="filterInput" data-column="{column_names.index(column_name)}" style="width: 100%;" placeholder="Filter {column_name}..."></th>'
     filter_row += '</tr>'
     return filter_row
-
 
 
 @app.route('/get_table_data', methods=['GET'])
@@ -2801,7 +2890,7 @@ def get_table_data():
         'TJEDAN': 'TEDEN',
         'realizirani_iznos': 'REALIZIRAN ZNESEK'
     })
-    html_table = df.to_html(index=False)    # For demonstration, let's just return a sample table data.
+    html_table = df.to_html(index=False)  # For demonstration, let's just return a sample table data.
     column_names = ["IDRN", "ZNESEK", "TEŽINA", "TEDEN", "REALIZIRAN ZNESEK", "uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"]
 
     # Generate the filter row
@@ -2884,11 +2973,13 @@ def get_table_data_mj():
         'realizirani_iznos': 'REALIZIRAN ZNESEK'
     })
 
-    html_table = df.to_html(index=False, table_id='rendered_table')    # For demonstration, let's just return a sample table data.
+    html_table = df.to_html(index=False,
+                            table_id='rendered_table')  # For demonstration, let's just return a sample table data.
     # Save DataFrame to Excel
     excel_file_path = 'output.xlsx'
     df.to_excel(excel_file_path, index=False)
-    return render_template('General/compare_data_precise/fix_pl_table_mj.html', table_data=html_table, mesec=label, data=df)
+    return render_template('General/compare_data_precise/fix_pl_table_mj.html', table_data=html_table, mesec=label,
+                           data=df)
 
 
 @app.route('/compare_data_mj/download', methods=['GET'])
@@ -2936,6 +3027,7 @@ def mjesec_compare_download():
 
     # Return the Excel file as a downloadable attachment
     return send_file(output, download_name=naziv, as_attachment=True)
+
 
 @app.route("/filter_data", methods=["POST"])
 def filter_data():
@@ -2991,7 +3083,7 @@ def refresh_fix_plan():
         subprocess.run([batch_file_path], check=True, shell=True)
         return jsonify({'success': True})
     except Exception as e:
-        #write to file batch_file_path and e to see what is the error
+        # write to file batch_file_path and e to see what is the error
         return jsonify({'success': False, 'error_message': str(e)})
 
 
@@ -3024,7 +3116,6 @@ def update_action_plan(id):
 
 @app.route('/add_action_plan', methods=['POST'])
 def add_action_plan():
-
     if request.method == 'POST':
         new_plan = ACTION_PLAN(
             ACTIVITY=request.form['activity'],
@@ -3033,14 +3124,17 @@ def add_action_plan():
             START=request.form['start'],
             END=request.form['end'],
             PROGRESS=request.form['progress'],
-            #STATUS=request.form['status'],
+            # STATUS=request.form['status'],
             RESULTS=request.form['results']
         )
 
         db.session.add(new_plan)
         db.session.commit()
         return redirect(url_for('action_plans'))
+
+
 """--------------------------------------------------------------------"""
+
 
 @app.route('/direktor', methods=['GET'])
 def direktor():
@@ -3127,9 +3221,12 @@ def direktorLoadGrafi():
     neki_iznos_values = [item[1] for item in neki_data]
     neki_tezina_values = [item[2] for item in neki_data]
 
-    return jsonify({'pl_kw_values': pl_kw_values, 'pl_iznos_values': pl_iznos_values, 'pl_tezina_values': pl_tezina_values,
-                    'real_kw_values': real_kw_values, 'real_iznos_values': real_iznos_values, 'real_tezina_values': real_tezina_values,
-                    'neki_kw_values': neki_kw_values, 'neki_iznos_values': neki_iznos_values, 'neki_tezina_values': neki_tezina_values})
+    return jsonify(
+        {'pl_kw_values': pl_kw_values, 'pl_iznos_values': pl_iznos_values, 'pl_tezina_values': pl_tezina_values,
+         'real_kw_values': real_kw_values, 'real_iznos_values': real_iznos_values,
+         'real_tezina_values': real_tezina_values,
+         'neki_kw_values': neki_kw_values, 'neki_iznos_values': neki_iznos_values,
+         'neki_tezina_values': neki_tezina_values})
 
 
 def get_start_and_end_date_of_week(year, week):
@@ -3182,11 +3279,14 @@ def norme():
     return render_template('norme.html', row_data=data[:50], columns=columns, display_names=display_names,
                            stranice_list=session["stranice"])
 
+
 def replace_nan(data):
     return [[cell if not pd.isna(cell) else None for cell in row] for row in data]
 
+
 if __name__ == "__main__":
     from waitress import serve
+
     serve(app, host='192.168.100.216', port=5000)
-    #app.run(host='127.0.0.1', port=5000)
-    #app.run(debug=True)
+    # app.run(host='127.0.0.1', port=5000)
+    # app.run(debug=True)

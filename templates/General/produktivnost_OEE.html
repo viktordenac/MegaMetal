@@ -46,10 +46,10 @@
     <div class="content">
         <h1>OEE</h1>
         <form id="date_form">
-            <label for="from_date">OD:</label>
-            <input type="date" id="from_date" name="from_date" value="2024-01-01">
+            <label for="from_date">Od:</label>
+            <input type="date" id="from_date" name="from_date">
             <label for="to_date">Do:</label>
-            <input type="date" id="to_date" name="to_date" value="2024-12-31">
+            <input type="date" id="to_date" name="to_date">
             <button type="button" onclick="fetchData()">Prikaži</button>
         </form>
         <hr>
@@ -121,7 +121,6 @@
     var myChart;
 
     function generateGraph(data) {
-        console.log("Generating graph with data:", data);
 
         // Ensure data is parsed correctly
         var dataArray;
@@ -137,13 +136,21 @@
             return;
         }
 
+
         // Extract unique dates
-        var uniqueDates = [...new Set(dataArray.map(item => new Date(item.DATUM).toLocaleDateString()))];
+        var uniqueDates = [...new Set(dataArray.map(item => {
+            const dateString = new Date(item.DATUM).toLocaleDateString();
+            const parts = dateString.split('/');
+            // Rearrange parts
+            return `${parts[1]}/${parts[0]}/${parts[2]}`;
+        }))];
 
         // Group data by machine names
         var groupedData = dataArray.reduce((acc, item) => {
             const machineName = item['Machine name'];
-            const date = new Date(item.DATUM).toLocaleDateString();
+            const dateString = new Date(item.DATUM).toLocaleDateString();
+            const parts = dateString.split('/');
+            const date = `${parts[1]}/${parts[0]}/${parts[2]}`; // Rearrange parts
             const oee = parseFloat(item.OEE);
 
             if (!acc[machineName]) {
@@ -213,7 +220,6 @@
 
          // Destroy existing chart if it exists to prevent duplicate rendering
         if (myChart instanceof Chart) {
-            console.log("Destroying existing chart...");
             myChart.destroy();
         }
 

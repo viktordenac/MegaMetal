@@ -1337,19 +1337,39 @@ def potrosnja_materiala_OEE():
     stranice_list = session["stranice"]
     return render_template("produktivnost_OEE.html", stranice_list=stranice_list)
 
+
 @app.route("/fetch_machine_data")
 def fetch_machine_data():
     if not is_authenticated():
         return redirect(url_for("login"))
+
+    # Query the maximum date from the database
+    max_date = db.session.query(func.max(TREZ_OEE.DATUM)).scalar()
+
+    if not max_date:
+        return jsonify({"error": "No data available"}), 404
+
+    # Convert the maximum date to a string
+    max_date_str = max_date.strftime('%Y-%m-%d')
+
     # Retrieve 'from_date' and 'to_date' from request parameters
-    from_date_str = request.args.get('from_date', '2024-01-01')
-    to_date_str = request.args.get('to_date', '2024-12-31')
+    from_date_str = request.args.get('from_date', max_date_str)
+    to_date_str = request.args.get('to_date', max_date_str)
+
+    # Ensure date strings are not empty
+    from_date_str = from_date_str or max_date_str
+    to_date_str = to_date_str or max_date_str
 
     # Convert date strings to datetime objects
-    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
-    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    try:
+        from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+        to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    except ValueError as e:
+        return jsonify({"error": f"Invalid date format: {e}"}), 400
 
-    machine_data = TREZ_OEE.query.filter(TREZ_OEE.DATUM.between(from_date, to_date)).all()
+    machine_data = TREZ_OEE.query.filter(
+        TREZ_OEE.DATUM.between(from_date, to_date)
+    ).order_by(TREZ_OEE.DATUM).all()
     data = []
     for machine in machine_data:
         data.append({
@@ -1361,6 +1381,7 @@ def fetch_machine_data():
             "OEE": machine.OEE,
             "DATUM": machine.DATUM
         })
+        print(machine.DATUM)
     return jsonify(data)
 
 
@@ -1369,16 +1390,34 @@ def graph_data():
     if not is_authenticated():
         return redirect(url_for("login"))
     data = []
+    # Query the maximum date from the database
+    max_date = db.session.query(func.max(TREZ_OEE.DATUM)).scalar()
+
+    if not max_date:
+        return jsonify({"error": "No data available"}), 404
+
+    # Convert the maximum date to a string
+    max_date_str = max_date.strftime('%Y-%m-%d')
+
     # Retrieve 'from_date' and 'to_date' from request parameters
-    from_date_str = request.args.get('from_date', '2024-01-01')
-    to_date_str = request.args.get('to_date', '2024-12-31')
+    from_date_str = request.args.get('from_date', max_date_str)
+    to_date_str = request.args.get('to_date', max_date_str)
+
+    # Ensure date strings are not empty
+    from_date_str = from_date_str or max_date_str
+    to_date_str = to_date_str or max_date_str
 
     # Convert date strings to datetime objects
-    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
-    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    try:
+        from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+        to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+    except ValueError as e:
+        return jsonify({"error": f"Invalid date format: {e}"}), 400
 
     # Query the database for records within the specified date range
-    machine_data = TREZ_OEE.query.filter(TREZ_OEE.DATUM.between(from_date, to_date)).all()
+    machine_data = TREZ_OEE.query.filter(
+        TREZ_OEE.DATUM.between(from_date, to_date)
+    ).order_by(TREZ_OEE.DATUM).all()
     # Process the data
     for machine in machine_data:
         oe=float(str(machine.OEE).replace("%",""))

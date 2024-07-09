@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prudoktivnost delavcev</title>
+    <!-- Include Chart.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="../../static/style/navigation.css">
+    <link rel="stylesheet" href="../../static/style/potrosnja_materiala_grafi.css">
+    <style>
+        #workerDF {
+            display: flex;
+            justify-content: space-between; /* To evenly distribute the sections */
+        }
+
+        .data-frame-section {
+            width: 48%; /* Adjust the width as needed */
+        }
+    </style>
+
+</head>
+<body>
+<div class="content">
+    <h2>Tabela produktivnosti za obdobje</h2>
+    <form class="date_form">
+        <label for="from_date_table">Tabela za obdobje od:</label>
+        <input type="month" id="from_date_table" name="from_date_table">
+        <label for="to_date_table">Do:</label>
+        <input type="month" id="to_date_table" name="to_date_table">
+        <button type="button" onclick="fetchDataTableForTables()">Prikaži</button>
+    </form>
+    <div id="workerDF">
+        <div id="top5" class="data-frame-section">
+            <h3 style="color: #45a049">Najboljših 5 delavcev</h3>
+            <div id="top5Table"></div>
+        </div>
+        <div id="bottom5" class="data-frame-section">
+            <h3 style="color: red">Najslabših 5 delavcev</h3>
+            <div id="bottom5Table"></div>
+        </div>
+    </div>
+    <br>
+    <form class="date_form">
+        <label for="from_delavec_date_table">Grafi delavca od:</label>
+        <input type="month" id="from_delavec_date_table" name="from_delavec_date_table">
+        <label for="to_delavec_date_table">Do:</label>
+        <input type="month" id="to_delavec_date_table" name="to_delavec_date_table">
+        <button type="button" id="refreshWorkerGraphButton" onclick="displayChartForPerson(nameOfDelavec)" style="display: none">Osveži</button>
+        <button type="button" id="removeWorkerGraphButton" onclick="removeWorkerGraph()" style="display: none">Odstrani</button>
+    </form>
+    <h2 id="workerChartTitle"></h2>
+    <div>
+        <canvas id="delavecChart" class="graph-canvas"></canvas>
+    </div>
+    <hr>
+
+</div>
+
+<script src="../../static/scrypt/produktivnost_delavcev.js"></script>
+<script>
+    let nameOfDelavec = '';
+    document.addEventListener("DOMContentLoaded", function () {
+        // Call your function to set default months once the DOM is fully loaded
+        setDefaultMonthsTable();
+        fetchDataTableForTables();
+    });
+</script>
+</body>
+</html>

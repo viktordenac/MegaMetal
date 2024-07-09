@@ -42,8 +42,11 @@
         Produktivnost &rarr;
         <!-- Inside Dropdown -->
         <div class="dropdown-dropdown">
+            {% if 'produktivnost_delavcev_specific' in stranice_list  %}
+                <a href="{{ url_for('produktivnost_delavcev_specific') }}"><div class="ddDropdown">Delavcev</div></a>
+            {% endif %}
             {% if 'produktivnost_delavcev_grafi' in stranice_list  %}
-                <a href="{{ url_for('produktivnost_delavcev_grafi') }}"><div class="ddDropdown">Delavcev</div></a>
+                <a href="{{ url_for('produktivnost_delavcev_grafi') }}"><div class="ddDropdown">Oddelkov</div></a>
             {% endif %}
             {% if 'potrosnja_materiala_OEE' in stranice_list %}
                 <a href="{{ url_for('potrosnja_materiala_OEE') }}"><div class="ddDropdown">OEE</div></a>

@@ -43,7 +43,8 @@
                         <th>po_identu</th>
                         <th>torta</th>
 
-                        <th>produktivnost</th>
+                        <th>produktivnost_delavcev</th>
+                        <th>produktivnost_oddelki</th>
                         <th>produktivnost_oee</th>
                         <th>produktivnost_pozicije</th>
 
@@ -80,7 +81,7 @@
                     <tr>
                         <td class="username-column">{{ user.Username }}</td>
                         {% for privilege in ['action_plans', 'potrosnja_materiala', 'grupiranje_materiala', 'potrosnja_materiala_torta',
-                        'produktivnost_delavcev_grafi', 'potrosnja_materiala_OEE', 'produktivnost_pozicije',
+                        'produktivnost_delavcev_specific','produktivnost_delavcev_grafi', 'potrosnja_materiala_OEE', 'produktivnost_pozicije',
                         'planiranjePripravnegaDela', 'planiranjePripravnegaDela_2_0' ,'planiranjePripravnegaDelaPravice', 'verzugsLista', 'norme', 'kapaciteta',
                         'izmene', 'tev_evid',
                         'administracija', 'user', 'user_roles', 'skripte', 'aktivni_nalogi', 'neaktivni_nalogi',

@@ -457,6 +457,16 @@ def produktivnost_delavcev_grafi():
     return render_template("produktivnost_delavcev_grafi.html", stranice_list=stranice_list)
 
 
+@app.route("/produktivnost_delavcev_specific")
+def produktivnost_delavcev_specific():
+    if not is_authenticated():
+        return redirect(url_for("login"))
+    # if not inspect.currentframe().f_code.co_name in session["stranice"]:
+    #     return render_template('unauthorized.html', stranice_list=session["stranice"])
+    stranice_list = session["stranice"]
+    return render_template("produktivnost_delavcev_specific.html", stranice_list=stranice_list)
+
+
 @app.route("/produktivnost_pozicije")
 def produktivnost_pozicije():
     if not is_authenticated():
@@ -686,6 +696,52 @@ def potrosnja_materiala_grafi():
 
         print(new_df.columns)
         return jsonify({"data": data, "df": new_df.to_json(orient='records')})
+    else:
+        return jsonify({"error": "No data found"})
+
+
+@app.route("/potrošnja_materiala_precise")
+def potrosnja_materiala_precise():
+    if not is_authenticated():
+        return jsonify({"error": "Not authenticated"})
+
+    # Retrieve 'from_date' and 'to_date' from request parameters
+    from_date_str = request.args.get('from_date', '2024-01-01')
+    to_date_str = request.args.get('to_date', '2024-12-31')
+
+    # Convert date strings to datetime objects
+    from_date = datetime.strptime(from_date_str, '%Y-%m-%d')
+    to_date = datetime.strptime(to_date_str, '%Y-%m-%d')
+
+    # Query the database for records within the specified date range
+    results = TREZ_TIME.query.filter(TREZ_TIME.DateCreated.between(from_date, to_date)).all()
+
+    if results:
+        # Initialize a defaultdict to store data grouped by month
+        data_by_month = defaultdict(list)
+
+        # Process each row and group by month
+        for row in results:
+            try:
+                postotak = (row.Neto / row.Bruto) * 100
+                postotak = round(postotak, 2)  # Round to 2 decimal places
+            except ZeroDivisionError:
+                postotak = 1000  # Handle division by zero error
+
+            # Extract month and year from DateCreated
+            month_year = row.DateCreated.strftime('%Y-%m')
+
+            # Append data to the corresponding month in defaultdict
+            data_by_month[month_year].append({
+                "JobCode": row.JobCode,
+                "DateCreated": row.DateCreated.strftime('%Y-%m-%d'),
+                "Postotak": postotak
+            })
+
+        # Convert defaultdict to a regular dictionary for JSON serialization
+        grouped_data = {month: data for month, data in data_by_month.items()}
+
+        return jsonify({"data": grouped_data})
     else:
         return jsonify({"error": "No data found"})
 
@@ -1367,7 +1423,7 @@ def produktivnost_grafi_delavec_load():
     if table_data:
         return jsonify({"delavecPodatki": table_data})
     else:
-        return jsonify({"error": "No data found"})
+        return jsonify({"error": "Ni najdenih podatkov za izbranega delavca"})
 
 
 @app.route("/potrosnja_materiala_OEE")

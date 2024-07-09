@@ -9,34 +9,46 @@
     <link rel="stylesheet" href="../../static/style/potrosnja_materiala_torta.css">
 </head>
 <body>
-    <!-- Main content -->
-    <div class="content">
-        <h1>Realizacija bruto/neto za periodo</h1>
-        <br>
-        <form id="date_form">
-            <label for="from_date">Od:</label>
-            <input type="date" id="from_date" name="from_date" value="2024-01-01">
-            <label for="to_date">Do:</label>
-            <input type="date" id="to_date" name="to_date" value="2024-12-31">
-            <button type="button" onclick="fetchData()">Prikaži</button>
-        </form>
+<!-- Main content -->
+<div class="content">
+    <h1>Realizacija bruto/neto za periodo</h1>
+    <br>
+    <form id="date_form">
+        <label for="from_date">Od:</label>
+        <input type="date" id="from_date" name="from_date" value="2024-01-01">
+        <label for="to_date">Do:</label>
+        <input type="date" id="to_date" name="to_date" value="2024-12-31">
+        <button type="button" onclick="fetchData()">Prikaži</button>
+    </form>
+    <canvas id="myChart" class="graph-canvas"></canvas>
 
-        <canvas id="myChart" class="graph-canvas"></canvas>
-        <div id="data_table"></div>
-        <hr>
-        <form id="month_form">
-            <label for="from_month">Od: </label>
-            <input type="month" id="from_month" name="from_month">
-            <label for="to_month">Do: </label>
-            <input type="month" id="to_month" name="to_month">
-            <button type="button" onclick="fetchMonthlyData()">Prikaži</button>
-        </form>
-        <canvas id="monthlyChart" class="graph-canvas"></canvas>
-    </div>
+    <div id="data_table"></div>
+    <hr>
+    <form id="month_form">
+        <label for="from_month">Od: </label>
+        <input type="month" id="from_month" name="from_month">
+        <label for="to_month">Do: </label>
+        <input type="month" id="to_month" name="to_month">
+        <button type="button" onclick="fetchMonthlyData()">Prikaži</button>
+    </form>
+    <canvas id="monthlyChart" class="graph-canvas"></canvas>
+
+    <div id="pie_precise"></div>
+    <hr>
+    <form id="pie_precise_date">
+        <label for="from_month_pp">Od: </label>
+        <input type="month" id="from_month_pp" name="from_month_pp">
+        <label for="to_month_pp">Do: </label>
+        <input type="month" id="to_month_pp" name="to_month_pp">
+        <button type="button" onclick="fetchPreciseChartData()">Prikaži</button>
+    </form>
+    <canvas id="pie_precise_chart" class="graph-canvas"></canvas>
+</div>
 
 <script>
     // Get today's date
-	var monthlyChart;
+    var monthlyChart;
+
     var weekAgo = new Date();
     weekAgo.setDate(weekAgo.getDate() - 8); // Set to week ago
     var yesterday = new Date();
@@ -57,6 +69,7 @@
     document.getElementById('from_date').value = weekAgoFormatted;
     document.getElementById('to_date').value = yesterdayFormatted;
 
+
     function setDefaultMonths() {
         const now = new Date();
         const year = now.getFullYear();
@@ -67,20 +80,25 @@
 
         document.getElementById('from_month').value = fromMonth;
         document.getElementById('to_month').value = toMonth;
+        document.getElementById('from_month_pp').value = fromMonth;
+        document.getElementById('to_month_pp').value = toMonth;
+
         fetchMonthlyData();
+        fetchPreciseChartData();
     }
 
     window.onload = setDefaultMonths;
     fetchData(); // Fetch data when the page loads initially
     var myChart; // Declare the chart variable globally
     var specificChart;
+    var pie_precise_chart;
 
     function fetchData() {
         var from_date = document.getElementById('from_date').value;
         var to_date = document.getElementById('to_date').value;
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/potrošnja_materiala_grafi?from_date=' + from_date + '&to_date=' + to_date);
-        xhr.onload = function() {
+        xhr.onload = function () {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
                 displayPieChart(response);
@@ -91,10 +109,137 @@
         xhr.send();
     }
 
+    function fetchPreciseChartData() {
+        var from_selectedMonth = document.getElementById('from_month_pp').value;
+        var from_year = from_selectedMonth.split('-')[0];
+        var from_month = from_selectedMonth.split('-')[1];
+        var to_selectedMonth = document.getElementById('to_month_pp').value;
+        var to_year = to_selectedMonth.split('-')[0];
+        var to_month = to_selectedMonth.split('-')[1];
+        var from_firstDayOfMonth = new Date(from_year, from_month - 1, 2);
+        var to_lastDayOfMonth = new Date(to_year, to_month, 1);
+        var from_date = from_firstDayOfMonth.toISOString().split('T')[0];
+        var to_date = to_lastDayOfMonth.toISOString().split('T')[0];
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/potrošnja_materiala_precise?from_date=' + from_date + '&to_date=' + to_date);
+        xhr.onload = function () {
+            if (xhr.status === 200) {
+                var response = JSON.parse(xhr.responseText);
+                console.log("Response precise: ", response);
+                displayPreciseChart(response.data);
+            } else {
+                console.error('Request failed. Status: ' + xhr.status);
+            }
+        };
+        xhr.send();
+    }
+
+    function displayPreciseChart(response) {
+        const labels = [];
+        const percentages = [];
+        const colors = [];
+
+        // Iterate through grouped data and calculate averages for each month
+        Object.keys(response).forEach(month => {
+            const monthData = response[month];
+            let totalPercentage = 0;
+
+            // Calculate total percentage for the current month
+            monthData.forEach(item => {
+                totalPercentage += item.Postotak;
+            });
+
+            // Calculate average percentage for the current month
+            const averagePercentage = totalPercentage / monthData.length;
+
+            // Determine color based on averagePercentage range
+            let color;
+            if (averagePercentage <= 49) {
+                color = 'rgb(253,0,0)'; // Red
+            } else if (averagePercentage >= 50 && averagePercentage <= 70) {
+                color = 'rgb(253,253,0)'; // Yellow
+            } else {
+                color = 'rgb(0,127,0)'; // Green
+            }
+
+            // Add data to labels, percentages, and colors arrays
+            labels.push(month);
+            percentages.push(averagePercentage.toFixed(2)); // Round to 2 decimal places
+            colors.push(color);
+        });
+
+        if (pie_precise_chart) {
+            pie_precise_chart.destroy();
+        }
+
+        const ctx = document.getElementById('pie_precise_chart').getContext('2d');
+        pie_precise_chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Neto/Bruto',
+                    data: percentages,
+                    backgroundColor: colors,
+                    borderColor: 'rgba(0,0,0,0.8)',
+                    borderWidth: 1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Meseci'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Povprečje'
+                        },
+                        min: 0,
+                        max: 100,
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        titleFont: { // Set the font size for the tooltip header
+                            size: 18 // Adjust the font size as needed
+                        },
+                        bodyFont: { // Set the font size for the tooltip
+                            size: 18 // Adjust the font size as needed
+                        },
+                        callbacks: {
+                            label: function (context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + '%';
+                                }
+                                if (context.dataset.label === 'Postotak') {
+                                    var dataPoint = data[context.dataIndex];
+                                    label += '\nBruto: ' + dataPoint.Bruto;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+
     function displayPieChart(response) {
         var data = response.data;
         var groupedData = groupData(data);
         displayDataTable(tableData); // Call the function here
+
         var labels = Object.keys(groupedData);
         var values = Object.values(groupedData);
         var colors = ['red', 'yellow', 'green'];
@@ -103,7 +248,7 @@
         if (myChart) {
             myChart.destroy();
         }
-        if (specificChart){
+        if (specificChart) {
             specificChart.destroy();
         }
 
@@ -136,26 +281,26 @@
 
     var count = 0;
     var tableData = {
-        '0-49': { count: 0, sum: 0, percentage: 0, color: 'red'},
-        '50-70': { count: 0, sum: 0, percentage: 0, color: 'yellow'},
-        '71-': { count: 0, sum: 0, percentage: 0, color: 'green'}
+        '0-49': {count: 0, sum: 0, percentage: 0, color: 'red'},
+        '50-70': {count: 0, sum: 0, percentage: 0, color: 'yellow'},
+        '71-': {count: 0, sum: 0, percentage: 0, color: 'green'}
     };
 
 
     function groupData(data) {
         var groupedData = {
-            '0-49': { count: 0, sum: 0},
-            '50-70': { count: 0, sum: 0},
-            '71-': { count: 0, sum: 0}
+            '0-49': {count: 0, sum: 0},
+            '50-70': {count: 0, sum: 0},
+            '71-': {count: 0, sum: 0}
         };
         count = 0;
         tableData = {
-            '0-49': { count: 0, sum: 0, percentage: 0, color: 'red'},
-            '50-70': { count: 0, sum: 0, percentage: 0, color: 'yellow'},
-            '71-': { count: 0, sum: 0, percentage: 0, color: 'green'}
+            '0-49': {count: 0, sum: 0, percentage: 0, color: 'red'},
+            '50-70': {count: 0, sum: 0, percentage: 0, color: 'yellow'},
+            '71-': {count: 0, sum: 0, percentage: 0, color: 'green'}
         };
 
-        data.forEach(function(row) {
+        data.forEach(function (row) {
             if (row.Postotak >= 0 && row.Postotak < 50) {
                 count += row.Bruto;
                 groupedData['0-49'].count++;
@@ -176,7 +321,7 @@
             if (groupedData.hasOwnProperty(key)) {
                 if (groupedData[key].count !== 0) {
                     tableData[key].count = groupedData[key].count;
-                    tableData[key].sum = groupedData[key].sum ;
+                    tableData[key].sum = groupedData[key].sum;
                     tableData[key].percentage = ((groupedData[key].sum / count) * 100).toFixed(2);
                     groupedData[key] = groupedData[key].sum;
                 }
@@ -201,7 +346,6 @@
     }
 
 
-
     function fetchMonthlyData() {
         var from_selectedMonth = document.getElementById('from_month').value;
         var from_year = from_selectedMonth.split('-')[0];
@@ -217,7 +361,7 @@
         console.log('To date:', to_date)
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/potrosnja_materiala_mj?from_date=' + from_date + '&to_date=' + to_date);
-        xhr.onload = function() {
+        xhr.onload = function () {
             if (xhr.status === 200) {
                 var response = JSON.parse(xhr.responseText);
                 displayChart(response);
@@ -229,7 +373,7 @@
         xhr.send();
     }
 
-	var categories;
+    var categories;
 
     function displayChart(response) {
         const graphData = response.data;
@@ -237,7 +381,7 @@
         categories = [...new Set(graphData.map(item => item.kate))];
 
         const dataMap = {};
-		if (monthlyChart) {
+        if (monthlyChart) {
             monthlyChart.destroy();
         }
         graphData.forEach(item => {
@@ -301,11 +445,11 @@
                         titleFont: { // Set the font size for the tooltip header
                             size: 18 // Adjust the font size as needed
                         },
-                         bodyFont: { // Set the font size for the tooltip
+                        bodyFont: { // Set the font size for the tooltip
                             size: 18 // Adjust the font size as needed
                         },
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 var label = context.dataset.label || '';
                                 if (label) {
                                     label += ': ';
@@ -330,19 +474,19 @@
         if (clickedPercentage.includes('-')) {
             // Handle range case (e.g., "0-49")
             const [start, end] = clickedPercentage.split('-').map(Number);
-            return function(x) {
+            return function (x) {
                 return start <= x && x <= end;
             };
         } else if (clickedPercentage.includes('>')) {
             // Handle "greater than" case (e.g., ">70")
             const number = Number(clickedPercentage.split('>')[1]);
-            return function(x) {
+            return function (x) {
                 return x > number;
             };
         } else if (clickedPercentage.includes('<')) {
             // Handle "less than" case (e.g., "<50")
             const number = Number(clickedPercentage.split('<')[1]);
-            return function(x) {
+            return function (x) {
                 return x < number;
             };
         } else {
@@ -358,20 +502,21 @@
     }
 
     var labels;
+
     function displaySpecificsChart(response, clickedPercentage) {
         var data = response.data;
-        data = data.filter(function(row) {
-            if(comparePostotak(row.Postotak, clickedPercentage))
+        data = data.filter(function (row) {
+            if (comparePostotak(row.Postotak, clickedPercentage))
                 return row;
         });
         console.log('Data:', data)
-        labels = data.map(function(row) {
+        labels = data.map(function (row) {
             return row.JobCode;
         });
 
-        var postotakData = data.map(function(row, index) {
-            var color = row.Postotak > 100 ? 'rgb(255,165,0, 0.8)': row.Postotak < 50 ? 'rgba(213,20,20, 0.4)': row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0, 0.8)' : (index % 2 === 0 ? 'rgba(0,255,0,0.4)' : 'rgba(0,255,0,0.2)');
-            var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)': row.Postotak < 50 ? 'rgba(0,0,0)' : row.Postotak >= 50 && row.Postotak <=70 ? 'rgb(255,255,0)' : (index % 2 === 0 ? 'rgb(0,255,0)' : 'rgb(0,255,0)');
+        var postotakData = data.map(function (row, index) {
+            var color = row.Postotak > 100 ? 'rgb(255,165,0, 0.8)' : row.Postotak < 50 ? 'rgba(213,20,20, 0.4)' : row.Postotak >= 50 && row.Postotak <= 70 ? 'rgb(255,255,0, 0.8)' : (index % 2 === 0 ? 'rgba(0,255,0,0.4)' : 'rgba(0,255,0,0.2)');
+            var borderColor = row.Postotak > 100 ? 'rgb(0,0,0)' : row.Postotak < 50 ? 'rgba(0,0,0)' : row.Postotak >= 50 && row.Postotak <= 70 ? 'rgb(255,255,0)' : (index % 2 === 0 ? 'rgb(0,255,0)' : 'rgb(0,255,0)');
 
             return {
                 value: row.Postotak,
@@ -392,13 +537,13 @@
                 labels: labels,
                 datasets: [{
                     label: 'Postotak',
-                    data: postotakData.map(function(item) {
+                    data: postotakData.map(function (item) {
                         return item.value;
                     }),
-                    backgroundColor: postotakData.map(function(item) {
+                    backgroundColor: postotakData.map(function (item) {
                         return item.color;
                     }),
-                    borderColor: postotakData.map(function(item) {
+                    borderColor: postotakData.map(function (item) {
                         return item.borderColor;
                     }),
                     borderWidth: 1,
@@ -411,7 +556,7 @@
                         max: 105,
                         ticks: {
                             stepSize: 10,
-                            callback: function(value) {
+                            callback: function (value) {
                                 return value + '%';
                             }
                         }
@@ -422,11 +567,11 @@
                         titleFont: { // Set the font size for the tooltip header
                             size: 18 // Adjust the font size as needed
                         },
-                         bodyFont: { // Set the font size for the tooltip
+                        bodyFont: { // Set the font size for the tooltip
                             size: 18 // Adjust the font size as needed
                         },
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 var label = context.dataset.label || '';
                                 if (label) {
                                     label += ': ';
@@ -447,7 +592,7 @@
         });
     }
 
-    document.getElementById('myChart').addEventListener('click', function(event) {
+    document.getElementById('myChart').addEventListener('click', function (event) {
         // Get the chart instance
         var chartInstance = myChart; // Assuming myChart is your Chart.js instance
         var chartSpecificInstance = specificChart;
@@ -518,7 +663,7 @@
                 };
                 xhr.send();
             }
-        }else{
+        } else {
             console.log("DELA")
         }
     });
